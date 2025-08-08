@@ -18,5 +18,18 @@
 
 /* Main class of the application */
 AmongLLMs {
-    /* TODO: Add later */
+
+    /* Global configuration for button (unless overridden) */
+    & Button {
+        background: $primary;
+        color: $text;
+        border: none;
+
+        width: auto;
+        content-align: center middle;
+
+        &:hover {
+            background: $primary-darken-1;
+        }
+    }
 }

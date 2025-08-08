@@ -10,8 +10,21 @@ ChatWidget {
 ChatSidebarWidget {
     width: 25%;
     height: 100%;
+    padding: 0 2 1 0;
 
-    border-right: round $surface 50%;
+    /* Chats List */
+    & ChatListComponent {
+        width: 100%;
+        padding: 0;
+        height: 1fr;
+    }
+
+    /* New chatroom button */
+    & NewChatRoomButtonComponent {
+        width: 100%;
+        min-height: 3;
+        max-height: 3;
+    }
 
 }
 
