@@ -1,0 +1,22 @@
+/* CSS file for the chat screen */
+
+
+/* Parent container of the chat */
+ChatWidget {
+    padding: 0 2;
+}
+
+/* Sub-container-1: Sidebar (left) */
+ChatSidebarWidget {
+    width: 25%;
+    height: 100%;
+
+    border-right: round $surface 50%;
+
+}
+
+/* Sub-container-2: Contents (right) */
+ChatContentWidget {
+    width: 75%;
+    background: $surface 50%;
+}

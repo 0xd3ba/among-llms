@@ -18,27 +18,5 @@
 
 /* Main class of the application */
 AmongLLMs {
-    /* Tabbed content within the application */
-    & TabbedContent {
-        padding: 1 3;
-    }
-}
-
-
-/* Global configuration for the sections */
-.section {
-    border: round $accent 40%;
-    border-title-color: $text-accent 50%;
-    border-title-align: right;
-
-    &:focus-within {
-        border: round $accent 100%;
-        border-title-color: $foreground;
-        border-title-style: b;
-    }
-}
-
-.section .muted {
-    border: round $surface;
-    border-title-color: $text-muted 40%;
+    /* TODO: Add later */
 }
