@@ -5,7 +5,6 @@ from textual.widgets import Static
 
 class ChatWidget(Static):
     """ Class for the main chat screen """
-
     def __init__(self):
         super().__init__()
 

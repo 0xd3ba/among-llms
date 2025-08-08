@@ -1,21 +1,11 @@
-from textual.widgets import Static
+from textual.app import ComposeResult
+from textual.containers import Horizontal
 
-from allms.utils.time import Time
+from allms.config import AppConfiguration
+from .components.clock import ClockWidgetComponent
 
 
-class ClockWidget(Static):
-    """ Class for the clock widget """
-
-    def __init__(self, clock: Time):
-        super().__init__()
-        self._clock = clock
-
-    def on_mount(self) -> None:
-        self._update_time()
-        self.set_interval(1.0, self._update_time)
-
-    def _update_time(self) -> None:
-        """ Method to update the timestamp on every call """
-        # Example timestamp format: Mon 28 Apr 2025, 13:54:47 EDT
-        time = self._clock.current_timestamp_in_given_format("%a %d %B %Y, %H:%M:%S %Z")
-        self.update(time)
+class ClockWidget(Horizontal):
+    """ Class for clock widget """
+    def compose(self) -> ComposeResult:
+        yield ClockWidgetComponent(AppConfiguration.clock)

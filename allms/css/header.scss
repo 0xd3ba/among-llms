@@ -2,19 +2,19 @@
 
 
 /* Main application header */
-AppHeader {
+AppHeaderWidget {
     color: $text-primary;
     padding: 1 3;
     height: auto;
 }
 
 /* Sub-header displaying the current time */
-ClockHeader {
+ClockWidget {
     color: $text-muted;
     height: auto;
 }
 
 /* Main clock widget */
-ClockWidget {
+ClockWidgetComponent {
     content-align: right middle;
 }

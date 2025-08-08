@@ -1,25 +1,11 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Footer, Label, TabbedContent
-from textual.containers import Horizontal, Vertical
+from textual.widgets import Footer, Label
+from textual.containers import Horizontal
 
+from allms.widgets.app_header import AppHeaderWidget
 from allms.config import AppConfiguration
-from allms.widgets.clock import ClockWidget
 from allms.widgets.chat import ChatWidget
-
-
-class ClockHeader(Horizontal):
-    """ Class for clock header """
-    def compose(self) -> ComposeResult:
-        yield ClockWidget(AppConfiguration.clock)
-
-
-class AppHeader(Horizontal):
-    """ Class for header of the application """
-
-    def compose(self) -> ComposeResult:
-        yield Label(f"[b]{AppConfiguration.app_name}[/] [dim]v{AppConfiguration.app_version}[/]", id="app-header")
-        yield ClockHeader(id="clock-header")
 
 
 class ChatScreen(Screen):
@@ -31,7 +17,7 @@ class ChatScreen(Screen):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield AppHeader()
+        yield AppHeaderWidget()
         yield ChatWidget()
 
         footer = Footer()
