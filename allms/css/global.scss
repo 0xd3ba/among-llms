@@ -1,0 +1,44 @@
+/* CSS file containing global configuration */
+
+
+* {
+    scrollbar-color: $primary 10%;
+    scrollbar-color-hover: $primary 80%;
+    scrollbar-color-active: $primary;
+    scrollbar-background: $surface-darken-1;
+    scrollbar-background-hover: $surface-darken-1;
+    scrollbar-background-active: $surface-darken-1;
+    scrollbar-size-vertical: 1;
+
+    &:focus {
+        scrollbar-color: $primary 50%;
+    }
+}
+
+
+/* Main class of the application */
+AmongLLMs {
+    /* Tabbed content within the application */
+    & TabbedContent {
+        padding: 1 3;
+    }
+}
+
+
+/* Global configuration for the sections */
+.section {
+    border: round $accent 40%;
+    border-title-color: $text-accent 50%;
+    border-title-align: right;
+
+    &:focus-within {
+        border: round $accent 100%;
+        border-title-color: $foreground;
+        border-title-style: b;
+    }
+}
+
+.section .muted {
+    border: round $surface;
+    border-title-color: $text-muted 40%;
+}
