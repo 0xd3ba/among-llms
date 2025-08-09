@@ -7,6 +7,7 @@ ChatWidget {
 }
 
 /* Sub-container-1: Sidebar (left) */
+/* -------------------------------- */
 ChatSidebarWidget {
     width: 25%;
     height: 100%;
@@ -25,10 +26,59 @@ ChatSidebarWidget {
         min-height: 3;
         max-height: 3;
     }
+}
+
+/* Modal dialog container for creating a new chatroom */
+CreateNewChatWidget {
+
+    padding: 0;
+
+    & #create-new-chat-vertical {
+        height: 100%;
+
+        /* Vertical scroll container */
+        & #create-chat-vertical-scroll {
+            height: 1fr;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Select the AI model and reasoning level components */
+        & #select-ai-model-reasoning {
+            height: 7;
+            padding-right: 1;
+        }
+
+       /* Enter the scenario component */
+        & TextAreaComponent {
+            min-height: 7;
+            padding: 0;
+        }
+
+        /* Select the # of agents component */
+        & SelectComponent {
+            height: 3;
+        }
+
+        & #select_num_agents_container {
+            padding: 0 1 0 1;
+            height: 3;
+            margin-right: 1;
+        }
+
+        /* Confirm/Cancel buttons */
+        & #confirm-chat-creation-buttons {
+            height: 3;
+            align: right middle;
+            padding: 1 0 1 0;
+        }
+    }
 
 }
 
+
 /* Sub-container-2: Contents (right) */
+/* --------------------------------- */
 ChatContentWidget {
     width: 75%;
     background: $surface 50%;

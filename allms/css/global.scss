@@ -15,13 +15,23 @@
     }
 }
 
+.round_border {
+    border: round $accent 20%;
+    border-title-color: $accent;
+    border-title-background: $background;
+}
+
+.highlight_border:focus-within {
+    border: round $accent 50%;
+    border-title-style: bold;
+}
+
 
 /* Main class of the application */
 AmongLLMs {
 
     /* Global configuration for button (unless overridden) */
     & Button {
-        background: $primary;
         color: $text;
         border: none;
 
@@ -29,7 +39,48 @@ AmongLLMs {
         content-align: center middle;
 
         &:hover {
-            background: $primary-darken-1;
+            Label {
+                background: $surface;
+            }
         }
     }
+
+    /* Configuration for radio buttons set */
+    & RadioSetComponent {
+
+        border: round $accent 50%;
+        background: $background;
+        content-align: left top;
+
+        &:focus {
+            border: round $accent;
+        }
+
+        & RadioSet {
+            background: $background;
+            border: none;
+        }
+    }
+
+    /* Configuration for all modal dialogs */
+    ModalScreen {
+        align: center middle;
+        width: 75%;
+        height: 75%;
+
+        & Container {
+            background: $background;
+            padding: 1 2 0 2;
+
+            width: 75%;
+            max-height: 75%;
+        }
+
+        & VerticalScroll {
+            scrollbar-gutter: stable;
+            scrollbar-size: 2 1;
+            scrollbar-color: $primary;
+        }
+    }
+
 }

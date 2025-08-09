@@ -3,6 +3,7 @@ from .utils.time import Time
 
 
 class AppConfiguration:
+    """ Class for any configuration required for setting up the app """
 
     # Description of the app
     app_name: str = "Among LLMs"
@@ -15,3 +16,29 @@ class AppConfiguration:
     timezone: str = "US/Eastern"
     clock: Time = Time(timezone)
 
+    # List of AI models
+    # Format: (model_name, is_local_model)
+    ai_models: list[str] = [
+        ("gpt-oss-20b", True),
+        ("gpt-oss-120b", True),
+        # Add other models if needed
+    ]
+
+    ai_reasoning_levels: list[str] = [
+        "low",
+        "medium",
+        "deep"
+    ]
+
+    # Max. number of agents to use per chatroom
+    # Note: Setting it to a large number may cause severe performance issues (unless using an AI model from cloud)
+    max_agents: int = 10
+    default_n_agents: int = 5
+
+
+class StyleConfiguration:
+    """ Class for any configuration required for styling the app """
+
+    # CSS style related classes
+    css_class_round_border: str = "round_border"
+    css_class_highlight_border_on_focus: str = "highlight_border"
