@@ -8,7 +8,7 @@ from allms.config import AppConfiguration
 from allms.widgets.chat import ChatWidget
 
 
-class ChatScreen(Screen):
+class MainChatScreen(Screen):
     """ Main screen of the UI """
 
     AUTO_FOCUS = None

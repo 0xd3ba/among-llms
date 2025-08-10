@@ -8,7 +8,7 @@ from allms.config import StyleConfiguration
 class SelectComponent(Vertical):
     """ A generic class for selection list """
 
-    def __init__(self, choices: list[str], title: str = "", default_choice: int = 0, *args, **kwargs):
+    def __init__(self, choices: list[str], title: str = "", default_choice: int = 0, is_compact: bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.border_title = title
         select_choices = [(c,c) for c in choices]
@@ -17,7 +17,7 @@ class SelectComponent(Vertical):
         assert 0 <= default_choice < len(choices), f"Provided default choice({default_choice}) should be < # of choices ({len(choices)})"
 
         initial_value = choices[default_choice]
-        self._selection_list = Select(options=select_choices, allow_blank=False, value=initial_value, compact=True)
+        self._selection_list = Select(options=select_choices, allow_blank=False, value=initial_value, compact=is_compact)
 
     def on_mount(self) -> None:
         if self.border_title:

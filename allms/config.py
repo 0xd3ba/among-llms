@@ -10,6 +10,7 @@ class AppConfiguration:
     app_tagline: str = "The only one sus here is you. Type wisely as the LLMs are watching ..."
     app_version: str = version.__version__
     app_repo: str = "https://github.com/0xd3ba/among-llms"
+    app_dev: str = "0xd3ba"
 
     # Timezone of the clock
     # Must be a valid timezone from pytz.all_timezones

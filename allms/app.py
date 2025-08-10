@@ -5,7 +5,7 @@ from textual.app import App
 from textual.screen import Screen
 
 from .config import AppConfiguration
-from .screens.chat import ChatScreen
+from .screens.chat import MainChatScreen
 
 
 class AmongLLMs(App):
@@ -32,4 +32,4 @@ class AmongLLMs(App):
         log.debug(msg)
 
     def get_default_screen(self) -> Screen:
-        return ChatScreen()
+        return MainChatScreen()
