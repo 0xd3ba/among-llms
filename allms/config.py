@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+
+import tzlocal
+
 import allms.version as version
 from .utils.time import Time
 
@@ -13,8 +17,7 @@ class AppConfiguration:
     app_dev: str = "0xd3ba"
 
     # Timezone of the clock
-    # Must be a valid timezone from pytz.all_timezones
-    timezone: str = "UTC"
+    timezone: str = tzlocal.get_localzone_name()
     clock: Time = Time(timezone)
 
     # List of AI models supported
@@ -31,3 +34,13 @@ class AppConfiguration:
 
     # Minimum number of agents that should be in the game
     min_agent_count: int = 3
+
+
+@dataclass
+class RunTimeConfiguration:
+    """ Configuration class holding constants from CLI and YAML config file """
+
+    ai_model: str
+    ai_reasoning_lvl: str
+    max_agent_count: int
+    skip_intro: bool

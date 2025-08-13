@@ -2,7 +2,7 @@ import sys
 import logging
 from argparse import ArgumentParser
 
-from allms.config import AppConfiguration
+from allms.config import RunTimeConfiguration
 from allms.utils.parser import YAMLConfigFileParser
 from .cli import AmongLLMs
 
@@ -11,50 +11,32 @@ def parse_args(args: list[str]) -> tuple:
     """ Helper method to build a parser and parse the arguments """
     parser = ArgumentParser()
     parser.add_argument("-c", "--config", type=str, default="config.yml", help="/path/to/config/file")
+    parser.add_argument("-s", "--skip-intro", type=bool, default=False, help="Skip intro splash screen?")
 
     args_list = parser.parse_args(args)
 
     # Reserved some space for future additions (if any)
-    return args_list.config, None
+    return args_list.config, args_list.skip_intro, None
 
 
 def main():
-    config_path, _ = parse_args(sys.argv[1:])
-
-    # Validate the configuration before starting the app
-    config_parser = YAMLConfigFileParser(config_path)
-    config_parser.parse()
-
-    ai_model = config_parser.ai_model
-    ai_reasoning_lvl = config_parser.reasoning_level
-    max_agent_count = config_parser.max_agent_count
-    is_error = False
-
-    if ai_model not in AppConfiguration.ai_models:
-        logging.error(f"Given model({ai_model}) is not supported. Supported models: {AppConfiguration.ai_models}")
-        is_error = True
-
-    if ai_reasoning_lvl not in AppConfiguration.ai_reasoning_levels:
-        logging.error(f"Given reasoning-level({ai_reasoning_lvl}) is not supported. Supported levels: {AppConfiguration.ai_reasoning_levels}")
-        is_error = True
+    config_path, skip_intro, *_ = parse_args(sys.argv[1:])
 
     try:
-        max_agent_count_int = int(max_agent_count)
-        if max_agent_count_int <= AppConfiguration.min_agent_count:
-            raise RuntimeError
-    except ValueError:
-        logging.error(f"Max. number of agents must be an integer but got {max_agent_count} instead")
-        is_error = True
+        yml_parser = YAMLConfigFileParser(config_path)
+        yml_parser.parse()
+        yml_parser.validate()
     except RuntimeError:
-        logging.error(f"Max. number of agents must be atleast >= {AppConfiguration.min_agent_count} but got {max_agent_count_int} instead")
-        is_error = True
-
-    if is_error:
         logging.critical(f"Unable to start the application due to invalid configuration. Exiting the app ... ")
         sys.exit(-1)
 
-    # No error -- Fire up the application
-    app = AmongLLMs(ai_model=ai_model, ai_reasoning_lvl=ai_reasoning_lvl, max_agent_count=max_agent_count_int)
+    # No error -- Bundle the configuration and fire up the app
+    runtime_config = RunTimeConfiguration(ai_model=yml_parser.ai_model,
+                                          ai_reasoning_lvl=yml_parser.reasoning_level,
+                                          max_agent_count=yml_parser.max_agent_count,
+                                          skip_intro=skip_intro)
+
+    app = AmongLLMs(runtime_config)
     app.run()
 
 

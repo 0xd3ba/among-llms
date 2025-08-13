@@ -1,6 +1,9 @@
+import logging
 import pathlib
 
 import yaml
+
+from allms.config import AppConfiguration
 
 
 class YAMLConfigFileParser:
@@ -14,6 +17,7 @@ class YAMLConfigFileParser:
         self._file_path = pathlib.Path(file_path)
         assert self._file_path.exists(), f"Provided file: {file_path} doesn't exist. Make sure the path is correct"
 
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.ai_model: str | None = None
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
@@ -29,3 +33,31 @@ class YAMLConfigFileParser:
         self.ai_model = yml_data[self.key_ai_model].lower()
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
+
+    def validate(self) -> None:
+        """ Validates the parsed arguments """
+        is_error = False
+        if self.ai_model not in AppConfiguration.ai_models:
+            is_error = True
+            logging.error(f"Given model({self.ai_model}) is not supported. Supported models: {AppConfiguration.ai_models}")
+
+        if self.reasoning_level not in AppConfiguration.ai_reasoning_levels:
+            is_error = True
+            logging.error(f"Given reasoning-level({self.reasoning_level}) is not supported." +
+                          "Supported levels: {AppConfiguration.ai_reasoning_levels}")
+
+        try:
+            max_agent_count = int(self.max_agent_count)
+            if max_agent_count <= AppConfiguration.min_agent_count:
+                raise RuntimeError
+            self.max_agent_count = int(self.max_agent_count)
+        except ValueError:
+            is_error = True
+            logging.error(f"Max. number of agents must be an integer but got {self.max_agent_count} instead")
+        except RuntimeError:
+            is_error = True
+            logging.error(f"Max. number of agents must be atleast >= {AppConfiguration.min_agent_count}" +
+                          " but got {max_agent_count_int} instead")
+
+        if is_error:
+            raise RuntimeError(f"Invalid configuration received")

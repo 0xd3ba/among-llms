@@ -1,13 +1,34 @@
-from textual.app import App
+from pathlib import Path
 
-from allms.config import AppConfiguration
+from textual import log
+from textual.app import App
+from textual.screen import Screen
+
+from allms.config import AppConfiguration, RunTimeConfiguration
+from .screens.main import MainScreen
 
 
 class AmongLLMs(App):
-    def __init__(self, ai_model: str, ai_reasoning_lvl: str, max_agent_count: int):
-        super().__init__()
-        self._ai_model = ai_model
-        self._ai_reasoning_lvl = ai_reasoning_lvl
-        self._max_agent_count = max_agent_count
 
-        # TODO: Write the rest of the app
+    AUTO_FOCUS = None
+    ROOT_CSS_PATH = Path(__file__).parent / "css"
+    CSS_PATH = [
+        # TODO: Add the CSS files here
+        # Note: Ordering matters
+    ]
+
+    BINDINGS = [
+        # TODO: Create the bindings
+    ]
+
+    def __init__(self, config: RunTimeConfiguration):
+        super().__init__()
+        self._config = config
+        self._main_screen = MainScreen(self._config)
+
+    def on_ready(self) -> None:
+        msg = f"Start time: {AppConfiguration.clock.current_time_in_iso_format()}"
+        log.debug(msg)
+
+    def get_default_screen(self) -> Screen:
+        return self._main_screen
