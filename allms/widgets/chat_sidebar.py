@@ -3,7 +3,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button
 
 from allms.screens.chat_create import CreateNewChatScreen
-from .components.chat_list import ChatListComponent
+from .chat_list import ChatOptionsList
 from .components.chat_new import NewChatRoomButtonComponent
 
 
@@ -12,7 +12,7 @@ class ChatSidebarWidget(Vertical):
     def __init__(self):
         super().__init__()
         self._new_chatroom_btn_id = "new_chat"
-        self._chat_list = ChatListComponent()
+        self._chat_list = ChatOptionsList()
         self._new_chatroom_btn = NewChatRoomButtonComponent("New Chatroom [+]", variant="primary", id=self._new_chatroom_btn_id)
 
     def compose(self) -> ComposeResult:

@@ -14,10 +14,17 @@ ChatSidebarWidget {
     padding: 0 2 1 0;
 
     /* Chats List */
-    & ChatListComponent {
+    & ChatOptionsList {
         width: 100%;
-        padding: 0;
         height: 1fr;
+
+        background: $background;
+        border: none;
+        padding: 0;
+
+        &:focus {
+            background-tint: $background;
+        }
     }
 
     /* New chatroom button */
