@@ -1,0 +1,21 @@
+# config.yml -- Configuration file for the application
+# Edit according to your needs
+
+# The OpenAI model to use
+# Supported models:
+#   - gpt-oss-20b
+#   - gpt-oss-120b
+model: gpt-oss-20b
+
+# The reasoning level of the selected model
+# Supported values:
+#   - low
+#   - medium
+#   - high
+reasoningLevel: medium
+
+# Maximum number of agents (including you)
+# The number of agents in the game will be <= this value (you will have the option to set it before the game begins)
+# Supported values: Any positive integer >= 3
+# **WARNING**: Setting this to a large value may cause severe performance issues. Adjust accordingly (only if needed)
+maximumAgentCount: 10
