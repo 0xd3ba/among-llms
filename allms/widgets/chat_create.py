@@ -31,7 +31,6 @@ class CreateNewChatWidget(Container):
         self._select_ai_model = RadioSetComponent(title="Choose AI Model", choices=ai_models)
         self._select_reasoning_lvl = RadioSetComponent(title="Reasoning Level", choices=AppConfiguration.ai_reasoning_levels)
         self._scenario_input = TextAreaComponent(title="Scenario")
-        # Note: -1 because default_choice is the index to the choices list
         self._select_agents = SelectComponent(choices=n_agents_choices, default_choice=def_n_agent_idx)
 
     def on_mount(self) -> None:
