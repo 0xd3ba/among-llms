@@ -31,15 +31,14 @@ class NewChatroomWidget(Vertical):
     def compose(self) -> ComposeResult:
         scenario_textbox = TextArea(show_line_numbers=True)
         num_agents_list = Select(options=self._n_agents_choices, allow_blank=False, value=self._default_n_agents, compact=True)
-        confirm_btn = Button("Confirm", variant="success", id=self._id_btn_confirm)
-        cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel)
+        confirm_btn = Button("Confirm", variant="success", id=self._id_btn_confirm, compact=True)
+        cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel, compact=True)
 
         scenario_textbox.focus()
         with VerticalScroll() as v:
             yield self.__wrap_inside_container(scenario_textbox, Horizontal, border_title="Scenario", cid="scenario-textbox")
             yield self.__wrap_inside_container(num_agents_list, Horizontal, border_title="No. of Agents")
 
-        yield Label()
         yield self.__wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="new-chat-buttons")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
