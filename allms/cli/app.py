@@ -13,8 +13,8 @@ class AmongLLMs(App):
     AUTO_FOCUS = None
     ROOT_CSS_PATH = Path(__file__).parent / "css"
     CSS_PATH = [
-        # TODO: Add the CSS files here
         # Note: Ordering matters
+        ROOT_CSS_PATH / "main.scss",
     ]
 
     BINDINGS = [

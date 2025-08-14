@@ -1,0 +1,19 @@
+MainScreen {
+
+    /* Main vertical container hosting widgets */
+    & #main-screen-container {
+        align: center middle;
+    }
+
+    /* Widget hosting the main-menu option items */
+    MainMenuOptionListWidget {
+        content-align: center middle;
+        background: $background;
+
+        &:focus {
+            background-tint: $background;
+            border: none;
+        }
+    }
+
+}
