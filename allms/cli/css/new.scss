@@ -1,0 +1,30 @@
+/* Main container for new chatroom widget */
+NewChatroomWidget {
+    & .new-chatroom-container {
+        width: 100%;
+        min-height: 3;
+        height: auto;
+
+        content-align: center middle;
+    }
+
+    /* Container hosting the textbox */
+    & #scenario-textbox {
+        height: 1fr;
+        min-height: 5;
+
+        & TextArea {
+            border: none;
+            padding: 1;
+        }
+
+        & TextArea:focus {
+            border: none;
+        }
+    }
+
+    /* Container hosting the confirm/cancel buttons */
+    & #new-chat-buttons {
+        align: center middle;
+    }
+}

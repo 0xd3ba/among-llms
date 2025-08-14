@@ -16,6 +16,7 @@ class AmongLLMs(App):
         # Note: Ordering matters
         ROOT_CSS_PATH / "global.scss",
         ROOT_CSS_PATH / "main.scss",
+        ROOT_CSS_PATH / "new.scss",
     ]
 
     BINDINGS = [

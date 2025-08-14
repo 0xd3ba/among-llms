@@ -37,6 +37,13 @@ class AppConfiguration:
     min_agent_count: int = 3
 
 
+class StyleConfiguration:
+    """ Class holding constants for styling purposes """
+    class_border: str = "border"
+    class_border_highlight: str = "highlight-border"
+    class_modal_container: str = "modal-container"
+
+
 @dataclass
 class RunTimeConfiguration:
     """ Configuration class holding constants from CLI and YAML config file """

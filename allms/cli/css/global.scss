@@ -1,0 +1,29 @@
+/* Global border configuration */
+.border {
+    border: round $foreground 20%;
+    border-title-color: $foreground;
+}
+
+.highlight-border:focus-within {
+    border: round $primary;
+    border-title-color: $primary;
+    border-title-style: bold;
+}
+
+
+/* Global configuration for modal screens */
+ModalScreen {
+
+    align: center middle;
+
+    & .modal-container {
+        max-width: 80;
+        min-height: 25;
+        max-height: 50%;
+
+        height: auto;
+        width: 60;
+
+        border-title-align: center;
+    }
+}

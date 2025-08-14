@@ -4,8 +4,9 @@ from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Footer, Static
 
 from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.cli.screens.new import NewChatScreen
 from allms.cli.widgets.banner import BannerWidget
-from allms.cli.widgets.main_menu import MainMenuOptionListWidget
+from allms.cli.widgets.home import MainMenuOptionListWidget
 
 
 class MainScreen(Screen):
@@ -15,10 +16,10 @@ class MainScreen(Screen):
         self._config = config
         self._options = {
             # Main-menu option: Widget that is instantiated when option is clicked
-            # TODO: Map the containers to their respective item
-            "New Chatroom":  None,
-            "Load Chatroom": None,
-            "Quit": None
+            # TODO: Map the handlers to their respective item
+            "New Chatroom":  self.handler_new_chatroom,
+            "Load Chatroom": self.handler_load_chatroom,
+            "Quit": self.handler_quit
         }
 
     def compose(self) -> ComposeResult:
@@ -28,3 +29,12 @@ class MainScreen(Screen):
                 yield MainMenuOptionListWidget(self._config, self._options)
 
         yield Footer()
+
+    async def handler_new_chatroom(self, option_item: str) -> None:
+        await self.app.push_screen(NewChatScreen(option_item, self._config))
+
+    async def handler_load_chatroom(self, option_item: str) -> None:
+        raise NotImplementedError
+
+    async def handler_quit(self, option_item: str) -> None:
+        self.app.exit()
