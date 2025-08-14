@@ -10,6 +10,15 @@
     border-title-style: bold;
 }
 
+/* Global configuration for select widget */
+Select {
+    SelectCurrent {
+        border: none;
+        height: 3;
+        padding: 1 2 1 2;
+    }
+}
+
 
 /* Global configuration for modal screens */
 ModalScreen {

@@ -1,0 +1,55 @@
+ChatroomWidget {
+
+    padding: 1 2 1 2;
+
+    /* Container hosting the chats */
+    & ChatroomContents {
+        height: 1fr;
+        width: 100%;
+        min-width: 80;
+    }
+
+    /* Container hosting the current typing agents */
+    & ChatroomIsTyping {
+        width: 100%;
+        height: 3;
+        align: right middle;
+        color: $foreground 50%;
+    }
+
+    /* Container hosting the input and buttons for typing and sending messages */
+    & #chat-type-send-container {
+        height: 3;
+        width: 100%;
+
+        /* Text-area */
+        & Input {
+            width: 1fr;
+            border: none;
+            padding: 1 2 1 2;
+            margin: 0 1 0 1;
+            background: $foreground 5%;
+
+            &:focus-within {
+                background: $foreground 10%;
+            }
+        }
+
+        /* Message send button */
+        & Button {
+            height: 3;
+            margin-left: 1;
+            border: none;
+        }
+
+        /* Selection list for send-to/send-as choices */
+        & Select {
+            width: 15;
+            background: $foreground 5%;
+            &:focus-within {
+                background: $foreground 10%;
+            }
+        }
+    }
+
+}

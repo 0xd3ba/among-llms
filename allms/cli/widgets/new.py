@@ -5,6 +5,7 @@ from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.widget import Widget
 from textual.widgets import Label, TextArea, Select, Button
 
+from allms.cli.screens.chat import ChatroomScreen
 from allms.config import AppConfiguration, RunTimeConfiguration, StyleConfiguration
 
 
@@ -48,7 +49,7 @@ class NewChatroomWidget(Vertical):
             self.app.pop_screen()
         elif btn_pressed_id == self._id_btn_confirm:
             self.app.pop_screen()
-            # TODO: Launch a new screen and start the chat
+            self.app.push_screen(ChatroomScreen(self._config))
         else:
             # Should not arrive at this branch or else there is a bug
             raise RuntimeError(f"Received a button pressed event from button-id({btn_pressed_id}) on {self.__class__.__name__}")
