@@ -1,9 +1,10 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.containers import Vertical
-from textual.widgets import Footer
+from textual.containers import Vertical, VerticalScroll
+from textual.widgets import Footer, Static
 
-from allms.config import RunTimeConfiguration
+from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.cli.widgets.banner import BannerWidget
 from allms.cli.widgets.main_menu import MainMenuOptionListWidget
 
 
@@ -21,7 +22,9 @@ class MainScreen(Screen):
         }
 
     def compose(self) -> ComposeResult:
-        with Vertical(id="main-screen-container"):
-            yield MainMenuOptionListWidget(self._options)
+        with VerticalScroll(id="main-screen-container"):
+            yield BannerWidget(self._config)
+            with Vertical(id="main-screen-option-container"):
+                yield MainMenuOptionListWidget(self._config, self._options)
 
         yield Footer()

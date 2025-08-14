@@ -7,6 +7,8 @@ from textual.reactive import reactive
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 
+from allms.config import RunTimeConfiguration
+
 
 @dataclass
 class MainMenuOptionItemRenderable:
@@ -14,7 +16,7 @@ class MainMenuOptionItemRenderable:
     item_text: str
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
-        yield Text(self.item_text)
+        yield Text(self.item_text, justify="center")
 
 
 class MainMenuOptionItem(Option):
@@ -28,8 +30,9 @@ class MainMenuOptionItem(Option):
 class MainMenuOptionListWidget(OptionList):
 
     """ Class for main-menu widget displaying list of options """
-    def __init__(self, option_map: dict[str, Container], *args, **kwargs):
+    def __init__(self, config: RunTimeConfiguration, option_map: dict[str, Container], *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._config = config
         self._option_map = option_map
         assert len(option_map) > 0, f"Expected main-menu items to be > 0 but got no items"
 

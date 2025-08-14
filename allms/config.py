@@ -11,10 +11,11 @@ class AppConfiguration:
 
     # Description of the app
     app_name: str = "Among LLMs"
-    app_tagline: str = "The only one sus here is you. Type wisely as the LLMs are watching ..."
+    app_tagline: list[str] = ["One human. Multiple bots.", "Do whatever it takes to not get caught!"]
     app_version: str = version.__version__
     app_repo: str = "https://github.com/0xd3ba/among-llms"
     app_dev: str = "0xd3ba"
+    app_hackathon: str = "OpenAI Open Model Hackathon 2025"
 
     # Timezone of the clock
     timezone: str = tzlocal.get_localzone_name()
