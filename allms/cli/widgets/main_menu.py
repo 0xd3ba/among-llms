@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.text import Text
 from textual.containers import Container
-from textual.reactive import reactive
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 
