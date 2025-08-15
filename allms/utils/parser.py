@@ -1,5 +1,5 @@
 import logging
-import pathlib
+from pathlib import Path
 
 import yaml
 
@@ -8,24 +8,32 @@ from allms.config import AppConfiguration
 
 class BaseYAMLParser:
     """ Base class for parsing YAML files """
-    def __init__(self, file_path: str | pathlib.Path):
-        self._file_path = pathlib.Path(file_path)
+    def __init__(self, file_path: str | Path):
+        self._file_path = Path(file_path)
         assert self._file_path.exists(), f"Provided file: {file_path} doesn't exist. Make sure the path is correct"
 
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def parse(self) -> dict:
+    def parse(self, root_key: str = None) -> dict:
         with open(self._file_path, "r") as f:
             yml_data = yaml.safe_load(f)
+            if root_key is not None:
+                assert root_key in yml_data, f"Provided root key({root_key}) is not valid"
+                yml_data = yml_data[root_key]
 
-        expected_keys = [getattr(self.__class__, attr) for attr in dir(self.__class__) if attr.startswith("key_")]
+        expected_keys = self.get_yml_keys()
         for ek in expected_keys:
             assert ek in yml_data, f"Expecting {ek} to be present in the YAML file but is missing. Did you miss it?"
         return yml_data
     
-    def validate(self) -> None:
-        """ Validates the parsed arguments. Needs to raise RuntimeError if validation fails """
+    def validate(self, yml_data: dict = None) -> None:
+        """ Validates the parsed arguments. Needs to raise RuntimeError/AssertionError if validation fails """
         raise NotImplementedError
+
+    def get_yml_keys(self) -> list[str]:
+        """ Method to get all the keys in the yml file """
+        keys = [getattr(self.__class__, attr) for attr in dir(self.__class__) if attr.startswith("key_")]
+        return keys
 
 
 class YAMLConfigFileParser(BaseYAMLParser):
@@ -35,19 +43,20 @@ class YAMLConfigFileParser(BaseYAMLParser):
     key_reasoning_level: str = "reasoningLevel"
     key_max_agent_count: str = "maximumAgentCount"
 
-    def __init__(self, file_path: str | pathlib.Path):
+    def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         self.ai_model: str | None = None
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
 
-    def parse(self) -> None:
+    def parse(self, root_key: str = None) -> dict:
         yml_data = super().parse()
         self.ai_model = yml_data[self.key_ai_model].lower()
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
+        return yml_data
 
-    def validate(self) -> None:
+    def validate(self, yml_data: dict = None) -> None:
         """ Validates the parsed arguments """
         is_error = False
         if self.ai_model not in AppConfiguration.ai_models:
@@ -74,3 +83,35 @@ class YAMLConfigFileParser(BaseYAMLParser):
 
         if is_error:
             raise RuntimeError(f"Invalid configuration received")
+
+
+class YAMLPersonaParser(BaseYAMLParser):
+    """ Parser for the agent persona file """
+
+    root: str = "persona"
+    key_species: str = "species"
+    key_intelligence: str = "intelligence-level"
+    key_likes: str = "likes"
+    key_dislikes: str = "dislikes"
+    key_jobs: str = "jobs"
+    key_traits: str = "traits"
+    key_personality: str = "personality"
+    key_hobbies: str = "hobbies"
+    key_additional_languages: str = "additional-languages"
+    key_relationships: str = "relationships"
+
+    def __init__(self, file_path: str | Path):
+        super().__init__(file_path)
+
+    def parse(self, root_key: str = None) -> dict:
+        yml_data = super().parse(root_key=self.root)
+        return yml_data
+
+    def validate(self, yml_data: dict = None) -> None:
+        assert yml_data is not None, f"Expected to receive the yml data for validation but received None instead"
+        keys = self.get_yml_keys()
+
+        # As long as each list has > 0 entries, we're good
+        for key in keys:
+            if not yml_data[key]:
+                raise RuntimeError(f"Expected key={key} list to have > 0 entries but the list is empty")
