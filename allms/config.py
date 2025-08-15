@@ -50,6 +50,13 @@ class StyleConfiguration:
     class_modal_container: str = "modal-container"
 
 
+class BindingConfiguration:
+    """ Class holding the global hotkey bindings """
+
+    # Bindings for new chat creation screen
+    new_chat_randomize_scenario = "ctrl+r"
+    new_chat_randomize_agents = "ctrl+alt+r"
+
 @dataclass
 class RunTimeConfiguration:
     """ Configuration class holding constants from CLI and YAML config file """

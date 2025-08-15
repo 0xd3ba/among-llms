@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Optional
 
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
@@ -10,7 +10,7 @@ from allms.config import AppConfiguration, RunTimeConfiguration, StyleConfigurat
 from allms.core.state import GameStateManager
 
 
-# TODO: Add support for randomizing scenario, agent personas and screen for customizing agent personas
+# TODO: Add support for randomizing agent personas and screen for customizing agent personas
 class NewChatroomWidget(Vertical):
     def __init__(self, title, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,6 +27,8 @@ class NewChatroomWidget(Vertical):
         self._id_btn_confirm = "new-chat-confirm"
         self._id_btn_cancel = "new-chat-cancel"
 
+        self._scenario_textbox: Optional[TextArea] = None
+
     def on_mount(self) -> None:
         self.add_class(StyleConfiguration.class_border)
         self.add_class(StyleConfiguration.class_modal_container)
@@ -41,11 +43,14 @@ class NewChatroomWidget(Vertical):
         cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel, compact=True)
 
         scenario_textbox.focus()
+
         with VerticalScroll() as v:
             yield self.__wrap_inside_container(scenario_textbox, Horizontal, border_title="Scenario", cid="scenario-textbox")
             yield self.__wrap_inside_container(num_agents_list, Horizontal, border_title="No. of Agents")
-
         yield self.__wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="new-chat-buttons")
+
+        # Save the references as they will be needed later on, for key bind actions
+        self._scenario_textbox = scenario_textbox
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """ Event handler for button clicked event """
@@ -81,3 +86,8 @@ class NewChatroomWidget(Vertical):
             container.add_class(StyleConfiguration.class_border_highlight)
 
         return container
+
+    def action_randomize_scenario(self) -> None:
+        """ Invoked when key binding for randomizing scenario is pressed """
+        self._state_manager.randomize_scenario()
+        self._scenario_textbox.text = self._state_manager.scenario
