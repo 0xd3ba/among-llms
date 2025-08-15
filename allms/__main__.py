@@ -2,7 +2,7 @@ import sys
 import logging
 from argparse import ArgumentParser
 
-from allms.config import RunTimeConfiguration
+from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.utils.parser import YAMLConfigFileParser
 from .cli import AmongLLMs
 
@@ -31,9 +31,12 @@ def main():
         sys.exit(-1)
 
     # No error -- Bundle the configuration and fire up the app
+    min_agent_count = AppConfiguration.min_agent_count
+    default_agent_count = (min_agent_count + yml_parser.max_agent_count) // 2
     runtime_config = RunTimeConfiguration(ai_model=yml_parser.ai_model,
                                           ai_reasoning_lvl=yml_parser.reasoning_level,
                                           max_agent_count=yml_parser.max_agent_count,
+                                          default_agent_count=default_agent_count,
                                           skip_intro=skip_intro)
 
     app = AmongLLMs(runtime_config)

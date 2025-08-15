@@ -20,7 +20,7 @@ class NewChatroomWidget(Vertical):
         max_agents = self._config.max_agent_count
         # Choices should be of following type: (value_displayed_in_UI, value_returned_on_selection)
         self._n_agents_choices = [(str(i), i) for i in range(min_agents, max_agents + 1)]
-        self._default_n_agents = (min_agents + max_agents) // 2
+        self._default_n_agents = self._config.default_agent_count
 
         self._id_btn_confirm = "new-chat-confirm"
         self._id_btn_cancel = "new-chat-cancel"

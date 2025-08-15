@@ -57,4 +57,5 @@ class RunTimeConfiguration:
     ai_model: str
     ai_reasoning_lvl: str
     max_agent_count: int
+    default_agent_count: int
     skip_intro: bool
