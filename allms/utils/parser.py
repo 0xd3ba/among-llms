@@ -32,7 +32,8 @@ class BaseYAMLParser:
 
     def get_yml_keys(self) -> list[str]:
         """ Method to get all the keys in the yml file """
-        keys = [getattr(self.__class__, attr) for attr in dir(self.__class__) if attr.startswith("key_")]
+        keys = [getattr(self.__class__, attr) for attr in dir(self.__class__) if attr.startswith("key_")
+                and attr in self.__class__.__dict__]
         return keys
 
 
@@ -115,3 +116,17 @@ class YAMLPersonaParser(BaseYAMLParser):
         for key in keys:
             if not yml_data[key]:
                 raise RuntimeError(f"Expected key={key} list to have > 0 entries but the list is empty")
+
+
+class YAMLScenarioParser(YAMLPersonaParser):
+    """ Parser for the scenario file """
+
+    root: str = "scenario"
+    key_base_setting: str = "base-setting"
+    key_backgrounds: str = "backgrounds"
+    key_actions: str = "actions"
+    key_twists: str = "twists"
+
+    def __init__(self, file_path: str | Path):
+        super().__init__(file_path)
+        # Since it shares same functionality with Persona parser, just inherit it
