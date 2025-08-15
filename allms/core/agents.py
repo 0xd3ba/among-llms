@@ -11,7 +11,7 @@ class Agent:
     persona: str  # The persona assigned to the agent
 
     # List of message IDs of the messages sent by the agent
-    msg_ids: set[str] = field(default_factory=list)
+    msg_ids: set[str] = field(default_factory=set)
 
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
