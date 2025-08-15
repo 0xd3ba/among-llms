@@ -42,6 +42,7 @@ class PersonaGenerator(BaseGenerator):
         self._max_choices = max_choices
         self._relationships: list[str] = []
         self._age_range: list[str] = [str(i) for i in range(18, 101)]
+        self._persona: str = ""
 
     def generate(self) -> str:
         """ Generate a random persona and returns it """
@@ -87,15 +88,27 @@ class PersonaGenerator(BaseGenerator):
                   f"{_join_items(agent_traits)} and is {_join_items(agent_personalities)}. Hobbies are " + \
                   f"{_join_items(agent_hobbies)}. Knows to read and write {_join_items(agent_languages)}."
 
+        self._persona = persona
         return persona
 
-    def set_relationships(self, agent_ids: list[str]) -> str:
+    def set_relationships(self, agent_id: str, agent_ids: list[str]) -> str:
         """
         Set the relationship between the agent and the rest of the agents
         Returns the resulting persona string
         """
-        # TODO: Implement this later on
-        raise NotImplementedError
+        set_agents = set(agent_ids)
+        if agent_id in set_agents:
+            set_agents.remove(agent_id)  # Ensure you don't pick yourself
+
+        agent_ids = list(set_agents)
+
+        n_relationships = len(self._relationships)
+        agent_ids_random = [self.choose_from(agent_ids) for _ in range(n_relationships)]
+
+        for rel, aid in zip(self._relationships, agent_ids_random):
+            self._persona += f" Is a {rel} of {aid}."
+
+        return self._persona
 
 
 class ScenarioGenerator(BaseGenerator):

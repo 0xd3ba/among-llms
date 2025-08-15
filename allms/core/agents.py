@@ -1,8 +1,11 @@
 from dataclasses import dataclass, field
 
+from allms.config import AppConfiguration
+from .generate import PersonaGenerator
 
-@dataclass
-class Agent(frozenset=True):
+
+@dataclass(frozen=True)
+class Agent:
     """ Class for an agent """
     id: str       # The unique identifier of the agent
     persona: str  # The persona assigned to the agent
@@ -18,3 +21,32 @@ class Agent(frozenset=True):
     def get_message_ids(self) -> list[str]:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
         return sorted(list(self.msg_ids))
+
+
+class AgentFactory:
+    """ Factory class for producing agents """
+    @staticmethod
+    def create(n_agents: int) -> list[Agent]:
+        """ Creates N agents and returns them """
+        min_count = AppConfiguration.min_agent_count
+        assert n_agents >= min_count, f"Expected no. of agents to be >= {min_count} but received {n_agents} instead"
+
+        agents = []
+        persona_generator = PersonaGenerator()
+
+        agent_ids = [AgentFactory.create_agent_id(i) for i in range(1, n_agents+1)]
+
+        for agent_id in agent_ids:
+            _ = persona_generator.generate()
+            persona = persona_generator.set_relationships(agent_id, agent_ids)
+            agent = Agent(id=agent_id, persona=persona)
+
+            agents.append(agent)
+
+        return agents
+
+    @staticmethod
+    def create_agent_id(i: int) -> str:
+        """ Given an integer, returns the current agent ID """
+        prefix = "Agent-"
+        return f"{prefix}{i}"

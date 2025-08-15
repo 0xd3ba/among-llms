@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from .message import ChatMessage
 
 
-@dataclass
-class ChatMessageHistory(frozenset=True):
+@dataclass(frozen=True)
+class ChatMessageHistory:
     """ Class for a storing the history of chat messages """
     # Maps message ID to the message for efficient retrieval and modification
     _history: OrderedDict[str, ChatMessage] = field(default_factory=OrderedDict)
