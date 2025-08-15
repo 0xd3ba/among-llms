@@ -1,6 +1,6 @@
-# scenario.yml -- File containing the components of the personas that will be mixed and matched
-#                 to form a unique persona. Customize it according to your needs or maybe leave it as is since
-#                 you'll have the option of customizing your own persona through the app itself
+# persona.yml -- File containing the components of the personas that will be mixed and matched
+#                to form a unique persona. Customize it according to your needs or maybe leave it as is since
+#                you'll have the option of customizing your own persona through the app itself
 
 persona:
   species:
