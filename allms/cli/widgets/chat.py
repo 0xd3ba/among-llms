@@ -3,6 +3,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Input, Label, Select, TextArea
 
 from allms.config import RunTimeConfiguration, StyleConfiguration
+from allms.core.state import GameStateManager
 
 
 class ChatroomContents(VerticalScroll):
@@ -26,9 +27,10 @@ class ChatroomIsTyping(Horizontal):
 class ChatroomWidget(Vertical):
     """ Class for the main chatroom widget """
     # TODO: Need to support taking chat data as argument for loading a saved chat
-    def __init__(self, config: RunTimeConfiguration, is_disabled: bool = False, *args, **kwargs):
+    def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._config = config
+        self._state_manager = state_manager
         self._is_disabled = is_disabled
         self._contents_widget = ChatroomContents(self._config)
         self._is_typing_widget = ChatroomIsTyping()

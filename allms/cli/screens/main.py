@@ -7,6 +7,7 @@ from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.cli.screens.new import NewChatScreen
 from allms.cli.widgets.banner import BannerWidget
 from allms.cli.widgets.home import MainMenuOptionListWidget
+from allms.core.state import GameStateManager
 
 
 class MainScreen(Screen):
@@ -22,6 +23,8 @@ class MainScreen(Screen):
             "Quit": self.handler_quit
         }
 
+        self._state_manager = GameStateManager(self._config)
+
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="main-screen-container"):
             yield BannerWidget(self._config)
@@ -31,7 +34,7 @@ class MainScreen(Screen):
         yield Footer()
 
     async def handler_new_chatroom(self, option_item: str) -> None:
-        await self.app.push_screen(NewChatScreen(option_item, self._config))
+        await self.app.push_screen(NewChatScreen(option_item, self._config, self._state_manager))
 
     async def handler_load_chatroom(self, option_item: str) -> None:
         raise NotImplementedError

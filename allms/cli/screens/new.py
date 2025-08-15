@@ -5,15 +5,17 @@ from textual.widgets import Label, Footer
 
 from allms.config import RunTimeConfiguration
 from allms.cli.widgets.new import NewChatroomWidget
+from allms.core.state import GameStateManager
 
 
 class NewChatScreen(ModalScreen):
     """ Screen for creating new chatroom """
-    def __init__(self, title: str, config: RunTimeConfiguration, *args, **kwargs):
+    def __init__(self, title: str, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._title = title
         self._config = config
+        self._state_manager = state_manager
 
     def compose(self) -> ComposeResult:
-        yield NewChatroomWidget(self._title, self._config)
+        yield NewChatroomWidget(self._title, self._config, self._state_manager)
         yield Footer()

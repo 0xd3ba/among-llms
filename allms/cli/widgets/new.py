@@ -7,14 +7,16 @@ from textual.widgets import Label, TextArea, Select, Button
 
 from allms.cli.screens.chat import ChatroomScreen
 from allms.config import AppConfiguration, RunTimeConfiguration, StyleConfiguration
+from allms.core.state import GameStateManager
 
 
 # TODO: Add support for randomizing scenario, agent personas and screen for customizing agent personas
 class NewChatroomWidget(Vertical):
-    def __init__(self, title, config: RunTimeConfiguration, *args, **kwargs):
+    def __init__(self, title, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._config = config
         self.border_title = title
+        self._state_manager = state_manager
 
         min_agents = AppConfiguration.min_agent_count
         max_agents = self._config.max_agent_count
@@ -30,7 +32,10 @@ class NewChatroomWidget(Vertical):
         self.add_class(StyleConfiguration.class_modal_container)
 
     def compose(self) -> ComposeResult:
-        scenario_textbox = TextArea(show_line_numbers=True)
+
+        self._state_manager.new()   # Create a new game state
+
+        scenario_textbox = TextArea(text=self._state_manager.scenario, show_line_numbers=True)
         num_agents_list = Select(options=self._n_agents_choices, allow_blank=False, value=self._default_n_agents, compact=True)
         confirm_btn = Button("Confirm", variant="success", id=self._id_btn_confirm, compact=True)
         cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel, compact=True)
@@ -49,7 +54,7 @@ class NewChatroomWidget(Vertical):
             self.app.pop_screen()
         elif btn_pressed_id == self._id_btn_confirm:
             self.app.pop_screen()
-            self.app.push_screen(ChatroomScreen(self._config))
+            self.app.push_screen(ChatroomScreen(self._config, self._state_manager))
         else:
             # Should not arrive at this branch or else there is a bug
             raise RuntimeError(f"Received a button pressed event from button-id({btn_pressed_id}) on {self.__class__.__name__}")
