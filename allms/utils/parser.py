@@ -91,6 +91,7 @@ class YAMLPersonaParser(BaseYAMLParser):
 
     root: str = "persona"
     key_species: str = "species"
+    key_gender: str = "gender"
     key_intelligence: str = "intelligence-level"
     key_likes: str = "likes"
     key_dislikes: str = "dislikes"

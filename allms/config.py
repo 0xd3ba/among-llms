@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 import tzlocal
 
@@ -35,6 +36,11 @@ class AppConfiguration:
 
     # Minimum number of agents that should be in the game
     min_agent_count: int = 3
+
+    # Path of the resource files
+    __resource_dir_root = Path(__file__).parent / "res"
+    resource_persona_path = __resource_dir_root / "persona.yml"
+    resource_scenario_path = __resource_dir_root / "scenario.yml"
 
 
 class StyleConfiguration:

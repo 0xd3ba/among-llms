@@ -28,6 +28,12 @@ persona:
     - "android"
     - "mutant"
     - "sloth"
+  gender:
+    - "male"
+    - "female"
+    - "transgender"
+    - "binary"
+    - "non-binary"
   intelligence-level:
     - "potato"
     - "utterly clueless"
