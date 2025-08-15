@@ -4,7 +4,7 @@ from allms.config import AppConfiguration
 from .generate import PersonaGenerator
 
 
-@dataclass(frozen=True)
+@dataclass
 class Agent:
     """ Class for an agent """
     id: str       # The unique identifier of the agent
@@ -21,6 +21,10 @@ class Agent:
     def get_message_ids(self) -> list[str]:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
         return sorted(list(self.msg_ids))
+
+    def update_persona(self, persona: str) -> None:
+        """ Updates the persona of the agent with the provided one """
+        self.persona = persona
 
 
 class AgentFactory:
