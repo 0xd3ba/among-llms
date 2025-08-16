@@ -61,7 +61,9 @@ class BindingConfiguration:
     new_chat_customize_agents = "ctrl+s"
 
     # Bindings for chat screen
-    chatroom_show_your_persona = "ctrl+s"
+    chatroom_show_your_persona = "f1"
+    chatroom_show_all_persona = "f2"
+
 
 @dataclass
 class RunTimeConfiguration:

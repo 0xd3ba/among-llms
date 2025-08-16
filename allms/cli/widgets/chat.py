@@ -4,6 +4,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Input, Label, Select, TextArea
 
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
+from allms.cli.screens.customize import CustomizeAgentsScreen
 from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
 
@@ -30,7 +31,8 @@ class ChatroomWidget(Vertical):
     """ Class for the main chatroom widget """
 
     BINDINGS = [
-        Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "View your persona")
+        Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "Your persona"),
+        Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All personas")
     ]
 
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
@@ -101,3 +103,10 @@ class ChatroomWidget(Vertical):
     def action_view_persona(self) -> None:
         """ Invoked when key binding for viewing your persona is pressed """
         self.__show_assignment_screen()
+
+    def action_view_all_personas(self) -> None:
+        """ Invoked when key binding for viewing all personas is pressed """
+        # Re-use customize agent screen but make it read-only
+        screen_title = "Agent Personas"
+        screen = CustomizeAgentsScreen(screen_title, self._config, self._state_manager, widget_params=dict(read_only=True))
+        self.app.push_screen(screen)

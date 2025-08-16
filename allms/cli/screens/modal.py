@@ -22,12 +22,16 @@ class BaseModalScreen(ModalScreen):
                  config: RunTimeConfiguration,
                  state_manager: GameStateManager,
                  widget_cls: Type[ModalScreenWidget],
+                 widget_params: dict = None,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._title = title
         self._config = config
         self._state_manager = state_manager
-        self._widget = widget_cls(self._title, self._config, self._state_manager)
+
+        if widget_params is None:
+            widget_params = dict()
+        self._widget = widget_cls(self._title, self._config, self._state_manager, **widget_params)
 
     def compose(self) -> ComposeResult:
         yield self._widget

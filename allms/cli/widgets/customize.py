@@ -1,8 +1,8 @@
-import copy
 from typing import Optional
 
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import BindingsMap
 from textual.containers import Horizontal, VerticalScroll
 from textual.widgets import Label, TextArea, Select, Button
 
@@ -18,8 +18,9 @@ class CustomizeAgentsWidget(ModalScreenWidget):
         (BindingConfiguration.new_chat_randomize_agent_persona, "randomize_agent_persona", "Randomize Agent Persona")
     ]
 
-    def __init__(self, title: str, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
+    def __init__(self, title: str, config: RunTimeConfiguration, state_manager: GameStateManager, read_only: bool = False, *args, **kwargs):
         super().__init__(title, config, state_manager, *args, **kwargs)
+        self._read_only = read_only
         self._all_agents = self._state_manager.get_all_agents()
         self._agent_ids = sorted(list(self._all_agents.keys()), key=AgentFactory.agent_id_comparator)
 
@@ -32,20 +33,30 @@ class CustomizeAgentsWidget(ModalScreenWidget):
         self._curr_agent_id_selected: str = ""
         self._persona_text_box: Optional[TextArea] = None
 
+        # Unset the bindings to avoid editing in read-only mode
+        if self._read_only:
+            self._bindings = BindingsMap()
+
     def compose(self) -> ComposeResult:
         agent_ids = [(aid, aid) for aid in self._agent_ids]
         default_agent_id = self._agent_ids[0]
         default_text = self._all_agents[default_agent_id].persona
 
         select_box = Select(options=agent_ids, allow_blank=False, value=default_agent_id, compact=True)
-        textbox = TextArea(text=default_text, show_line_numbers=True)
+        textbox = TextArea(text=default_text, show_line_numbers=True, read_only=self._read_only)
         confirm_btn = Button("Confirm", variant="success", id=self._id_btn_confirm, compact=True)
         cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel, compact=True)
 
         with VerticalScroll():
             yield self._wrap_inside_container(select_box, Horizontal, border_title="Choose Agent")
             yield self._wrap_inside_container(textbox, Horizontal, border_title="Agent's Persona", cid="persona-textbox")
-        yield self._wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="customize-agent-buttons")
+
+        # read-only mode happens when we are inside the chatroom and we need to see all the agent personas
+        # Instead of creating a dedicated widget for it, re-use this widget -- bit of an ugly solution, but it gets the
+        # job done ... for now atleast ¯\_(ツ)_/¯
+        # Note: There is no need for the buttons in read-only mode
+        if not self._read_only:
+            yield self._wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="customize-agent-buttons")
 
         select_box.focus()
 
