@@ -5,7 +5,7 @@ from typing import Optional
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessageHistory
-from allms.core.generate import ScenarioGenerator
+from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
 from .state import GameState
 
@@ -17,6 +17,7 @@ class GameStateManager:
         self._config = config
         self._logger = logging.getLogger(self.__class__.__name__)
         self._scenario_generator = ScenarioGenerator()
+        self._persona_generator = PersonaGenerator()
 
         self._scenario: str = ""
         self._game_state: Optional[GameState] = None
@@ -33,7 +34,7 @@ class GameStateManager:
         self._event_logs = GameEventLogs()
 
         self._game_state = GameState(messages=self._messages, events=self._event_logs)
-        self.randomize_scenario()
+        self.update_scenario(self.generate_scenario())
         self.create_agents(self._config.default_agent_count)
 
     def load(self, file_path: str | Path) -> None:
@@ -66,12 +67,22 @@ class GameStateManager:
         self.__check_game_state_validity()
         self._game_state.assign_agent(agent_id)
 
-    def randomize_scenario(self) -> None:
-        """ Randomizes the scenario with a new one """
-        self._scenario = self._scenario_generator.generate()
-        self.__check_game_state_validity()
+    def generate_persona(self, agent_id: str, agent_ids: list[str]) -> str:
+        """ Generates a new agent persona and returns it """
+        persona = self._persona_generator.generate()
+        persona = self._persona_generator.set_relationships(agent_id, agent_ids)
+        return persona
 
-        self._game_state.initialize_scenario(self._scenario)
+    def generate_scenario(self) -> str:
+        """ Generates a random scenario and returns it """
+        scenario = self._scenario_generator.generate()
+        return scenario
+
+    def update_scenario(self, scenario: str) -> None:
+        """ Updates the scenario with the given scenario """
+        self.__check_game_state_validity()
+        self._scenario = scenario
+        self._game_state.initialize_scenario(scenario)
 
     def __check_game_state_validity(self) -> None:
         """ Helper method to check the validity of the game state """

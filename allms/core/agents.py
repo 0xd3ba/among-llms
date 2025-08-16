@@ -22,6 +22,10 @@ class Agent:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
         return sorted(list(self.msg_ids))
 
+    def get_persona(self) -> str:
+        """ Returns the persona of the agent """
+        return self.persona
+
     def update_persona(self, persona: str) -> None:
         """ Updates the persona of the agent with the provided one """
         self.persona = persona
@@ -52,5 +56,11 @@ class AgentFactory:
     @staticmethod
     def create_agent_id(i: int) -> str:
         """ Given an integer, returns the current agent ID """
+        # Note: If you change this, make sure to change the comparator function below as well
         prefix = "Agent-"
         return f"{prefix}{i}"
+
+    @staticmethod
+    def agent_id_comparator(agent_id: str) -> int:
+        """ Comparator for sorting agents to be used when sorting agent IDs """
+        return int(agent_id.split("-")[-1])

@@ -7,6 +7,7 @@ from textual.widget import Widget
 from textual.widgets import Label, TextArea, Select, Button
 
 from allms.cli.screens.chat import ChatroomScreen
+from allms.cli.screens.customize import CustomizeAgentsScreen
 from allms.cli.widgets.modal import ModalScreenWidget
 from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfiguration, StyleConfiguration
 from allms.core.state import GameStateManager
@@ -16,7 +17,8 @@ from allms.core.state import GameStateManager
 class NewChatroomWidget(ModalScreenWidget):
 
     BINDINGS = [
-        (BindingConfiguration.new_chat_randomize_scenario, "randomize_scenario", "Randomize Scenario")
+        (BindingConfiguration.new_chat_randomize_scenario, "randomize_scenario", "Randomize Scenario"),
+        (BindingConfiguration.new_chat_customize_agents, "customize_agents", "Customize Agents")
     ]
 
     def __init__(self, title, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
@@ -31,6 +33,7 @@ class NewChatroomWidget(ModalScreenWidget):
         self._id_btn_confirm = "new-chat-confirm"
         self._id_btn_cancel = "new-chat-cancel"
 
+        self._new_scenario: Optional[str] = None
         self._scenario_textbox: Optional[TextArea] = None
 
     def compose(self) -> ComposeResult:
@@ -44,10 +47,10 @@ class NewChatroomWidget(ModalScreenWidget):
 
         scenario_textbox.focus()
 
-        with VerticalScroll() as v:
-            yield self.__wrap_inside_container(scenario_textbox, Horizontal, border_title="Scenario", cid="scenario-textbox")
-            yield self.__wrap_inside_container(num_agents_list, Horizontal, border_title="No. of Agents")
-        yield self.__wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="new-chat-buttons")
+        with VerticalScroll():
+            yield self._wrap_inside_container(scenario_textbox, Horizontal, border_title="Scenario", cid="scenario-textbox")
+            yield self._wrap_inside_container(num_agents_list, Horizontal, border_title="No. of Agents")
+        yield self._wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="new-chat-buttons")
 
         # Save the references as they will be needed later on, for key bind actions
         self._scenario_textbox = scenario_textbox
@@ -57,35 +60,17 @@ class NewChatroomWidget(ModalScreenWidget):
         btn_pressed_id = event.button.id
         if btn_pressed_id == self._id_btn_cancel:
             self.app.pop_screen()
+
         elif btn_pressed_id == self._id_btn_confirm:
+            if self._new_scenario is not None:
+                self._state_manager.update_scenario(self._new_scenario)
+
             self.app.pop_screen()
             self.app.push_screen(ChatroomScreen(self._config, self._state_manager))
+
         else:
             # Should not arrive at this branch or else there is a bug
             raise RuntimeError(f"Received a button pressed event from button-id({btn_pressed_id}) on {self.__class__.__name__}")
-
-    @staticmethod
-    def __wrap_inside_container(widgets: Widget | list[Widget],
-                                container_cls: Type[Container | Horizontal | Vertical],
-                                border_title: str = "",
-                                cid: str = "",
-                                ) -> Container:
-        """ Helper method to wrap a given widget inside a container and style it """
-        if not isinstance(widgets, list):
-            widgets = [widgets]
-
-        container = container_cls(*widgets)
-        container.border_title = border_title
-        container.add_class("new-chatroom-container")
-
-        if cid:
-            container.id = cid
-
-        if border_title:
-            container.add_class(StyleConfiguration.class_border)
-            container.add_class(StyleConfiguration.class_border_highlight)
-
-        return container
 
     @on(Select.Changed)
     async def handler_select_n_agents_changed(self, event: Select.Changed) -> None:
@@ -93,7 +78,18 @@ class NewChatroomWidget(ModalScreenWidget):
         n_agents = event.value
         self._state_manager.create_agents(n_agents)
 
+    @on(TextArea.Changed)
+    async def handler_scenario_changed(self, event: TextArea.Changed) -> None:
+        """ Handler for handling events when scenario has changed """
+        self._new_scenario = event.text_area.text
+
     def action_randomize_scenario(self) -> None:
         """ Invoked when key binding for randomizing scenario is pressed """
-        self._state_manager.randomize_scenario()
-        self._scenario_textbox.text = self._state_manager.scenario
+        scenario = self._state_manager.generate_scenario()
+        self._state_manager.update_scenario(scenario)
+        self._scenario_textbox.text = scenario
+
+    def action_customize_agents(self) -> None:
+        """ Invoked when key binding for customizing agents is pressed """
+        customize_screen = CustomizeAgentsScreen("Customize Agents", self._config, self._state_manager)
+        self.app.push_screen(customize_screen)

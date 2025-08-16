@@ -19,6 +19,15 @@ Select {
     }
 }
 
+/* Global configuration fot text-box */
+TextArea {
+    border: none;
+    padding: 1;
+
+    &:focus {
+        border: none;
+    }
+}
 
 /* Global configuration for modal screens */
 ModalScreen {

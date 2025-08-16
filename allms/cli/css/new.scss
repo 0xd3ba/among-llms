@@ -1,34 +1,42 @@
-NewChatScreen {
-    background: $background 85%;
+ModalScreen {
+    background: $background 100%;
 }
 
 /* Main container for new chatroom widget */
 NewChatroomWidget {
-    & .new-chatroom-container {
-        width: 100%;
-        min-height: 3;
-        height: auto;
-
-        content-align: center middle;
-    }
 
     /* Container hosting the textbox */
     & #scenario-textbox {
         height: 1fr;
         min-height: 5;
-
-        & TextArea {
-            border: none;
-            padding: 1;
-        }
-
-        & TextArea:focus {
-            border: none;
-        }
     }
 
     /* Container hosting the confirm/cancel buttons */
     & #new-chat-buttons {
         align: center middle;
     }
+}
+
+/* Main container for the customize agents widget */
+CustomizeAgentsWidget {
+
+    /* Container hosting the textbox */
+    & #persona-textbox {
+        height: 1fr;
+        min-height: 5;
+    }
+
+    /* Container hosting the confirm/cancel buttons */
+    & #customize-agent-buttons {
+        align: center middle;
+    }
+}
+
+/* Global styling for a widget container inside new chat screen */
+.new-chatroom-container {
+    width: 100%;
+    min-height: 3;
+    height: auto;
+
+    content-align: center middle;
 }

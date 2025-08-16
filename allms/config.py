@@ -52,10 +52,13 @@ class StyleConfiguration:
 
 class BindingConfiguration:
     """ Class holding the global hotkey bindings """
+    # Bindings for modal screens
+    modal_close_screen = "esc"
 
     # Bindings for new chat creation screen
     new_chat_randomize_scenario = "ctrl+r"
-    new_chat_randomize_agents = "ctrl+alt+r"
+    new_chat_randomize_agent_persona = "ctrl+r"
+    new_chat_customize_agents = "f1"
 
 @dataclass
 class RunTimeConfiguration:
