@@ -49,6 +49,10 @@ class GameState:
         assert agent_id in self._all_agents, f"Trying to get agent ID({agent_id}) but it doesn't exist"
         return self._all_agents[agent_id]
 
+    def get_all_agents(self) -> dict[str, Agent]:
+        assert len(self._all_agents) > 0, f"Trying to get all the agents but there are no agents created yet"
+        return self._all_agents
+
     def remove_agent(self, agent_id: str) -> None:
         """ Removes the agent from the tracked agents """
         assert agent_id in self._remaining_agent_ids, f"Trying to remove agent ID({agent_id}) which is not present"

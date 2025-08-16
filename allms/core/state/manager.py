@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 from allms.config import AppConfiguration, RunTimeConfiguration
-from allms.core.agents import AgentFactory
+from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessageHistory
 from allms.core.generate import ScenarioGenerator
 from allms.core.log import GameEventLogs
@@ -52,6 +52,14 @@ class GameStateManager:
         self.__check_game_state_validity()
 
         self._game_state.initialize_agents(agents)
+
+    def get_agent(self, agent_id: str) -> Agent:
+        """ Returns the agent with the specified agent ID """
+        return self._game_state.get_agent(agent_id)
+
+    def get_all_agents(self) -> dict[str, Agent]:
+        """ Returns the agents as a mapping between agent-ID and the agent object """
+        return self._game_state.get_all_agents()
 
     def assign_agent_to_user(self, agent_id: str) -> None:
         """ Assigns the given agent to the user """
