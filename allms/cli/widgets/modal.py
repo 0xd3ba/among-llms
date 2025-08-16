@@ -13,6 +13,8 @@ class ModalScreenWidget(Vertical):
         self._config = config
         self._state_manager = state_manager
 
+        self.border_title = self._title
+
     def on_mount(self) -> None:
         self.add_class(StyleConfiguration.class_border)
         self.add_class(StyleConfiguration.class_modal_container)
