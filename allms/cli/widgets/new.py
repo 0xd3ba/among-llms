@@ -1,5 +1,6 @@
 from typing import Type, Optional
 
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.widget import Widget
@@ -91,6 +92,12 @@ class NewChatroomWidget(Vertical):
             container.add_class(StyleConfiguration.class_border_highlight)
 
         return container
+
+    @on(Select.Changed)
+    async def handler_select_n_agents_changed(self, event: Select.Changed) -> None:
+        """ Handler for handling events when number of agents is changed """
+        n_agents = event.value
+        self._state_manager.create_agents(n_agents)
 
     def action_randomize_scenario(self) -> None:
         """ Invoked when key binding for randomizing scenario is pressed """
