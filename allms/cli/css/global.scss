@@ -33,6 +33,7 @@ TextArea {
 ModalScreen {
 
     align: center middle;
+    background: $background 80%;
 
     & .modal-container {
         max-width: 80;
