@@ -2,6 +2,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Input, Label, Select, TextArea
 
+from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.config import RunTimeConfiguration, StyleConfiguration
 from allms.core.state import GameStateManager
 
@@ -54,6 +55,12 @@ class ChatroomWidget(Vertical):
         self._input_area = Input(placeholder=placeholder_text, id=self._id_txt_area, disabled=is_disabled)
         self._input_area.styles.min_width = len(placeholder_text) + 10
 
+    def on_show(self) -> None:
+        # Pick an agent ID at random and assign it to the user, then notify of the assignment
+        your_agent_id = self._state_manager.pick_random_agent_id()
+        self._state_manager.assign_agent_to_user(your_agent_id)
+        self.__show_assignment_screen()
+
     def compose(self) -> ComposeResult:
         yield self._contents_widget
         yield self._is_typing_widget
@@ -79,3 +86,9 @@ class ChatroomWidget(Vertical):
             widget.id = widget_id
 
         return widget
+
+    def __show_assignment_screen(self) -> None:
+        """ Helper method to show the assignment screen """
+        your_agent_id = self._state_manager.get_user_assigned_agent_id()
+        screen_title = f"You are {your_agent_id}"
+        self.app.push_screen(YourAgentAssignmentScreen(screen_title, self._config, self._state_manager))

@@ -1,17 +1,21 @@
 from typing import Type
 
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.screen import ModalScreen
-from textual.containers import Container
 from textual.widgets import Footer
 
-from allms.config import RunTimeConfiguration
+from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.cli.widgets.modal import ModalScreenWidget
 from allms.core.state import GameStateManager
 
 
 class BaseModalScreen(ModalScreen):
     """ Base class for a modal screen """
+
+    BINDINGS = [
+        Binding(BindingConfiguration.modal_close_screen, "close_modal_screen", "Close", priority=True)
+    ]
 
     def __init__(self,
                  title: str,
@@ -28,3 +32,7 @@ class BaseModalScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         yield self._widget
         yield Footer()
+
+    def action_close_modal_screen(self) -> None:
+        """ Invoked when key binding for closing the screen is pressed """
+        self.app.pop_screen()

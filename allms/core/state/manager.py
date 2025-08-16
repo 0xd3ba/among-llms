@@ -1,4 +1,5 @@
 import logging
+import random
 from pathlib import Path
 from typing import Optional
 
@@ -56,19 +57,33 @@ class GameStateManager:
 
     def get_agent(self, agent_id: str) -> Agent:
         """ Returns the agent with the specified agent ID """
+        self.__check_game_state_validity()
         return self._game_state.get_agent(agent_id)
 
     def get_all_agents(self) -> dict[str, Agent]:
         """ Returns the agents as a mapping between agent-ID and the agent object """
+        self.__check_game_state_validity()
         return self._game_state.get_all_agents()
+
+    def pick_random_agent_id(self) -> str:
+        """ Picks an agent at random and returns its ID """
+        self.__check_game_state_validity()
+        agent_ids = self.get_all_agents().keys()
+        return random.choice(list(agent_ids))
 
     def assign_agent_to_user(self, agent_id: str) -> None:
         """ Assigns the given agent to the user """
         self.__check_game_state_validity()
-        self._game_state.assign_agent(agent_id)
+        self._game_state.assign_agent_id_to_user(agent_id)
+
+    def get_user_assigned_agent_id(self) -> str:
+        """ Returns the agent ID assigned to the user """
+        self.__check_game_state_validity()
+        return self._game_state.get_user_assigned_agent_id()
 
     def generate_persona(self, agent_id: str, agent_ids: list[str]) -> str:
         """ Generates a new agent persona and returns it """
+        self.__check_game_state_validity()
         persona = self._persona_generator.generate()
         persona = self._persona_generator.set_relationships(agent_id, agent_ids)
         return persona

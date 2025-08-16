@@ -39,10 +39,17 @@ class GameState:
             self._all_agents[agent_id] = agent
             self._remaining_agent_ids.add(agent_id)
 
-    def assign_agent(self, agent_id: str) -> None:
+    def assign_agent_id_to_user(self, agent_id: str) -> None:
         """ Assigns the given agent to the user """
         assert agent_id in self._all_agents, f"Your assigned agent ID({agent_id}) doesn't exist yet"
         self.your_agent_id = agent_id
+
+    def get_user_assigned_agent_id(self) -> str:
+        """ Returns the user-assigned agent ID """
+        agent_id = self.your_agent_id
+        assert agent_id and agent_id in self._all_agents, \
+            f"You have not been assigned an ID yet or it doesn't exist (id={agent_id})"
+        return agent_id
 
     def get_agent(self, agent_id: str) -> Agent:
         """ Returns the agent specified by the provided agent ID """

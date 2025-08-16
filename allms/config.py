@@ -53,7 +53,7 @@ class StyleConfiguration:
 class BindingConfiguration:
     """ Class holding the global hotkey bindings """
     # Bindings for modal screens
-    modal_close_screen = "esc"
+    modal_close_screen = "ctrl+w"
 
     # Bindings for new chat creation screen
     new_chat_randomize_scenario = "ctrl+r"
