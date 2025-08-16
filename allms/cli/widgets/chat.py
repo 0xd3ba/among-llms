@@ -1,9 +1,10 @@
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Input, Label, Select, TextArea
 
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
-from allms.config import RunTimeConfiguration, StyleConfiguration
+from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
 
 
@@ -27,7 +28,11 @@ class ChatroomIsTyping(Horizontal):
 
 class ChatroomWidget(Vertical):
     """ Class for the main chatroom widget """
-    # TODO: Need to support taking chat data as argument for loading a saved chat
+
+    BINDINGS = [
+        Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "View your persona")
+    ]
+
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._config = config
@@ -92,3 +97,7 @@ class ChatroomWidget(Vertical):
         your_agent_id = self._state_manager.get_user_assigned_agent_id()
         screen_title = f"You are {your_agent_id}"
         self.app.push_screen(YourAgentAssignmentScreen(screen_title, self._config, self._state_manager))
+
+    def action_view_persona(self) -> None:
+        """ Invoked when key binding for viewing your persona is pressed """
+        self.__show_assignment_screen()

@@ -58,7 +58,10 @@ class BindingConfiguration:
     # Bindings for new chat creation screen
     new_chat_randomize_scenario = "ctrl+r"
     new_chat_randomize_agent_persona = "ctrl+r"
-    new_chat_customize_agents = "f1"
+    new_chat_customize_agents = "ctrl+s"
+
+    # Bindings for chat screen
+    chatroom_show_your_persona = "ctrl+s"
 
 @dataclass
 class RunTimeConfiguration:
