@@ -7,22 +7,20 @@ from textual.widget import Widget
 from textual.widgets import Label, TextArea, Select, Button
 
 from allms.cli.screens.chat import ChatroomScreen
+from allms.cli.widgets.modal import ModalScreenWidget
 from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfiguration, StyleConfiguration
 from allms.core.state import GameStateManager
 
 
 # TODO: Add support for randomizing agent personas and screen for customizing agent personas
-class NewChatroomWidget(Vertical):
+class NewChatroomWidget(ModalScreenWidget):
 
     BINDINGS = [
         (BindingConfiguration.new_chat_randomize_scenario, "randomize_scenario", "Randomize Scenario")
     ]
 
     def __init__(self, title, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._config = config
-        self.border_title = title
-        self._state_manager = state_manager
+        super().__init__(title, config, state_manager, *args, **kwargs)
 
         min_agents = AppConfiguration.min_agent_count
         max_agents = self._config.max_agent_count
@@ -34,10 +32,6 @@ class NewChatroomWidget(Vertical):
         self._id_btn_cancel = "new-chat-cancel"
 
         self._scenario_textbox: Optional[TextArea] = None
-
-    def on_mount(self) -> None:
-        self.add_class(StyleConfiguration.class_border)
-        self.add_class(StyleConfiguration.class_modal_container)
 
     def compose(self) -> ComposeResult:
 
