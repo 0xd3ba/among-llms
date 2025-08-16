@@ -16,6 +16,6 @@ class ChatScenarioWidget(ModalScreenWidget):
     def compose(self) -> ComposeResult:
         textbox = TextArea(text=self._scenario, show_line_numbers=True, read_only=True)
         with VerticalScroll():
-            yield self._wrap_inside_container(textbox, Horizontal, border_title="")
+            yield self._wrap_inside_container(textbox, Horizontal, use_border=True)
 
         textbox.focus()

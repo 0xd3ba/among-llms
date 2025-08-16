@@ -25,6 +25,7 @@ class ModalScreenWidget(Vertical):
     @staticmethod
     def _wrap_inside_container(widgets: Widget | list[Widget],
                                container_cls: Type[Container | Horizontal | Vertical],
+                               use_border: bool = False,
                                border_title: str = "",
                                cid: str = "",
                                ) -> Container:
@@ -39,7 +40,7 @@ class ModalScreenWidget(Vertical):
         if cid:
             container.id = cid
 
-        if border_title:
+        if border_title or use_border:
             container.add_class(StyleConfiguration.class_border)
             container.add_class(StyleConfiguration.class_border_highlight)
 
