@@ -9,9 +9,6 @@ from allms.core.state import GameStateManager
 
 class NewChatScreen(ModalScreen):
     """ Screen for creating new chatroom """
-    BINDINGS = [
-        (BindingConfiguration.new_chat_randomize_scenario, "randomize_scenario", "Randomize Scenario")
-    ]
 
     def __init__(self, title: str, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,7 +20,3 @@ class NewChatScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         yield self._new_chatroom_widget
         yield Footer()
-
-    def action_randomize_scenario(self) -> None:
-        """ Invoked when binding for randomizing scenario is pressed """
-        self._new_chatroom_widget.action_randomize_scenario()

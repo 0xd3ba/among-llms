@@ -6,12 +6,17 @@ from textual.widget import Widget
 from textual.widgets import Label, TextArea, Select, Button
 
 from allms.cli.screens.chat import ChatroomScreen
-from allms.config import AppConfiguration, RunTimeConfiguration, StyleConfiguration
+from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfiguration, StyleConfiguration
 from allms.core.state import GameStateManager
 
 
 # TODO: Add support for randomizing agent personas and screen for customizing agent personas
 class NewChatroomWidget(Vertical):
+
+    BINDINGS = [
+        (BindingConfiguration.new_chat_randomize_scenario, "randomize_scenario", "Randomize Scenario")
+    ]
+
     def __init__(self, title, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._config = config
