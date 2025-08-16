@@ -5,6 +5,7 @@ from textual.widgets import Button, Input, Label, Select, TextArea
 
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
+from allms.cli.screens.scenario import ChatScenarioScreen
 from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
 
@@ -31,8 +32,9 @@ class ChatroomWidget(Vertical):
     """ Class for the main chatroom widget """
 
     BINDINGS = [
+        Binding(BindingConfiguration.chatroom_show_scenario, "view_scenario", "Scenario"),
         Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "Your persona"),
-        Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All personas")
+        Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All personas"),
     ]
 
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
@@ -99,6 +101,12 @@ class ChatroomWidget(Vertical):
         your_agent_id = self._state_manager.get_user_assigned_agent_id()
         screen_title = f"You are {your_agent_id}"
         self.app.push_screen(YourAgentAssignmentScreen(screen_title, self._config, self._state_manager))
+
+    def action_view_scenario(self) -> None:
+        """ """
+        screen_title = "Scenario"
+        screen = ChatScenarioScreen(screen_title, self._config, self._state_manager)
+        self.app.push_screen(screen)
 
     def action_view_persona(self) -> None:
         """ Invoked when key binding for viewing your persona is pressed """

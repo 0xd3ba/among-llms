@@ -25,10 +25,6 @@ class GameStateManager:
         self._messages: Optional[ChatMessageHistory] = None
         self._event_logs: Optional[GameEventLogs] = None
 
-    @property
-    def scenario(self) -> str:
-        return self._scenario
-
     def new(self) -> None:
         """ Creates a new game state """
         self._messages = ChatMessageHistory()
@@ -47,6 +43,10 @@ class GameStateManager:
         """ Saves the game state to persistent storage """
         # TODO: Implement the saving logic
         raise NotImplementedError
+
+    def get_scenario(self) -> str:
+        """ Returns the current scenario """
+        return self._scenario
 
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
