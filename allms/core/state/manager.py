@@ -1,7 +1,8 @@
 import logging
 import random
 from pathlib import Path
-from typing import Optional
+from threading import Lock
+from typing import Callable, Optional, Type
 
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
@@ -23,13 +24,12 @@ class GameStateManager:
 
         self._scenario: str = ""
         self._game_state: Optional[GameState] = None
+        self._on_new_message_lock: Lock = Lock()  # To ensure one update at a time
+        self._on_new_message_callback: Type[Callable] = None
 
     def new(self) -> None:
         """ Creates a new game state """
-        self._messages = ChatMessageHistory()
-        self._event_logs = GameEventLogs()
-
-        self._game_state = GameState(messages=self._messages, events=self._event_logs)
+        self._game_state = GameState()
         self.update_scenario(self.generate_scenario())
         self.create_agents(self._config.default_agent_count)
 
@@ -42,6 +42,10 @@ class GameStateManager:
         """ Saves the game state to persistent storage """
         # TODO: Implement the saving logic
         raise NotImplementedError
+
+    def register_on_new_message_callback(self, on_new_message: Type[Callable]) -> None:
+        """ Register a callback for handling when new message arrives """
+        self._on_new_message_callback = on_new_message
 
     def get_scenario(self) -> str:
         """ Returns the current scenario """
