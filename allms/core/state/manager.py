@@ -65,6 +65,11 @@ class GameStateManager:
         self.__check_game_state_validity()
         return self._game_state.get_all_agents()
 
+    def get_all_remaining_agents_ids(self) -> list[str]:
+        """ Returns all the IDs of the agents that are remaining """
+        self.__check_game_state_validity()
+        return self._game_state.get_all_remaining_agents_ids()
+
     def pick_random_agent_id(self) -> str:
         """ Picks an agent at random and returns its ID """
         self.__check_game_state_validity()

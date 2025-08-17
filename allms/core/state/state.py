@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from allms.core.agents import Agent
+from allms.core.agents import Agent, AgentFactory
 from allms.core.chat.history import ChatMessageHistory
 from allms.core.log import GameEventLogs
 
@@ -57,8 +57,16 @@ class GameState:
         return self._all_agents[agent_id]
 
     def get_all_agents(self) -> dict[str, Agent]:
+        """ Returns a mapping of all agent IDs and the object """
         assert len(self._all_agents) > 0, f"Trying to get all the agents but there are no agents created yet"
         return self._all_agents
+
+    def get_all_remaining_agents_ids(self) -> list[str]:
+        """ Returns the list of all agent IDs """
+        assert len(self._remaining_agent_ids) >= 2, f"There must be 2 agents left (you and a LLM) before the game " + \
+            f"finishes but there are only {len(self._remaining_agent_ids)} in the list"
+        remaining_ids = sorted(list(self._remaining_agent_ids), key=AgentFactory.agent_id_comparator)
+        return remaining_ids
 
     def remove_agent(self, agent_id: str) -> None:
         """ Removes the agent from the tracked agents """
