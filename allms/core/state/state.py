@@ -1,26 +1,26 @@
 from dataclasses import dataclass, field
 
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat.history import ChatMessageHistory
+from allms.core.chat.history import ChatMessage, ChatMessageHistory
 from allms.core.log import GameEventLogs
 
 
 @dataclass
 class GameState:
     """ Class containing the latest state of the game """
-    your_agent_id: str = ""              # The identifier of the agent assigned to you
-    scenario: str = ""                   # The game scenario on which all the agents act on
-    messages: ChatMessageHistory = None  # The history of the messages sent
-    events: GameEventLogs = None         # The history of the game events (for debugging)
-    start_time: int = 0                  # The start time of the game in UNIX milliseconds
-    elapsed_duration: int = 0            # The elapsed duration in UNIX milliseconds
+    your_agent_id: str = ""       # The identifier of the agent assigned to you
+    scenario: str = ""            # The game scenario on which all the agents act on
+    start_time: int = 0           # The start time of the game in UNIX milliseconds
+    elapsed_duration: int = 0     # The elapsed duration in UNIX milliseconds
 
     game_paused: bool = True      # Set to true if the game is currently paused
     game_ended: bool = False      # Set to true if the game has ended, i.e. you got exposed
     game_won: bool = False        # Set to true if the game has ended and you won
 
-    _all_agents: dict[str, Agent] = field(default_factory=dict)  # Mapping between agent ID and agent object
-    _remaining_agent_ids: set[str] = field(default_factory=set)  # Set of all the remaining agent IDs in the game
+    messages: ChatMessageHistory = field(default_factory=ChatMessageHistory)  # History of the messages sent
+    events: GameEventLogs = field(default_factory=GameEventLogs)              # History of the game events (for debugging)
+    _all_agents: dict[str, Agent] = field(default_factory=dict)               # Mapping between agent ID and agent object
+    _remaining_agent_ids: set[str] = field(default_factory=set)               # Set of all the remaining agent IDs in the game
 
     def initialize_scenario(self, scenario: str) -> None:
         """ Initializes the game scenario """
@@ -72,3 +72,24 @@ class GameState:
         """ Removes the agent from the tracked agents """
         assert agent_id in self._remaining_agent_ids, f"Trying to remove agent ID({agent_id}) which is not present"
         self._remaining_agent_ids.remove(agent_id)
+
+    def add_message(self, message: ChatMessage) -> None:
+        """ Adds the given message to the message history log """
+        # Check if the message is a reply to a previous message ID -- if yes, then the message must exist
+        if message.reply_to_id is not None:
+            assert self.messages.exists(message.reply_to_id), f"Trying to reply to a message ID " + \
+                f"({message.reply_to_id}) which does not exist in the history"
+
+        self.messages.add(message)
+
+        # Update the list of message IDs sent by the agent
+        agent_id = message.sent_by
+        assert agent_id in self._remaining_agent_ids, f"Agent({agent_id}) is trying to send a message but is not in" + \
+            f" the set of (remaining) agents: {self._remaining_agent_ids}"
+
+        agent = self.get_agent(message.sent_by)
+        agent.add_message_id(message.id)
+
+    def get_message(self, message_id: str) -> ChatMessage:
+        """ Fetches the message with the given message ID and returns it """
+        return self.messages.get(message_id)

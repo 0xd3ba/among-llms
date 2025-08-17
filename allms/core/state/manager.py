@@ -5,7 +5,7 @@ from typing import Optional
 
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat import ChatMessageHistory, ChatMessageIDGenerator
+from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
 from .state import GameState
@@ -23,8 +23,6 @@ class GameStateManager:
 
         self._scenario: str = ""
         self._game_state: Optional[GameState] = None
-        self._messages: Optional[ChatMessageHistory] = None
-        self._event_logs: Optional[GameEventLogs] = None
 
     def new(self) -> None:
         """ Creates a new game state """
@@ -104,6 +102,33 @@ class GameStateManager:
         self.__check_game_state_validity()
         self._scenario = scenario
         self._game_state.initialize_scenario(scenario)
+
+    def send_message(self,
+                     msg: str,
+                     sent_by: str,
+                     sent_by_you: bool,
+                     sent_to: Optional[str],
+                     thought_process: str = "",
+                     reply_to_id: Optional[str] = None) -> str:
+        """ Sends a message by the given agent ID and returns the message ID """
+        timestamp = AppConfiguration.clock.current_timestamp_in_iso_format()
+        msg = self.__create_new_message(timestamp, msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
+        self._game_state.add_message(msg)
+        return msg.id
+
+    def __create_new_message(self,
+                             timestamp: str,
+                             msg: str,
+                             sent_by: str,
+                             sent_by_you: bool,
+                             sent_to: Optional[str] = None,
+                             thought_process: str = "",
+                             reply_to_id: Optional[str] = None
+                             ) -> ChatMessage:
+        """ Helper method to create a message and return it """
+        msg_id = self._msg_id_generator.next()
+        chat_msg = ChatMessage(msg_id, timestamp, msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
+        return chat_msg
 
     def __check_game_state_validity(self) -> None:
         """ Helper method to check the validity of the game state """

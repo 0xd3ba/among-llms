@@ -18,11 +18,11 @@ class ChatMessage:
     """ Class for a single chat message """
     id: str                            # The unique identifier of the message
     timestamp: str                     # Timestamp in ISO format (YYYY-MM-DD HH:MM:SS) when the message was sent
-    sent_by: str                       # The originator of the message (can be you or a LLM)
-    sent_to: str                       # The recipient of the message (can be everyone or a single agent)
-    sent_by_you: bool                  # Set to true if it was YOU who sent the message
     msg: str                           # The contents of the message
+    sent_by: str                       # The originator of the message (can be you or a LLM)
+    sent_by_you: bool                  # Set to true if it was YOU who sent the message
 
+    sent_to: Optional[str] = None      # The recipient of the message (can be everyone (None) or a single agent)
     thought_process: str = ""          # The thought process behind the message (only set by the LLMs)
     reply_to_id: Optional[str] = None  # If the message is a reply to a previous message
     edited: bool = False               # Set to true if the message was edited (either by you or the LLM)
