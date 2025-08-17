@@ -2,11 +2,13 @@
 .border {
     border: round $foreground 20%;
     border-title-color: $foreground;
+    border-subtitle-color: $foreground 50%;
 }
 
 .highlight-border:focus-within {
     border: round $primary;
     border-title-color: $primary;
+    border-subtitle-color: $primary;
     border-title-style: bold;
 }
 

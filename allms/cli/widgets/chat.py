@@ -1,24 +1,16 @@
+from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.widgets import Button, Input, Label, Select, TextArea
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Input, Label, Select
 
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
+from allms.cli.widgets.input import MessageBox
 from allms.cli.screens.scenario import ChatScenarioScreen
+from allms.cli.widgets.contents import ChatroomContentsWidget
 from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
-
-
-class ChatroomContents(VerticalScroll):
-    """ Class for storing the contents of the chat """
-    def __init__(self, config: RunTimeConfiguration, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._config = config
-
-    def compose(self) -> ComposeResult:
-        # TODO: Populate this with chat data
-        yield Label()
 
 
 class ChatroomIsTyping(Horizontal):
@@ -42,32 +34,48 @@ class ChatroomWidget(Vertical):
         self._config = config
         self._state_manager = state_manager
         self._is_disabled = is_disabled
-        self._contents_widget = ChatroomContents(self._config)
+        self._your_agent_id = self._state_manager.get_user_assigned_agent_id()
+
+        self._id_send_to_all = "All"
+        self._id_send_as_you = "You"
+
+        self._contents_widget = ChatroomContentsWidget(self._config, self._state_manager, display_you_as=self._id_send_as_you)
         self._is_typing_widget = ChatroomIsTyping()
 
         self._id_btn_send = "chat-msg-send-btn"
         self._id_txt_area = "chat-msg-text-area"
+        self._id_send_to_list = "chat-send-to-options"
+        self._id_send_as_list = "chat-send-as-options"
 
         choices_send_to_tooltip = "Send to everyone or send a DM to a specific agent"
         choices_send_as_tooltip = "Send as you or masquerade as a different agent"
 
-        # TODO: Set these dynamically from the chat data
+        # Populate the send-to and send-as selection lists
         # Note: We assume the first item to be the default, so ensure it is set to the correct value
-        self._choices_send_to = ["/all"]
-        self._choices_send_as = ["You"]
 
-        self._send_to_list = self.__create_choices(self._choices_send_to, widget_id="chat-send-to-options", tooltip=choices_send_to_tooltip)
-        self._send_as_list = self.__create_choices(self._choices_send_as, widget_id="chat-send-as-options", tooltip=choices_send_as_tooltip)
+        self._choices_send_to = []
+        self._choices_send_as = []
+        self.__add_agents_to_selection_list(self._choices_send_to, first_item=self._id_send_to_all)
+        self.__add_agents_to_selection_list(self._choices_send_as, first_item=self._id_send_as_you)
+
+        self._send_to_list = self.__create_choices(self._choices_send_to, widget_id=self._id_send_to_list, tooltip=choices_send_to_tooltip)
+        self._send_as_list = self.__create_choices(self._choices_send_as, widget_id=self._id_send_as_list, tooltip=choices_send_as_tooltip)
         self._btn_send = Button("Send", variant="success", id=self._id_btn_send, disabled=is_disabled)
 
         placeholder_text = "Type your message ..."
-        self._input_area = Input(placeholder=placeholder_text, id=self._id_txt_area, disabled=is_disabled)
+        self._input_area = MessageBox(on_send_callback=self.action_send_message, placeholder=placeholder_text, id=self._id_txt_area, disabled=is_disabled)
         self._input_area.styles.min_width = len(placeholder_text) + 10
 
+        # Stores the user typed message and send-as/send-to items
+        self._current_msg: str = ""
+        self._current_send_as: str = ""
+        self._current_send_to: str = ""
+
+        # Finally, register the callback for updating the new chat messages
+        self._state_manager.register_on_new_message_callback(self.__update_chat_message_callback)
+
     def on_show(self) -> None:
-        # Pick an agent ID at random and assign it to the user, then notify of the assignment
-        your_agent_id = self._state_manager.pick_random_agent_id()
-        self._state_manager.assign_agent_to_user(your_agent_id)
+        # Show what the agent the user has been assigned
         self.__show_assignment_screen()
 
     def compose(self) -> ComposeResult:
@@ -102,6 +110,51 @@ class ChatroomWidget(Vertical):
         screen_title = f"You are {your_agent_id}"
         self.app.push_screen(YourAgentAssignmentScreen(screen_title, self._config, self._state_manager))
 
+    def __add_agents_to_selection_list(self, choices_list: list[str], first_item: str) -> None:
+        """ Helper method to add agent selection choices to the given list """
+        choices_list.clear()  # Need to do this to ensure when an agent is kicked out, it is reflected in the choices
+        agent_ids = self._state_manager.get_all_remaining_agents_ids()
+        your_agent_id = self._state_manager.get_user_assigned_agent_id()
+
+        choices_list.append(first_item)
+        for aid in agent_ids:
+            if aid == your_agent_id:
+                continue
+            choices_list.append(aid)
+
+    def __update_chat_message_callback(self, msg_id: str) -> None:
+        """ Callback method to display the message with the given ID to the widget """
+        # Note: Do not call this method directly, instead use the state manager to invoke this callback
+        self._contents_widget.add_new_message(msg_id)
+
+    @on(Input.Changed)
+    def handler_user_text_message_changed(self, event: Input.Changed) -> None:
+        """ Handler invoked when there is a change in message box """
+        input_text = event.input.value
+        self._current_msg = input_text
+
+    @on(Select.Changed)
+    def handler_select_item_changed(self, event: Select.Changed) -> None:
+        """ Handler invoked when there is a change in the select item for either of the choices list """
+        select_widget = event.select
+        if select_widget.id == self._id_send_as_list:
+            self._current_send_as = self._send_as_list.value
+        elif select_widget.id == self._id_send_to_list:
+            self._current_send_to = self._send_to_list.value
+        else:
+            # Should not arrive at this branch or else there is a bug
+            raise RuntimeError(f"Received unexpected id({select_widget.id}) on selection list handler")
+
+    @on(Button.Pressed)
+    def handler_send_button_clicked(self, event: Button.Pressed) -> None:
+        """ Handler invoked when send button is clicked """
+        btn_id = event.button.id
+        if btn_id == self._id_btn_send:
+            self.action_send_message()
+        else:
+            # Should not come to this branch or else there is a bug
+            raise RuntimeError(f"What button with id={btn_id} did you click in the screen")
+
     def action_view_scenario(self) -> None:
         """ """
         screen_title = "Scenario"
@@ -118,3 +171,29 @@ class ChatroomWidget(Vertical):
         screen_title = "Agent Personas"
         screen = CustomizeAgentsScreen(screen_title, self._config, self._state_manager, widget_params=dict(read_only=True))
         self.app.push_screen(screen)
+
+    def action_send_message(self) -> None:
+        """ Invoked when key binding for sending a message is pressed """
+        current_msg = self._current_msg
+        if len(current_msg) == 0:
+            return
+
+        # Prepare the constants required by state manager
+        # Update the send-to / send-as before sending them to the state manager
+        send_to = self._current_send_to
+        send_to = None if (send_to == self._id_send_to_all) else send_to
+
+        send_as = self._current_send_as
+        send_as = self._your_agent_id if (send_as == self._id_send_as_you) else send_as
+
+        # Doesn't matter if you're masquerading as a different agent or sending via your assigned agent ID
+        # This handler is only executed when you type a message in the input box and send it -- i.e. sent by you
+        sent_by_you = True
+
+        msg_id = self._state_manager.send_message(msg=current_msg, sent_by=send_as, sent_to=send_to, sent_by_you=sent_by_you)
+        self._state_manager.on_new_message_received(msg_id)
+        # TODO: What if the user is replying to an older message? I guess the chat-contents class should take care of this
+
+        # Finally reset the current text
+        self._current_msg = ""
+        self._input_area.value = ""

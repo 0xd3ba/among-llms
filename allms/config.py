@@ -53,17 +53,18 @@ class StyleConfiguration:
 class BindingConfiguration:
     """ Class holding the global hotkey bindings """
     # Bindings for modal screens
-    modal_close_screen = "ctrl+w"
+    modal_close_screen: str = "ctrl+w"
 
     # Bindings for new chat creation screen
-    new_chat_randomize_scenario = "ctrl+r"
-    new_chat_randomize_agent_persona = "ctrl+r"
-    new_chat_customize_agents = "ctrl+s"
+    new_chat_randomize_scenario: str = "ctrl+r"
+    new_chat_randomize_agent_persona: str = "ctrl+r"
+    new_chat_customize_agents: str = "ctrl+s"
 
     # Bindings for chat screen
-    chatroom_show_scenario = "f1"
-    chatroom_show_your_persona = "f2"
-    chatroom_show_all_persona = "f3"
+    chatroom_show_scenario: str = "f1"
+    chatroom_show_your_persona: str = "f2"
+    chatroom_show_all_persona: str = "f3"
+    chatroom_send_message: str = "enter"
 
 
 @dataclass

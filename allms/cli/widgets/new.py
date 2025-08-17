@@ -65,6 +65,10 @@ class NewChatroomWidget(ModalScreenWidget):
             if self._new_scenario is not None:
                 self._state_manager.update_scenario(self._new_scenario)
 
+            # Pick an agent ID at random and assign it to the user, then notify of the assignment
+            your_agent_id = self._state_manager.pick_random_agent_id()
+            self._state_manager.assign_agent_to_user(your_agent_id)
+
             self.app.pop_screen()
             self.app.push_screen(ChatroomScreen(self._config, self._state_manager))
 
