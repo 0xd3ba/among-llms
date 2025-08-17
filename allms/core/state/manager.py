@@ -47,6 +47,12 @@ class GameStateManager:
         """ Register a callback for handling when new message arrives """
         self._on_new_message_callback = on_new_message
 
+    def on_new_message_received(self, msg_id: str) -> None:
+        """ Method to update the message on the UI by using the callback registered """
+        assert self._on_new_message_callback is not None, f"Callback for updating message to UI is not registered yet"
+        with self._on_new_message_lock:
+            self._on_new_message_callback(msg_id)
+
     def get_scenario(self) -> str:
         """ Returns the current scenario """
         return self._scenario
@@ -119,6 +125,10 @@ class GameStateManager:
         msg = self.__create_new_message(timestamp, msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
         self._game_state.add_message(msg)
         return msg.id
+
+    def get_message(self, msg_id: str) -> ChatMessage:
+        """ Returns the message associated with the given message ID """
+        return self._game_state.get_message(msg_id)
 
     def __create_new_message(self,
                              timestamp: str,
