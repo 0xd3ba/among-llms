@@ -5,7 +5,7 @@ from typing import Optional
 
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat import ChatMessageHistory
+from allms.core.chat import ChatMessageHistory, ChatMessageIDGenerator
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
 from .state import GameState
@@ -17,6 +17,7 @@ class GameStateManager:
     def __init__(self, config: RunTimeConfiguration):
         self._config = config
         self._logger = logging.getLogger(self.__class__.__name__)
+        self._msg_id_generator = ChatMessageIDGenerator()
         self._scenario_generator = ScenarioGenerator()
         self._persona_generator = PersonaGenerator()
 
