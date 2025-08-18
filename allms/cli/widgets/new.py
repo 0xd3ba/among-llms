@@ -42,8 +42,7 @@ class NewChatroomWidget(ModalScreenWidget):
 
         scenario_textbox = TextArea(text=self._state_manager.get_scenario(), show_line_numbers=True)
         num_agents_list = Select(options=self._n_agents_choices, allow_blank=False, value=self._default_n_agents, compact=True)
-        confirm_btn = Button("Confirm", variant="success", id=self._id_btn_confirm, compact=True)
-        cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel, compact=True)
+        confirm_btn, cancel_btn = self._create_confirm_cancel_buttons(self._id_btn_confirm, self._id_btn_cancel)
 
         scenario_textbox.focus()
 

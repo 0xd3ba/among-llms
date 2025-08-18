@@ -44,8 +44,7 @@ class CustomizeAgentsWidget(ModalScreenWidget):
 
         select_box = Select(options=agent_ids, allow_blank=False, value=default_agent_id, compact=True)
         textbox = TextArea(text=default_text, show_line_numbers=True, read_only=self._read_only)
-        confirm_btn = Button("Confirm", variant="success", id=self._id_btn_confirm, compact=True)
-        cancel_btn = Button("Cancel", variant="error", id=self._id_btn_cancel, compact=True)
+        confirm_btn, cancel_btn = self._create_confirm_cancel_buttons(self._id_btn_confirm, self._id_btn_cancel)
 
         with VerticalScroll():
             yield self._wrap_inside_container(select_box, Horizontal, border_title="Choose Agent")
