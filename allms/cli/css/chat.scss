@@ -53,3 +53,53 @@ ChatroomWidget {
     }
 
 }
+
+/* Class for modifying messages */
+ModifyMessageScreen {
+
+    /* Override the defaults for the main container */
+    & .modal-container {
+        width: 75%;
+        min-width: 80;
+        max-width: 75%;
+        max-height: 75%;
+    }
+
+    /* Widget for the message options list */
+    & ModifyMessageOptionListWidget {
+        border: none;
+        &:focus {
+            & > .option-list--option-highlighted {
+                color: $foreground;
+            }
+        }
+
+        & > .option-list--option-highlighted {
+            color: $primary;
+            background: $surface;
+            text-style: bold;
+        }
+    }
+
+    /* Vertical container hosting agent-selection box and message-options-list */
+    & #modify-msg-select-options-container {
+        min-width: 30;
+        width: 30%;
+    }
+
+    /* Container for choosing the message */
+    & #choose-msg-list {
+        height: 1fr;
+    }
+
+    /* Container for the textbox */
+    & #modify-msg-textbox {
+        min-width: 25;
+        width: 1fr;
+    }
+
+    /* Container for buttons */
+    & #modify-msg-buttons {
+        align: center middle;
+    }
+}

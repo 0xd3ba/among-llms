@@ -136,6 +136,10 @@ class GameStateManager:
         self.__check_game_state_validity()
         return self._game_state.get_messages_sent_by(agent_id, latest_first=True)
 
+    def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
+        """ Edits the message with the given message ID """
+        self._game_state.messages.edit(msg_id, msg_contents, edited_by_you)
+
     def __create_new_message(self,
                              msg: str,
                              sent_by: str,

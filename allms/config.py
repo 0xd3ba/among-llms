@@ -64,6 +64,7 @@ class BindingConfiguration:
     chatroom_show_scenario: str = "f1"
     chatroom_show_your_persona: str = "f2"
     chatroom_show_all_persona: str = "f3"
+    chatroom_modify_msgs: str = "f4"
     chatroom_send_message: str = "enter"
 
 

@@ -6,8 +6,9 @@ from textual.widgets import Button, Input, Label, Select
 
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
-from allms.cli.widgets.input import MessageBox
+from allms.cli.screens.modify import ModifyMessageScreen
 from allms.cli.screens.scenario import ChatScenarioScreen
+from allms.cli.widgets.input import MessageBox
 from allms.cli.widgets.contents import ChatroomContentsWidget
 from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
@@ -27,6 +28,7 @@ class ChatroomWidget(Vertical):
         Binding(BindingConfiguration.chatroom_show_scenario, "view_scenario", "Scenario"),
         Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "Your persona"),
         Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All personas"),
+        Binding(BindingConfiguration.chatroom_modify_msgs, "modify_msgs", "Modify Messages")
     ]
 
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
@@ -197,3 +199,10 @@ class ChatroomWidget(Vertical):
         # Finally reset the current text
         self._current_msg = ""
         self._input_area.value = ""
+
+    def action_modify_msgs(self) -> None:
+        """ Invoked when key binding for modifying messages is pressed """
+        screen_title = "Modify Messages"
+        screen = ModifyMessageScreen(screen_title, self._config, self._state_manager,
+                                     widget_params=dict(chat_msg_edit_callback=self._contents_widget.edit_message))
+        self.app.push_screen(screen)
