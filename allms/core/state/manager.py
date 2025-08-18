@@ -121,17 +121,22 @@ class GameStateManager:
                      thought_process: str = "",
                      reply_to_id: Optional[str] = None) -> str:
         """ Sends a message by the given agent ID and returns the message ID """
-        timestamp = AppConfiguration.clock.current_timestamp_in_iso_format()
-        msg = self.__create_new_message(timestamp, msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
+        self.__check_game_state_validity()
+        msg = self.__create_new_message(msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
         self._game_state.add_message(msg)
         return msg.id
 
     def get_message(self, msg_id: str) -> ChatMessage:
         """ Returns the message associated with the given message ID """
+        self.__check_game_state_validity()
         return self._game_state.get_message(msg_id)
 
+    def get_messages_sent_by(self, agent_id: str) -> list[ChatMessage]:
+        """ Returns the list of messages sent by the specified agent id """
+        self.__check_game_state_validity()
+        return self._game_state.get_messages_sent_by(agent_id, latest_first=True)
+
     def __create_new_message(self,
-                             timestamp: str,
                              msg: str,
                              sent_by: str,
                              sent_by_you: bool,
@@ -141,6 +146,7 @@ class GameStateManager:
                              ) -> ChatMessage:
         """ Helper method to create a message and return it """
         msg_id = self._msg_id_generator.next()
+        timestamp = AppConfiguration.clock.current_timestamp_in_iso_format()
         chat_msg = ChatMessage(msg_id, timestamp, msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
         return chat_msg
 
