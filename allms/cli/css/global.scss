@@ -1,7 +1,7 @@
 /* Global border configuration */
 .border {
     border: round $foreground 20%;
-    border-title-color: $foreground;
+    border-title-color: $foreground 50%;
     border-subtitle-color: $foreground 50%;
 }
 
