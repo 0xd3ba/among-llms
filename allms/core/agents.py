@@ -18,9 +18,12 @@ class Agent:
         if msg_id not in self.msg_ids:
             self.msg_ids.add(msg_id)
 
-    def get_message_ids(self) -> list[str]:
+    def get_message_ids(self, latest_first: bool = True) -> list[str]:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
-        return sorted(list(self.msg_ids))
+        msgs_list = sorted(list(self.msg_ids))
+        if latest_first:
+            msgs_list = msgs_list[::-1]
+        return msgs_list
 
     def get_persona(self) -> str:
         """ Returns the persona of the agent """
