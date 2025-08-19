@@ -122,6 +122,7 @@ class ModifyMessageWidget(ModalScreenWidget):
         self._curr_msg_selected = agent_msg
         text = ""
         read_only = True
+        can_focus = False
 
         if self._curr_msg_selected is not None:
             text = self._curr_msg_selected.msg
@@ -131,14 +132,17 @@ class ModifyMessageWidget(ModalScreenWidget):
                 if msg_id in self._edited_msgs_map:
                     text = self._edited_msgs_map[msg_id]
                 read_only = False
+                can_focus = True
             else:
                 read_only = True
 
             # Overwrite everything if message was deleted
             if self._curr_msg_selected.deleted:
                 read_only = True
+                can_focus = False
                 text = self._curr_msg_selected.msg
 
+        self._msg_text_box.can_focus = can_focus
         self._msg_text_box.text = text
         self._msg_text_box.read_only = read_only
 

@@ -45,7 +45,7 @@ class ChatBubbleWidget(Vertical):
 
     def delete_contents(self) -> None:
         """ Deletes the contents of the chat bubble """
-        new_content = "[i]This message has been deleted[/]"
+        new_content = f"[i]{self._message.msg}[/]"  # Already must have been updated by the state manager
         self._chat_bubble.update(new_content)
         title, subtitle = self.__create_border_title_subtitle()
         self.__add_border_text(title, subtitle)
