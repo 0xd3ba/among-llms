@@ -11,11 +11,12 @@ from allms.core.chat import ChatMessage
 
 class ChatBubbleWidget(Vertical):
     """ Class for a widget hosting a single message """
-    def __init__(self, message: ChatMessage, state_manager: GameStateManager, your_message: bool, *args, **kwargs):
+    def __init__(self, message: ChatMessage, state_manager: GameStateManager, your_message: bool, sent_by: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._message = message
         self._state_manager = state_manager
         self._your_message = your_message
+        self._sent_by = sent_by
         self._chat_bubble: Optional[Static] = None
 
         self._css_id_your_message = "chat-bubble-you"
@@ -58,7 +59,7 @@ class ChatBubbleWidget(Vertical):
     def __create_border_title_subtitle(self) -> tuple[str, str]:
         """ Helper method to create the border text and returns it """
         msg_time = self._message.timestamp
-        sent_by = self._message.sent_by
+        sent_by = self._sent_by
         sent_to = self._message.sent_to
         sent_by_you = self._message.sent_by_you
         edited = self._message.edited
@@ -104,10 +105,11 @@ class ChatroomContentsWidget(VerticalScroll):
         """ Method to add a new chat message to the widget """
         msg = self._state_manager.get_message(msg_id)
         your_msg = (msg.sent_by == self._your_agent_id)
+        sent_by = msg.sent_by
         if your_msg:  # If sending as yourself, update the display name to reflect it
-            msg.sent_by = self._display_you_as
+            sent_by = self._display_you_as
 
-        msg_widget = ChatBubbleWidget(msg, self._state_manager, your_message=your_msg)
+        msg_widget = ChatBubbleWidget(msg, self._state_manager, your_message=your_msg, sent_by=sent_by)
         self._msg_map[msg_id] = msg_widget
 
         self.mount(msg_widget)
