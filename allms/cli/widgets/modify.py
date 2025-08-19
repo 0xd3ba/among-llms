@@ -2,6 +2,7 @@ from typing import Callable, Optional, Type
 
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Label, TextArea, Select, Button, OptionList
 
@@ -16,7 +17,7 @@ from .modal import ModalScreenWidget
 class ModifyMessageWidget(ModalScreenWidget):
 
     BINDINGS = [
-        # TODO: Create bindings for delete message etc.
+        Binding(BindingConfiguration.modify_msgs_mark_unmark_delete, "mark_unmark_delete_msg", "Mark/Unmark for Deletion", priority=True),
     ]
 
     def __init__(self,
@@ -24,9 +25,11 @@ class ModifyMessageWidget(ModalScreenWidget):
                  config: RunTimeConfiguration,
                  state_manager: GameStateManager,
                  chat_msg_edit_callback: Type[Callable],
+                 chat_msg_delete_callback: Type[Callable],
                  *args, **kwargs):
         super().__init__(title, config, state_manager, *args, **kwargs)
         self._chat_msg_edit_callback = chat_msg_edit_callback
+        self._chat_msg_delete_callback = chat_msg_delete_callback
         self._all_agents = self._state_manager.get_all_agents()
         self._agent_ids = sorted(list(self._all_agents.keys()), key=AgentFactory.agent_id_comparator)
 
@@ -34,9 +37,11 @@ class ModifyMessageWidget(ModalScreenWidget):
         self._id_btn_cancel = "modify-msg-cancel-btn"
 
         self._edited_msgs_map: dict[str, str] = {}  # Mapping between msg id and new/current msg content
+        self._delete_msgs_set: set[str] = set()  # Set of msg ids to be deleted
         self._msgs_options_list = ModifyMessageOptionListWidget(self._config,
                                                                 self._state_manager,
                                                                 self._edited_msgs_map,
+                                                                self._delete_msgs_set,
                                                                 item_selected_callback=self.__on_message_option_item_changed)
         self._msg_text_box = TextArea()
 
@@ -74,14 +79,43 @@ class ModifyMessageWidget(ModalScreenWidget):
             # Edit the widgets on the screen to reflect the edited messages
             # Note: First need to update the messages state before invoking the callback
             for (msg_id, msg_contents) in self._edited_msgs_map.items():
+                assert msg_id not in self._delete_msgs_set, f"Trying to edit a message({msg_id} that has been " + \
+                    f"marked for deletion -- This should not happen."
                 self._state_manager.edit_message(msg_id, msg_contents, edited_by_you=True)
                 self._chat_msg_edit_callback(msg_id)
+
+            for msg_id in self._delete_msgs_set:
+                self._state_manager.delete_message(msg_id, deleted_by_you=True)
+                self._chat_msg_delete_callback(msg_id)
 
         else:
             # Should not arrive at this branch or else there is a bug
             raise RuntimeError(f"Received a button pressed event from button-id({btn_pressed_id}) on {self.__class__.__name__}")
 
         self.app.pop_screen()
+
+    def action_mark_unmark_delete_msg(self) -> None:
+        """ Invoked when key binding for marking/unmarking a message for deletion is pressed """
+        curr_msg = self._curr_msg_selected
+        if curr_msg is None:
+            return  # Ignore if no message is currently selected
+
+        # If the message was already deleted previously -- nothing needs to be done
+        if curr_msg.deleted:
+            return
+
+        if curr_msg.id in self._delete_msgs_set:
+            self._delete_msgs_set.remove(curr_msg.id)
+            self._msg_text_box.read_only = False
+        else:
+            self._delete_msgs_set.add(curr_msg.id)
+            self._msg_text_box.read_only = True
+            # If the message was being edited, discard the changes
+            if curr_msg.id in self._edited_msgs_map:
+                del self._edited_msgs_map[curr_msg.id]
+                self._msg_text_box.text = curr_msg.msg
+
+        self._msgs_options_list.on_message_content_changed(curr_msg.msg)
 
     def __on_message_option_item_changed(self, agent_msg: ChatMessage = None) -> None:
         """ Handler invoked when a different message item is selected"""
@@ -93,16 +127,24 @@ class ModifyMessageWidget(ModalScreenWidget):
             text = self._curr_msg_selected.msg
             msg_id = self._curr_msg_selected.id
 
-            if msg_id in self._edited_msgs_map:
-                text = self._edited_msgs_map[msg_id]
-            read_only = False
+            if msg_id not in self._delete_msgs_set:
+                if msg_id in self._edited_msgs_map:
+                    text = self._edited_msgs_map[msg_id]
+                read_only = False
+            else:
+                read_only = True
+
+            # Overwrite everything if message was deleted
+            if self._curr_msg_selected.deleted:
+                read_only = True
+                text = self._curr_msg_selected.msg
 
         self._msg_text_box.text = text
         self._msg_text_box.read_only = read_only
 
     @on(Select.Changed)
     async def handler_agent_id_changed(self, event: Select.Changed) -> None:
-        """ Handler for handling events when number of agents is changed """
+        """ Handler for handling events when agent is changed """
         agent_id = event.value
         self._msgs_options_list.on_agent_changed(agent_id)
 
@@ -113,8 +155,9 @@ class ModifyMessageWidget(ModalScreenWidget):
         if self._curr_msg_selected is None:
             return
 
-        if (new_msg == self._curr_msg_selected.msg) and self._curr_msg_selected.id in self._edited_msgs_map:
-            del self._edited_msgs_map[self._curr_msg_selected.id]
+        if new_msg == self._curr_msg_selected.msg:
+            if self._curr_msg_selected.id in self._edited_msgs_map:
+                del self._edited_msgs_map[self._curr_msg_selected.id]
         else:
             self._edited_msgs_map[self._curr_msg_selected.id] = new_msg
 

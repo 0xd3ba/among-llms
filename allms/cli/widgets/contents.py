@@ -42,6 +42,13 @@ class ChatBubbleWidget(Vertical):
         title, subtitle = self.__create_border_title_subtitle()
         self.__add_border_text(title, subtitle)
 
+    def delete_contents(self) -> None:
+        """ Deletes the contents of the chat bubble """
+        new_content = "[i]This message has been deleted[/]"
+        self._chat_bubble.update(new_content)
+        title, subtitle = self.__create_border_title_subtitle()
+        self.__add_border_text(title, subtitle)
+
     def __add_border_text(self, title: str, subtitle: str) -> None:
         """ Helper method to add border title and subtitle to the chat bubble """
         if self._chat_bubble is not None:
@@ -56,6 +63,8 @@ class ChatBubbleWidget(Vertical):
         sent_by_you = self._message.sent_by_you
         edited = self._message.edited
         edited_by_you = self._message.edited_by_you
+        deleted = self._message.deleted
+        deleted_by_you = self._message.deleted_by_you
 
         title_suffix = "/[i]hacked[/]" if sent_by_you and (not self._your_message) else ""
         if sent_to is not None:
@@ -65,6 +74,9 @@ class ChatBubbleWidget(Vertical):
         if edited:
             by_you_text = " by you" if (edited_by_you and not self._your_message) else ""
             edited_text = f"[i](edited{by_you_text})[/]"
+        if deleted:
+            by_you_text = " by you" if (deleted_by_you and not self._your_message) else ""
+            edited_text = f"[i](deleted{by_you_text})[/]"
 
         border_title = f"{sent_by}{title_suffix} {edited_text}"
         border_subtitle = f"{msg_time}"
@@ -105,3 +117,8 @@ class ChatroomContentsWidget(VerticalScroll):
         """ Method to edit an existing chat message """
         msg_widget = self._msg_map[msg_id]
         msg_widget.edit_contents()
+
+    def delete_message(self, msg_id: str) -> None:
+        """ Method to delete an existing chat message """
+        msg_widget = self._msg_map[msg_id]
+        msg_widget.delete_contents()

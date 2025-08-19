@@ -140,6 +140,10 @@ class GameStateManager:
         """ Edits the message with the given message ID """
         self._game_state.messages.edit(msg_id, msg_contents, edited_by_you)
 
+    def delete_message(self, msg_id: str, deleted_by_you: bool) -> None:
+        """ Deletes the message with the given message ID """
+        self._game_state.messages.delete(msg_id, deleted_by_you)
+
     def __create_new_message(self,
                              msg: str,
                              sent_by: str,

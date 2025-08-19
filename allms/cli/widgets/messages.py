@@ -38,11 +38,13 @@ class ModifyMessageOptionItem(Option):
         self.msg = msg
         self.option_index = option_index
 
-    def generate_renderable(self, edited: bool) -> ModifyMessageOptionItemRenderable:
+    def generate_renderable(self, edited: bool, deleted: bool = False) -> ModifyMessageOptionItemRenderable:
         """ Generates a new renderable based on whether the contents of the message has been changed """
         title_prefix = f"[i](edited)[/] "
+        if deleted:
+            title_prefix = f"[i](deleted)[/] "
 
-        if not edited:
+        if (not edited) and (not deleted):
             title_prefix = ""
 
         new_title = title_prefix + self.msg.msg
@@ -55,11 +57,13 @@ class ModifyMessageOptionListWidget(OptionList):
                  config: RunTimeConfiguration,
                  state_manager: GameStateManager,
                  edited_msgs_map: dict[str, str],
+                 delete_msgs_set: set[str],
                  item_selected_callback: Type[Callable], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._config = config
         self._state_manager = state_manager
         self._edited_msgs_map = edited_msgs_map
+        self._delete_msgs_set = delete_msgs_set
         self._item_selected_callback = item_selected_callback
 
         # Mapping between a message ID and the corresponding option
@@ -75,10 +79,12 @@ class ModifyMessageOptionListWidget(OptionList):
 
         self.add_options(option_items)
 
-        # Update the display text if the message was previously edited
+        # Update the display text if the message was previously edited/deleted
         for oi in option_items:
-            if oi.msg.id in self._edited_msgs_map:
-                self.replace_option_prompt_at_index(oi.option_index, oi.generate_renderable(True))
+            if (oi.msg.id in self._delete_msgs_set) or oi.msg.deleted:
+                self.replace_option_prompt_at_index(oi.option_index, oi.generate_renderable(edited=False, deleted=True))
+            elif oi.msg.id in self._edited_msgs_map:
+                self.replace_option_prompt_at_index(oi.option_index, oi.generate_renderable(edited=True))
 
         msg = None
         if len(option_items) > 0:
@@ -98,7 +104,8 @@ class ModifyMessageOptionListWidget(OptionList):
         assert msg.id in self._msg_id_option_map, f"Message ({msg}) is not present in the mapping"
         option_item = self._msg_id_option_map[self._curr_selected_msg.id]
         edited = (new_msg != msg.msg)
-        self.replace_option_prompt_at_index(option_item.option_index, option_item.generate_renderable(edited))
+        delete = (msg.id in self._delete_msgs_set) or msg.deleted
+        self.replace_option_prompt_at_index(option_item.option_index, option_item.generate_renderable(edited, delete))
 
     def __get_messages_by(self, agent_id: str) -> list[ChatMessage]:
         """
@@ -107,6 +114,7 @@ class ModifyMessageOptionListWidget(OptionList):
         return self._state_manager.get_messages_sent_by(agent_id)
 
     @on(OptionList.OptionSelected)
+    @on(OptionList.OptionHighlighted)
     async def handler_option_selected(self, event: OptionList.OptionSelected) -> None:
         """ Handler for handling events when an item is selected """
         self._curr_selected_msg = event.option.msg

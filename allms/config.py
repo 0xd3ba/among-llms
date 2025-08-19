@@ -67,6 +67,9 @@ class BindingConfiguration:
     chatroom_modify_msgs: str = "f4"
     chatroom_send_message: str = "enter"
 
+    # Bindings for modify message screen
+    modify_msgs_mark_unmark_delete: str = "ctrl+x"
+
 
 @dataclass
 class RunTimeConfiguration:

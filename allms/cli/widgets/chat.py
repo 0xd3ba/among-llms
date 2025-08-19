@@ -204,5 +204,6 @@ class ChatroomWidget(Vertical):
         """ Invoked when key binding for modifying messages is pressed """
         screen_title = "Modify Messages"
         screen = ModifyMessageScreen(screen_title, self._config, self._state_manager,
-                                     widget_params=dict(chat_msg_edit_callback=self._contents_widget.edit_message))
+                                     widget_params=dict(chat_msg_edit_callback=self._contents_widget.edit_message,
+                                                        chat_msg_delete_callback=self._contents_widget.delete_message))
         self.app.push_screen(screen)
