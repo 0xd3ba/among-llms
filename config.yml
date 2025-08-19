@@ -19,3 +19,9 @@ reasoningLevel: medium
 # Supported values: Any positive integer >= 3
 # **WARNING**: Setting this to a large value may cause severe performance issues. Adjust accordingly (only if needed)
 maximumAgentCount: 10
+
+################# DEVELOPERS ONLY #################
+# Set the below to True if you want to debug the UI
+# without starting the LLM, i.e. updating/testing
+# the UI layout. Otherwise, set to False
+uiDeveloperMode: True

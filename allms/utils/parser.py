@@ -43,18 +43,21 @@ class YAMLConfigFileParser(BaseYAMLParser):
     key_ai_model: str = "model"
     key_reasoning_level: str = "reasoningLevel"
     key_max_agent_count: str = "maximumAgentCount"
+    key_ui_dev_mode: str = "uiDeveloperMode"
 
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         self.ai_model: str | None = None
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
+        self.ui_dev_mode: bool | None = None
 
     def parse(self, root_key: str = None) -> dict:
         yml_data = super().parse()
         self.ai_model = yml_data[self.key_ai_model].lower()
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
+        self.ui_dev_mode = yml_data[self.key_ui_dev_mode]
         return yml_data
 
     def validate(self, yml_data: dict = None) -> None:
@@ -81,6 +84,10 @@ class YAMLConfigFileParser(BaseYAMLParser):
             is_error = True
             logging.error(f"Max. number of agents must be atleast >= {AppConfiguration.min_agent_count}" +
                           " but got {max_agent_count_int} instead")
+
+        if not isinstance(self.ui_dev_mode, bool):
+            is_error = True
+            logging.error(f"UI developer mode flag must be a boolean (True or False) but got {self.ui_dev_mode} instead")
 
         if is_error:
             raise RuntimeError(f"Invalid configuration received")

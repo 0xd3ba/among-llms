@@ -36,6 +36,7 @@ def main():
     runtime_config = RunTimeConfiguration(ai_model=yml_parser.ai_model,
                                           ai_reasoning_lvl=yml_parser.reasoning_level,
                                           max_agent_count=yml_parser.max_agent_count,
+                                          ui_dev_mode=yml_parser.ui_dev_mode,
                                           default_agent_count=default_agent_count,
                                           skip_intro=skip_intro)
 
