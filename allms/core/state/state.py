@@ -87,8 +87,15 @@ class GameState:
         assert agent_id in self._remaining_agent_ids, f"Agent({agent_id}) is trying to send a message but is not in" + \
             f" the set of (remaining) agents: {self._remaining_agent_ids}"
 
-        agent = self.get_agent(message.sent_by)
-        agent.add_message_id(message.id)
+        agent_from = self.get_agent(agent_id)
+        agent_from.add_message_id(message.id)
+
+        # Now check if the message is a DM (sent_to is not None)
+        sent_to = message.sent_to
+        if sent_to is not None:
+            agent_to = self.get_agent(sent_to)
+            agent_from.add_dm_message_id(msg_id=message.id, agent_id=agent_to.id, dm_received=False)  # Sent a DM
+            agent_to.add_dm_message_id(msg_id=message.id, agent_id=agent_id, dm_received=True)  # Received a DM
 
     def get_message(self, message_id: str) -> ChatMessage:
         """ Fetches the message with the given message ID and returns it """
