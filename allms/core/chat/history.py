@@ -8,7 +8,7 @@ from .database import ChatHistoryDatabase
 @dataclass(frozen=True)
 class ChatMessageHistory:
     """ Class for a storing the history of chat messages """
-    recent_history_size: int  # The size of the buffer for storing recent messages
+    recent_history_size: int = 20  # The size of the buffer for storing recent messages
     enable_rag: bool = True   # Whether to enable Retrival Augmented Generation or not. Set to False if having performance issues
 
     # Maps message ID to the message for efficient retrieval and modification
