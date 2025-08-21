@@ -1,3 +1,5 @@
+from typing import Optional
+
 import chromadb
 from sentence_transformers import SentenceTransformer
 
@@ -7,13 +9,27 @@ from .message import ChatMessage
 class ChatHistoryDatabase:
     """ Class for the database storing the chats for long-term memory """
     def __init__(self, chat_name: str, transformer_model: str = "all-MiniLM-L6-v2"):
-        self._client = chromadb.Client()
-        self._sentence_transformer = SentenceTransformer(transformer_model)
-        self._collection = self._client.create_collection(name=chat_name)
+        self._chat_name = chat_name
+        self._transformer_model = transformer_model
+
+        self._client: Optional[chromadb.Client] = None
+        self._sentence_transformer: Optional[SentenceTransformer] = None
+        self._collection: Optional[chromadb.Collection] = None
+
+        self._rag_enabled = True
+        self._message_ids: set[str] = set()  # Set of message IDs stored in the database
 
         self._metadata_key_timestamp = "timestamp"
         self._metadata_key_sent_by = "sent_by"
         self._metadata_key_sent_to = "sent_to"
+
+    def enable_rag(self, flag: bool = True) -> None:
+        """ Set to True if RAG is required. By default, it's True """
+        self._rag_enabled = flag
+        if self._rag_enabled:
+            self._client = chromadb.Client()
+            self._sentence_transformer = SentenceTransformer(self._transformer_model)
+            self._collection = self._client.create_collection(self._chat_name)
 
     def insert(self, messages: ChatMessage | list[ChatMessage]) -> None:
         """ Inserts the chat message(s) to the database """
@@ -21,10 +37,17 @@ class ChatHistoryDatabase:
         if isinstance(messages, ChatMessage):
             messages = [messages]
 
+        if not self._rag_enabled:
+            return
+
+        assert self._collection is not None, f"RAG is enabled but you forgot to instantiate chromadb.Collection"
+
         msg_contents = [msg.msg for msg in messages]
-        msg_ids = [str(msg.id) for msg in messages]  # ID needs to be a string
+        msg_ids = [msg.id for msg in messages]  # ID needs to be a string
         metadatas = [self.__create_metadata_from_message(msg) for msg in messages]
         msg_embeddings = self._sentence_transformer.encode(msg_contents)
+
+        self._message_ids.update(msg_ids)
 
         self._collection.add(
             embeddings=msg_embeddings,
@@ -37,6 +60,9 @@ class ChatHistoryDatabase:
         """ Retrieves the relevant messages from history based on the supplied query """
         fmt_msgs = [self.__format_message(msg.sent_by, msg.msg, msg.sent_to) for msg in recent_msgs]
         query = "\n".join(fmt_msgs)
+
+        if not self._rag_enabled:
+            return fmt_msgs
 
         query_embedding = self._sentence_transformer.encode(query)
         results = self._collection.query(query_embeddings=[query_embedding], n_results=n_results)
