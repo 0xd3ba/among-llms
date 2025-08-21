@@ -18,7 +18,7 @@ class ChatMessageHistory:
     # TODO: Maybe add a DM database for each agent as well ? Currently have no idea on how it might impact performance
 
     def __post_init__(self):
-        self._global_database.enable_rag(self.enable_rag)
+        self._global_database.update_rag_status(self.enable_rag)
 
     def add(self, message: ChatMessage) -> None:
         """ Inserts the message into the history """

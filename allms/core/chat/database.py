@@ -8,24 +8,24 @@ from .message import ChatMessage
 
 class ChatHistoryDatabase:
     """ Class for the database storing the chats for long-term memory """
-    def __init__(self, chat_name: str, transformer_model: str = "all-MiniLM-L6-v2"):
+    def __init__(self, chat_name: str, rag_enabled: bool = True, transformer_model: str = "all-MiniLM-L6-v2"):
         self._chat_name = chat_name
+        self._rag_enabled = rag_enabled
         self._transformer_model = transformer_model
 
         self._client: Optional[chromadb.Client] = None
         self._sentence_transformer: Optional[SentenceTransformer] = None
         self._collection: Optional[chromadb.Collection] = None
 
-        self._rag_enabled = True
         self._message_ids: set[str] = set()  # Set of message IDs stored in the database
 
         self._metadata_key_timestamp = "timestamp"
         self._metadata_key_sent_by = "sent_by"
         self._metadata_key_sent_to = "sent_to"
 
-    def enable_rag(self, flag: bool = True) -> None:
+    def update_rag_status(self, enabled: bool = True) -> None:
         """ Set to True if RAG is required. By default, it's True """
-        self._rag_enabled = flag
+        self._rag_enabled = enabled
         if self._rag_enabled:
             self._client = chromadb.Client()
             self._sentence_transformer = SentenceTransformer(self._transformer_model)
