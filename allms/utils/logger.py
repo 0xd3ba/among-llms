@@ -17,7 +17,7 @@ class AppLogger:
         log_dir.mkdir(parents=True, exist_ok=True)
         assert log_dir.is_dir(), f"Provided path must be a valid directory"
 
-        curr_ts = clock.current_time_in_iso_format()
+        curr_ts = clock.current_timestamp_in_iso_format()
         curr_ts = clock.convert_to_snake_case(curr_ts)
         log_file = f"{curr_ts}.log"
         log_path = log_dir / log_file
