@@ -27,11 +27,13 @@ class GameStateManager:
         self._on_new_message_lock: Lock = Lock()  # To ensure one update at a time
         self._on_new_message_callback: Type[Callable] = None
 
-    def new(self) -> None:
+    async def new(self) -> None:
         """ Creates a new game state """
         self._game_state = GameState()
         self.update_scenario(self.generate_scenario())
         self.create_agents(self._config.default_agent_count)
+
+        await self._game_state.messages.initialize()
 
     def load(self, file_path: str | Path) -> None:
         """ Loads the game state from the given path """

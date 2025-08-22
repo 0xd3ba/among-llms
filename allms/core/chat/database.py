@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 import chromadb
@@ -6,12 +7,30 @@ from sentence_transformers import SentenceTransformer
 from .message import ChatMessage
 
 
+class SingletonSentenceTransformer:
+    """ Singleton class for sentence transformer """
+    _instance: Optional[SentenceTransformer] = None
+    _lock = asyncio.Lock()
+
+    @classmethod
+    async def get(cls, transformer_model: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
+        if cls._instance is not None:
+            return cls._instance
+
+        def _load_model() -> SentenceTransformer:
+            return SentenceTransformer(transformer_model)
+
+        async with cls._lock:
+            cls._instance = await asyncio.to_thread(_load_model)
+        return cls._instance
+
+
 class ChatHistoryDatabase:
     """ Class for the database storing the chats for long-term memory """
-    def __init__(self, chat_name: str, rag_enabled: bool = True, transformer_model: str = "all-MiniLM-L6-v2"):
+    def __init__(self, chat_name: str, rag_enabled: bool = False):
         self._chat_name = chat_name
         self._rag_enabled = rag_enabled
-        self._transformer_model = transformer_model
+        self._initialized = False
 
         self._client: Optional[chromadb.Client] = None
         self._sentence_transformer: Optional[SentenceTransformer] = None
@@ -23,13 +42,18 @@ class ChatHistoryDatabase:
         self._metadata_key_sent_by = "sent_by"
         self._metadata_key_sent_to = "sent_to"
 
-    def update_rag_status(self, enabled: bool = True) -> None:
-        """ Set to True if RAG is required. By default, it's True """
-        self._rag_enabled = enabled
+    def is_initialized(self) -> bool:
+        """ Returns True if database is initialized """
+        return self._initialized
+
+    async def initialize(self, enable_rag: bool = True) -> None:
+        """ Initialize the database. Set enable_rag True if RAG is required """
+        self._rag_enabled = enable_rag
         if self._rag_enabled:
             self._client = chromadb.Client()
-            self._sentence_transformer = SentenceTransformer(self._transformer_model)
+            self._sentence_transformer = await SingletonSentenceTransformer.get()
             self._collection = self._client.create_collection(self._chat_name)
+            self._initialized = True
 
     def insert(self, messages: ChatMessage | list[ChatMessage]) -> None:
         """ Inserts the chat message(s) to the database """
@@ -40,7 +64,7 @@ class ChatHistoryDatabase:
         if not self._rag_enabled:
             return
 
-        assert self._collection is not None, f"RAG is enabled but you forgot to instantiate chromadb.Collection"
+        assert self._initialized, f"RAG is enabled but you forgot to initialize the database"
 
         msg_contents = [msg.msg for msg in messages]
         msg_ids = [msg.id for msg in messages]  # ID needs to be a string

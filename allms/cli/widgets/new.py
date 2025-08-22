@@ -36,11 +36,13 @@ class NewChatroomWidget(ModalScreenWidget):
         self._new_scenario: Optional[str] = None
         self._scenario_textbox: Optional[TextArea] = None
 
+    async def on_mount(self) -> None:
+        await self._state_manager.new()   # Create a new game state
+        self._scenario_textbox.text = self._state_manager.get_scenario()
+
     def compose(self) -> ComposeResult:
 
-        self._state_manager.new()   # Create a new game state
-
-        scenario_textbox = TextArea(text=self._state_manager.get_scenario(), show_line_numbers=True)
+        scenario_textbox = TextArea(show_line_numbers=True)
         num_agents_list = Select(options=self._n_agents_choices, allow_blank=False, value=self._default_n_agents, compact=True)
         confirm_btn, cancel_btn = self._create_confirm_cancel_buttons(self._id_btn_confirm, self._id_btn_cancel)
 

@@ -1,3 +1,4 @@
+import asyncio
 from collections import deque, OrderedDict
 from dataclasses import dataclass, field
 
@@ -17,8 +18,8 @@ class ChatMessageHistory:
     _global_database: ChatHistoryDatabase = field(default_factory=lambda: ChatHistoryDatabase("global_history"))
     # TODO: Maybe add a DM database for each agent as well ? Currently have no idea on how it might impact performance
 
-    def __post_init__(self):
-        self._global_database.update_rag_status(self.enable_rag)
+    async def initialize(self) -> None:
+        await asyncio.to_thread(self._global_database.initialize, self.enable_rag)
 
     def add(self, message: ChatMessage) -> None:
         """ Inserts the message into the history """
