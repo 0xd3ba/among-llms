@@ -1,27 +1,30 @@
-import asyncio
 from typing import Optional
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+from torch import cuda
 
+from allms.config import AppConfiguration
 from .message import ChatMessage
 
 
 class SingletonSentenceTransformer:
     """ Singleton class for sentence transformer """
     _instance: Optional[SentenceTransformer] = None
-    _lock = asyncio.Lock()
 
     @classmethod
-    async def get(cls, transformer_model: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
+    def get(cls, transformer_model: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
         if cls._instance is not None:
             return cls._instance
 
         def _load_model() -> SentenceTransformer:
-            return SentenceTransformer(transformer_model)
+            device = "gpu" if cuda.is_available() else "cpu"
+            return SentenceTransformer(transformer_model, device=device)
 
-        async with cls._lock:
-            cls._instance = await asyncio.to_thread(_load_model)
+        AppConfiguration.logger.info(f"Trying to load sentence transformer: {transformer_model} ...")
+        cls._instance = _load_model()
+        AppConfiguration.logger.info(f"Successfully loaded {transformer_model} ...")
+
         return cls._instance
 
 
@@ -50,8 +53,9 @@ class ChatHistoryDatabase:
         """ Initialize the database. Set enable_rag True if RAG is required """
         self._rag_enabled = enable_rag
         if self._rag_enabled:
+            AppConfiguration.logger.info(f"RAG is enabled. Creating instance of chromadb and sentence transformer ...")
             self._client = chromadb.Client()
-            self._sentence_transformer = await SingletonSentenceTransformer.get()
+            self._sentence_transformer = SingletonSentenceTransformer.get()
             self._collection = self._client.create_collection(self._chat_name)
             self._initialized = True
 

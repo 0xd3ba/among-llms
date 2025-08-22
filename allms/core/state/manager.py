@@ -29,6 +29,7 @@ class GameStateManager:
 
     async def new(self) -> None:
         """ Creates a new game state """
+        AppConfiguration.logger.info("Creating a new game state ...")
         self._game_state = GameState()
         self.update_scenario(self.generate_scenario())
         self.create_agents(self._config.default_agent_count)

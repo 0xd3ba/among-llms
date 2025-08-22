@@ -24,10 +24,15 @@ class AppLogger:
 
         logger = logging.getLogger()
         file_handler = logging.FileHandler(log_path)
+        stream_handler = logging.StreamHandler()
+
         formatter = logging.Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s")
 
         file_handler.setFormatter(formatter)
+        stream_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+        logger.addHandler(stream_handler)
+
         logger.setLevel(log_level)
 
         return logger

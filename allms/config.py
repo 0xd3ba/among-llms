@@ -84,5 +84,6 @@ class RunTimeConfiguration:
     ai_reasoning_lvl: str
     max_agent_count: int
     default_agent_count: int
+    enable_rag: bool
     ui_dev_mode: bool
     skip_intro: bool

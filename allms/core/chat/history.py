@@ -2,6 +2,7 @@ import asyncio
 from collections import deque, OrderedDict
 from dataclasses import dataclass, field
 
+from allms.config import AppConfiguration
 from .message import ChatMessage
 from .database import ChatHistoryDatabase
 
@@ -19,7 +20,8 @@ class ChatMessageHistory:
     # TODO: Maybe add a DM database for each agent as well ? Currently have no idea on how it might impact performance
 
     async def initialize(self) -> None:
-        await asyncio.to_thread(self._global_database.initialize, self.enable_rag)
+        AppConfiguration.logger.info("Trying to initialize history database ...")
+        await self._global_database.initialize(self.enable_rag)
 
     def add(self, message: ChatMessage) -> None:
         """ Inserts the message into the history """
