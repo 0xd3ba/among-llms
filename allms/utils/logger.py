@@ -10,7 +10,7 @@ class AppLogger:
     @staticmethod
     def create_logger(log_dir: str | Path,
                       clock: Time,
-                      log_level: int = logging.DEBUG) -> logging.Logger:
+                      log_level: int = logging.INFO) -> logging.Logger:
         if isinstance(log_dir, str):
             log_dir = Path(log_dir)
 
