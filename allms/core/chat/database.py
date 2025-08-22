@@ -21,9 +21,9 @@ class SingletonSentenceTransformer:
             device = "gpu" if cuda.is_available() else "cpu"
             return SentenceTransformer(transformer_model, device=device)
 
-        AppConfiguration.logger.info(f"Trying to load sentence transformer: {transformer_model} ...")
+        AppConfiguration.logger.log(f"Trying to load sentence transformer: {transformer_model} ...")
         cls._instance = _load_model()
-        AppConfiguration.logger.info(f"Successfully loaded {transformer_model} ...")
+        AppConfiguration.logger.log(f"Successfully loaded {transformer_model} ...")
 
         return cls._instance
 
@@ -53,13 +53,13 @@ class ChatHistoryDatabase:
         """ Initialize the database. Set enable_rag True if RAG is required """
         self._rag_enabled = enable_rag
         if self._rag_enabled:
-            AppConfiguration.logger.info(f"RAG is enabled. Creating instance of chromadb and sentence transformer ...")
+            AppConfiguration.logger.log(f"RAG is enabled. Creating instance of chromadb and sentence transformer ...")
             self._client = chromadb.Client()
             self._sentence_transformer = SingletonSentenceTransformer.get()
             self._collection = self._client.create_collection(self._chat_name)
             self._initialized = True
 
-    def insert(self, messages: ChatMessage | list[ChatMessage]) -> None:
+    async def insert(self, messages: ChatMessage | list[ChatMessage]) -> None:
         """ Inserts the chat message(s) to the database """
         assert messages is not None, f"Expects a chat message but received None instead"
         if isinstance(messages, ChatMessage):
@@ -76,6 +76,7 @@ class ChatHistoryDatabase:
         msg_embeddings = self._sentence_transformer.encode(msg_contents)
 
         self._message_ids.update(msg_ids)
+        AppConfiguration.logger.log(f"Inserting the following message IDs to the database: {msg_ids} ...")
 
         self._collection.add(
             embeddings=msg_embeddings,

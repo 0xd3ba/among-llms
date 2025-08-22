@@ -1,3 +1,5 @@
+import asyncio
+
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -192,8 +194,12 @@ class ChatroomWidget(Vertical):
         # This handler is only executed when you type a message in the input box and send it -- i.e. sent by you
         sent_by_you = True
 
-        msg_id = self._state_manager.send_message(msg=current_msg, sent_by=send_as, sent_to=send_to, sent_by_you=sent_by_you)
-        self._state_manager.on_new_message_received(msg_id)
+        async def _send():
+            """ Asynchronous helper method to send the message """
+            msg_id = await self._state_manager.send_message(msg=current_msg, sent_by=send_as, sent_to=send_to, sent_by_you=sent_by_you)
+            self._state_manager.on_new_message_received(msg_id)
+
+        asyncio.gather(_send())
         # TODO: What if the user is replying to an older message? I guess the chat-contents class should take care of this
 
         # Finally reset the current text

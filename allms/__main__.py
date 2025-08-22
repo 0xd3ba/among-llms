@@ -45,11 +45,16 @@ def main():
 
     # Preload the sentence transformer before starting the app to avoid performance issues in the UI
     if yml_parser.enable_rag:
-        AppConfiguration.logger.info(f"Please wait while sentence-transformer is being loaded ...")
+        AppConfiguration.logger.log(f"Please wait while sentence-transformer is being loaded ...")
         _ = SingletonSentenceTransformer.get()
+
+    # Remove the handler that outputs the logs to the console as it may cause visual glitches in the UI
+    AppConfiguration.logger.remove_handler_of_console_stream()
 
     app = AmongLLMs(runtime_config)
     app.run()
+
+    AppConfiguration.logger.add_handler_of_console_stream()
 
 
 if __name__ == '__main__':

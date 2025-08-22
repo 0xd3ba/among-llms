@@ -73,14 +73,14 @@ class GameState:
         assert agent_id in self._remaining_agent_ids, f"Trying to remove agent ID({agent_id}) which is not present"
         self._remaining_agent_ids.remove(agent_id)
 
-    def add_message(self, message: ChatMessage) -> None:
+    async def add_message(self, message: ChatMessage) -> None:
         """ Adds the given message to the message history log """
         # Check if the message is a reply to a previous message ID -- if yes, then the message must exist
         if message.reply_to_id is not None:
             assert self.messages.exists(message.reply_to_id), f"Trying to reply to a message ID " + \
                 f"({message.reply_to_id}) which does not exist in the history"
 
-        self.messages.add(message)
+        await self.messages.add(message)
 
         # Update the list of message IDs sent by the agent
         agent_id = message.sent_by

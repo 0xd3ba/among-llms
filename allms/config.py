@@ -25,7 +25,7 @@ class AppConfiguration:
 
     # Logging configuration
     log_dir = "./logs"
-    logger = AppLogger.create_logger(clock=clock, log_dir=log_dir)
+    logger = AppLogger(clock=clock, log_dir=log_dir)
 
     # List of AI models supported
     ai_models: list[str] = [

@@ -29,7 +29,7 @@ class GameStateManager:
 
     async def new(self) -> None:
         """ Creates a new game state """
-        AppConfiguration.logger.info("Creating a new game state ...")
+        AppConfiguration.logger.log("Creating a new game state ...")
         self._game_state = GameState()
         self.update_scenario(self.generate_scenario())
         self.create_agents(self._config.default_agent_count)
@@ -116,17 +116,17 @@ class GameStateManager:
         self._scenario = scenario
         self._game_state.initialize_scenario(scenario)
 
-    def send_message(self,
-                     msg: str,
-                     sent_by: str,
-                     sent_by_you: bool,
-                     sent_to: Optional[str],
-                     thought_process: str = "",
-                     reply_to_id: Optional[str] = None) -> str:
+    async def send_message(self,
+                           msg: str,
+                           sent_by: str,
+                           sent_by_you: bool,
+                           sent_to: Optional[str],
+                           thought_process: str = "",
+                           reply_to_id: Optional[str] = None) -> str:
         """ Sends a message by the given agent ID and returns the message ID """
         self.__check_game_state_validity()
         msg = self.__create_new_message(msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
-        self._game_state.add_message(msg)
+        await self._game_state.add_message(msg)
         return msg.id
 
     def get_message(self, msg_id: str) -> ChatMessage:

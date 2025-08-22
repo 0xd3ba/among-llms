@@ -20,20 +20,21 @@ class ChatMessageHistory:
     # TODO: Maybe add a DM database for each agent as well ? Currently have no idea on how it might impact performance
 
     async def initialize(self) -> None:
-        AppConfiguration.logger.info("Trying to initialize history database ...")
+        AppConfiguration.logger.log("Trying to initialize history database ...")
         await self._global_database.initialize(self.enable_rag)
 
-    def add(self, message: ChatMessage) -> None:
+    async def add(self, message: ChatMessage) -> None:
         """ Inserts the message into the history """
         msg_id = message.id
         assert not self.__has_message(msg_id), f"Can't insert as ID({msg_id}) of {message} already exists in the history"
         self._history_all[msg_id] = message
 
+        AppConfiguration.logger.log(f"Request received to add message to history: {message}")
         # Insert to the global database only if the message is sent to everyone, i.e. sent_to is None
         # Also insert to the recent message IDs -- this will be the short-term context that will be provided to the agents
         sent_to = message.sent_to
         if sent_to is None:
-            self._global_database.insert(message)
+            await self._global_database.insert(message)
             self._global_recent_msg_ids.append(msg_id)
             # Need to do it this way since setting fixed-size deque on dataclass dynamically is a pain
             if len(self._global_recent_msg_ids) > self.recent_history_size:
