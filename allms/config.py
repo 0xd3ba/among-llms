@@ -5,6 +5,7 @@ import tzlocal
 
 import allms.version as version
 from .utils.time import Time
+from .utils.logger import AppLogger
 
 
 class AppConfiguration:
@@ -21,6 +22,10 @@ class AppConfiguration:
     # Timezone of the clock
     timezone: str = tzlocal.get_localzone_name()
     clock: Time = Time(timezone)
+
+    # Logging configuration
+    log_dir = "./logs"
+    logger = AppLogger.create_logger(clock=clock, log_dir=log_dir)
 
     # List of AI models supported
     ai_models: list[str] = [
