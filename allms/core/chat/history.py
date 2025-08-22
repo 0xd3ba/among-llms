@@ -40,15 +40,23 @@ class ChatMessageHistory:
             if len(self._global_recent_msg_ids) > self.recent_history_size:
                 self._global_recent_msg_ids.popleft()
 
-    def edit(self, msg_id: str, message: str, edited_by_you: bool = False) -> None:
+    async def edit(self, msg_id: str, message: str, edited_by_you: bool = False) -> None:
         """ Edits the contents of the message in the history """
         assert self.__has_message(msg_id), f"Can't edit as ID({msg_id}) doesn't exist in the history"
+        AppConfiguration.logger.log(f"Request received to edit message ID ({msg_id}) with '{message}', by_you={edited_by_you}")
+
         self._history_all[msg_id].edit(message, edited_by_you)
 
-    def delete(self, msg_id: str, deleted_by_you: bool) -> None:
+        # TODO: Edit the message in the database
+
+    async def delete(self, msg_id: str, deleted_by_you: bool) -> None:
         """ Deletes the contents of the message from the history without removing the message """
         assert self.__has_message(msg_id), f"Can't delete as ID({msg_id}) doesn't exist in the history"
+        AppConfiguration.logger.log(f"Request received to delete message ID ({msg_id}), by_you={deleted_by_you}")
+
         self._history_all[msg_id].delete(deleted_by_you)
+
+        # TODO: Delete the message in the database
 
     def get(self, msg_id: str) -> ChatMessage:
         """ Returns the message from the history """

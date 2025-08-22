@@ -139,13 +139,13 @@ class GameStateManager:
         self.__check_game_state_validity()
         return self._game_state.get_messages_sent_by(agent_id, latest_first=True)
 
-    def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
+    async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
-        self._game_state.messages.edit(msg_id, msg_contents, edited_by_you)
+        await self._game_state.edit_message(msg_id, msg_contents, edited_by_you)
 
-    def delete_message(self, msg_id: str, deleted_by_you: bool) -> None:
+    async def delete_message(self, msg_id: str, deleted_by_you: bool) -> None:
         """ Deletes the message with the given message ID """
-        self._game_state.messages.delete(msg_id, deleted_by_you)
+        await self._game_state.delete_message(msg_id, deleted_by_you)
 
     def __create_new_message(self,
                              msg: str,

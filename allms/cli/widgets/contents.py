@@ -115,12 +115,12 @@ class ChatroomContentsWidget(VerticalScroll):
         self.mount(msg_widget)
         self.scroll_end(animate=False)
 
-    def edit_message(self, msg_id: str) -> None:
+    async def edit_message(self, msg_id: str) -> None:
         """ Method to edit an existing chat message """
         msg_widget = self._msg_map[msg_id]
         msg_widget.edit_contents()
 
-    def delete_message(self, msg_id: str) -> None:
+    async def delete_message(self, msg_id: str) -> None:
         """ Method to delete an existing chat message """
         msg_widget = self._msg_map[msg_id]
         msg_widget.delete_contents()
