@@ -36,6 +36,7 @@ def main():
     min_agent_count = AppConfiguration.min_agent_count
     default_agent_count = (min_agent_count + yml_parser.max_agent_count) // 2
     runtime_config = RunTimeConfiguration(ai_model=yml_parser.ai_model,
+                                          offline_model=yml_parser.offline_model,
                                           ai_reasoning_lvl=yml_parser.reasoning_level,
                                           max_agent_count=yml_parser.max_agent_count,
                                           enable_rag=yml_parser.enable_rag,

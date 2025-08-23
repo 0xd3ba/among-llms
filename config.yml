@@ -7,6 +7,10 @@
 #   - gpt-oss-120b
 model: gpt-oss-20b
 
+# Offline model or online ?
+# If online model (set the value to False), you will need to set the API key accordingly
+offlineModel: True
+
 # The reasoning level of the selected model
 # Supported values:
 #   - low

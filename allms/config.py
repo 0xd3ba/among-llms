@@ -81,6 +81,7 @@ class RunTimeConfiguration:
     """ Configuration class holding constants from CLI and YAML config file """
 
     ai_model: str
+    offline_model: bool
     ai_reasoning_lvl: str
     max_agent_count: int
     default_agent_count: int

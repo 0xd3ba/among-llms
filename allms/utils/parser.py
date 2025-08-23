@@ -41,6 +41,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
     """ Parser for the user configuration file """
 
     key_ai_model: str = "model"
+    key_offline_model: str = "offlineModel"
     key_reasoning_level: str = "reasoningLevel"
     key_max_agent_count: str = "maximumAgentCount"
     key_enable_rag: str = "enableRAG"
@@ -49,6 +50,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         self.ai_model: str | None = None
+        self.offline_model: bool | None = None
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
         self.enable_rag: bool | None = None
@@ -57,6 +59,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
     def parse(self, root_key: str = None) -> dict:
         yml_data = super().parse()
         self.ai_model = yml_data[self.key_ai_model].lower()
+        self.offline_model = yml_data[self.key_offline_model]
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
         self.enable_rag = yml_data[self.key_enable_rag]
@@ -69,6 +72,10 @@ class YAMLConfigFileParser(BaseYAMLParser):
         if self.ai_model not in AppConfiguration.ai_models:
             is_error = True
             logging.error(f"Given model({self.ai_model}) is not supported. Supported models: {AppConfiguration.ai_models}")
+
+        if not isinstance(self.offline_model, bool):
+            is_error = True
+            logging.error(f"Expected {self.key_offline_model} to be a boolean but got {self.offline_model} instead")
 
         if self.reasoning_level not in AppConfiguration.ai_reasoning_levels:
             is_error = True
