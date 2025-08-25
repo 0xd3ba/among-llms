@@ -39,8 +39,17 @@ class AppConfiguration:
         "high"
     ]
 
+    # Max. number of retries allowed by an agent for an invalid response
+    max_model_retries: int = 3
+
     # Minimum number of agents that should be in the game
     min_agent_count: int = 3
+
+    # Context size for the model -- Max. no. of messages in the chat history (public messages, DMs and notifications)
+    # the model gets as context for generating a reply
+    # Note(s):
+    #   - Changing this to a larger value may reduce the performance as the models may take longer to produce replies
+    max_lookback_messages: int = 25
 
     # Path of the resource files
     __resource_dir_root = Path(__file__).parent / "res"

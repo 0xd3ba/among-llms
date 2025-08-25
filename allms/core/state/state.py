@@ -2,7 +2,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat.history import ChatMessage, ChatMessageHistory
+from allms.core.chat import ChatMessage, ChatMessageFormatter, ChatMessageHistory
 from allms.core.log import GameEventLogs
 from allms.core.vote import AgentVoting
 
@@ -92,6 +92,7 @@ class GameState:
 
         agent_from = self.get_agent(agent_id)
         agent_from.add_message_id(message.id)
+        agent_from.add_to_chat_log(ChatMessageFormatter.format_to_string(message))
 
         # Now check if the message is a DM (sent_to is not None)
         sent_to = message.sent_to
@@ -113,16 +114,17 @@ class GameState:
 
         return all_msgs
 
-    def get_recent_message_ids(self) -> list[str]:
-        return self.messages.get_recent_message_ids()
-
     async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
         await self.messages.edit(msg_id, msg_contents, edited_by_you)
+        if edited_by_you:
+            self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=True)
 
     async def delete_message(self, msg_id, deleted_by_you) -> None:
         """ Deletes the message with the given message ID """
         await self.messages.delete(msg_id, deleted_by_you)
+        if deleted_by_you:
+            self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
     def start_voting(self) -> None:
         """ Starts the voting process """
@@ -136,3 +138,18 @@ class GameState:
     def end_voting(self) -> Counter:
         """ Stops the voting process and returns the results """
         return self._voting.end_vote()
+
+    def __check_and_notify_if_modifying_others_message(self, msg_id: str, is_edit: bool = True) -> None:
+        """ Helper method to check if modifying other's message """
+        your_id = self.your_agent_id
+        msg = self.get_message(msg_id)
+
+        if msg.sent_by == your_id:
+            return
+
+        # Modifying someone else's message
+        # Send them a notification about the modification
+        # Note: is_edit=False implies deleting their message
+        tgt_agent = self.get_agent(msg.sent_by)
+        fmt_msg = ChatMessageFormatter.create_hacked_by_human_message(msg, is_edit=is_edit)
+        tgt_agent.add_to_chat_log(fmt_msg)

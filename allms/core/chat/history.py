@@ -10,12 +10,10 @@ from .database import ChatHistoryDatabase
 @dataclass(frozen=True)
 class ChatMessageHistory:
     """ Class for a storing the history of chat messages """
-    recent_history_size: int = 20  # The size of the buffer for storing recent messages
     enable_rag: bool = True   # Whether to enable Retrival Augmented Generation or not. Set to False if having performance issues
 
     # Maps message ID to the message for efficient retrieval and modification
     _history_all: OrderedDict[str, ChatMessage] = field(default_factory=OrderedDict)
-    _global_recent_msg_ids: deque[str] = field(default_factory=deque)
     _global_database: ChatHistoryDatabase = field(default_factory=lambda: ChatHistoryDatabase("global_history"))
     # TODO: Maybe add a DM database for each agent as well ? Currently have no idea on how it might impact performance
 
@@ -35,10 +33,6 @@ class ChatMessageHistory:
         sent_to = message.sent_to
         if sent_to is None:
             await self._global_database.insert(message)
-            self._global_recent_msg_ids.append(msg_id)
-            # Need to do it this way since setting fixed-size deque on dataclass dynamically is a pain
-            if len(self._global_recent_msg_ids) > self.recent_history_size:
-                self._global_recent_msg_ids.popleft()
 
     async def edit(self, msg_id: str, message: str, edited_by_you: bool = False) -> None:
         """ Edits the contents of the message in the history """
@@ -62,10 +56,6 @@ class ChatMessageHistory:
         """ Returns the message from the history """
         assert self.__has_message(msg_id), f"Can't fetch as ID({msg_id}) doesn't exist in the history"
         return self._history_all[msg_id]
-
-    def get_recent_message_ids(self) -> list:
-        """ Returns the IDs of the most-recent messages """
-        return list(self._global_recent_msg_ids)
 
     def exists(self, msg_id: str) -> bool:
         """ Returns True if the message exists in the history, else False """

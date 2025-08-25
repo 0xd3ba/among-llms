@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass, field
 
 from allms.config import AppConfiguration
@@ -17,6 +18,9 @@ class Agent:
     dm_msg_ids_recv: dict[str, set] = field(default_factory=dict)  # Mapping between agent ID and received msg id
     dm_msg_ids_sent: dict[str, set] = field(default_factory=dict)  # Mapping between agent ID and sent msg id
 
+    # Maintain a rolling history of chat-logs of DMs, public messages and notifications
+    chat_logs: deque[str] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
+
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
         if msg_id not in self.msg_ids:
@@ -28,6 +32,14 @@ class Agent:
         if agent_id not in dm_map:
             dm_map[agent_id] = set()
         dm_map[agent_id].add(msg_id)
+
+    def add_to_chat_log(self, msg: str) -> None:
+        """ Add the given message to the chat log """
+        AppConfiguration.logger.log(f"Adding the following message to chat-log for agent({self.id}): {msg}")
+        self.chat_logs.append(msg)
+
+    def get_chat_logs(self) -> list[str]:
+        return list(self.chat_logs)
 
     def get_message_ids(self, latest_first: bool = True) -> list[str]:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
