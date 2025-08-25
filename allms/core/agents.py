@@ -19,8 +19,8 @@ class Agent:
     dm_msg_ids_sent: dict[str, set] = field(default_factory=dict)  # Mapping between agent ID and sent msg id
 
     # Maintain a rolling history of chat-logs of DMs, public messages and notifications
-    # Each item is of form (is_your_message, message)
-    chat_logs: deque[tuple[bool, str]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
+    # Each item is of form (role, message)
+    chat_logs: deque[tuple[str, str]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
 
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
@@ -34,13 +34,12 @@ class Agent:
             dm_map[agent_id] = set()
         dm_map[agent_id].add(msg_id)
 
-    def add_to_chat_log(self, msg_id: str, msg: str) -> None:
+    def add_to_chat_log(self, role: str, msg: str) -> None:
         """ Add the given message to the chat log """
         AppConfiguration.logger.log(f"Adding the following message to chat-log for agent({self.id}): {msg}")
-        sent_by_you = True if (msg_id in self.msg_ids) else False
-        self.chat_logs.append((sent_by_you, msg))
+        self.chat_logs.append((role, msg))
 
-    def get_chat_logs(self) -> list[tuple[bool, str]]:
+    def get_chat_logs(self) -> list[tuple[str, str]]:
         return list(self.chat_logs)
 
     def get_message_ids(self, latest_first: bool = True) -> list[str]:

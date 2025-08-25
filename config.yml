@@ -26,7 +26,8 @@ maximumAgentCount: 10
 
 # Enable/Disable Retrieval-Augmented Generation
 # Set to False if causing performance issues
-enableRAG: True
+# Allowed values: True / False
+enableRAG: False
 
 ################# DEVELOPERS ONLY #################
 # Set the below to True if you want to debug the UI

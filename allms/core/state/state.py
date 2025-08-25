@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageFormatter, ChatMessageHistory
+from allms.core.llm.roles import LLMRoles
 from allms.core.log import GameEventLogs
 from allms.core.vote import AgentVoting
 
@@ -93,17 +94,30 @@ class GameState:
         agent_from = self.get_agent(agent_id)
         agent_from.add_message_id(message.id)
 
+        broadcast_msg_to = {agent_id}
+        fmt_msg = ChatMessageFormatter.format_to_string(message)
+
+        # The message was sent by you via a different agent -- notify the agent in their logs
         if (agent_id != self.your_agent_id) and message.sent_by_you:
-            agent_from.add_to_chat_log(message.id, ChatMessageFormatter.create_sent_by_human_message(message))
-        else:
-            agent_from.add_to_chat_log(message.id, ChatMessageFormatter.format_to_string(message))
+            agent_from.add_to_chat_log(LLMRoles.system, ChatMessageFormatter.create_sent_by_human_message(message))
+
+        # If agent suspects someone, add it to their chat log
+        if not message.sent_by_you and (message.suspect is not None):
+            agent_from.add_to_chat_log(LLMRoles.system, ChatMessageFormatter.create_suspicion_message(message))
 
         # Now check if the message is a DM (sent_to is not None)
         sent_to = message.sent_to
         if sent_to is not None:
+            broadcast_msg_to.add(sent_to)
             agent_to = self.get_agent(sent_to)
             agent_from.add_dm_message_id(msg_id=message.id, agent_id=agent_to.id, dm_received=False)  # Sent a DM
             agent_to.add_dm_message_id(msg_id=message.id, agent_id=agent_id, dm_received=True)  # Received a DM
+        else:  # Sending to everyone
+            broadcast_msg_to.update(self._remaining_agent_ids)
+
+        for aid in broadcast_msg_to:
+            role = LLMRoles.assistant if (aid == agent_id) else LLMRoles.user
+            self._all_agents[aid].add_to_chat_log(role, fmt_msg)
 
     def get_message(self, message_id: str) -> ChatMessage:
         """ Fetches the message with the given message ID and returns it """
@@ -145,6 +159,7 @@ class GameState:
 
     def end_voting(self) -> Counter:
         """ Stops the voting process and returns the results """
+        # TODO: Inform the agents in their chat-logs that voting has ended and who got kicked out etc.
         return self._voting.end_vote()
 
     def __check_and_notify_if_modifying_others_message(self, msg_id: str, is_edit: bool = True) -> None:
@@ -160,4 +175,4 @@ class GameState:
         # Note: is_edit=False implies deleting their message
         tgt_agent = self.get_agent(msg.sent_by)
         fmt_msg = ChatMessageFormatter.create_hacked_by_human_message(msg, is_edit=is_edit)
-        tgt_agent.add_to_chat_log(msg_id, fmt_msg)
+        tgt_agent.add_to_chat_log(LLMRoles.system, fmt_msg)

@@ -26,10 +26,19 @@ class LLMResponseParser:
         }
         response_dict = {}
         lines = response.splitlines()
+        keys = set(parser_map.keys())
+
         for line in lines:
             # Skip empty lines if any (the LLM may output these -- who knows)
-            if not line.strip():
+            line = line.strip()
+            if not line:
                 continue
+
+            # Skip all the lines that don't have the required message
+            line_key = line.split(":")[0].strip()
+            if line_key not in keys:
+                continue
+
             try:
                 key, contents = line.split(":", maxsplit=1)
                 key = key.strip()
@@ -39,7 +48,8 @@ class LLMResponseParser:
                 LLMResponseParser.__add_to_result(parser_map[key], contents, result=response_dict)
 
             except KeyError as ke:
-                raise ValueError(f"{ke}. Supported keys: {parser_map.keys()}")
+                supp_keys = " ".join(list(parser_map.keys()))
+                raise ValueError(f"{ke}. Supported keys: {supp_keys}. DOES NOT MATCH THE OUTPUT SCHEMA")
             except Exception as ex:
                 raise ValueError(f"{ex}. Doesn't match the requested output schema")
 
@@ -61,4 +71,5 @@ class LLMResponseParser:
         elif pc.isnumeric():
             parsed_contents = int(pc)
 
-        result[key] = parsed_contents
+        if key not in result:
+            result[key] = parsed_contents

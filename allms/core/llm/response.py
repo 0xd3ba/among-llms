@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Iterable
 
 from pydantic import BaseModel, field_validator, model_validator
 from typing import Any, ClassVar, Dict, Optional, Set
@@ -8,8 +9,13 @@ class _AllowedIDsMixin(BaseModel):
     allowed_ids: ClassVar[Set[str]] = set()  # Run-time set of allowed agent IDs
 
     @classmethod
+    def set_allowed_ids(cls, allowed_ids: Iterable[str]) -> None:
+        allowed_ids = {s.lower() for s in allowed_ids}
+        cls.allowed_ids = allowed_ids
+
+    @classmethod
     def validate_agent_id(cls, agent_id: str) -> str:
-        if cls.allowed_ids and agent_id in cls.allowed_ids:
+        if cls.allowed_ids and agent_id.lower() in cls.allowed_ids:
             return agent_id
         raise ValueError(f"Agent ID ({agent_id}) not in the allowed set: {cls.allowed_ids}")
 

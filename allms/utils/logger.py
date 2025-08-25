@@ -25,6 +25,10 @@ class AppLogger:
             level = self._log_level
         self._logger.log(level, msg=msg)
 
+    def set_log_level(self, level: int) -> None:
+        """ Sets the log level for the logger """
+        self.__create_logger(self._log_dir, self._clock, level)
+
     def remove_handler_of_console_stream(self) -> None:
         """ Removes the handler of the console stream """
         if self._stream_handler in self._logger.handlers:

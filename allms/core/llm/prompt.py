@@ -9,6 +9,12 @@ class LLMPromptGenerator:
         self._agents_map = agents
 
     @staticmethod
+    def generate_presence_of_human_prompt() -> str:
+        """ Method to generate the presence of a human prompt """
+        prompt = f"There is a human hiding amongst you. Find out who by any means necessary."
+        return prompt
+
+    @staticmethod
     def generate_output_prompt() -> str:
         """ Method to generate the output instructions prompt """
         # I'm seriously tired trying to enforce structured output. Spent more time trying to get correct the output
@@ -16,7 +22,7 @@ class LLMPromptGenerator:
         prompt = """
         OUTPUT FORMAT RULES:
 
-        ALWAYS respond in this EXACT structure:
+        ALWAYS respond in this EXACT structure. No other text other than the following below:
 
         MESSAGE: <str>                     # Your chat message
         INTENT: <str>                      # Your motive behind the message
@@ -47,7 +53,11 @@ class LLMPromptGenerator:
         prompt = (
             f"You are {agent_id}. Your persona: {persona}.\n"
             "Respond naturally according to your persona, the scenario, and the conversation so far. "
-            "Keep your responses SHORT, CONCISE, and chat-like."
+            "Keep your responses SHORT, CONCISE, and chat-like. FOLLOW THE EXACT OUTPUT SCHEMA."
+            "You will receive message history in the following format: "
+            "[timestamp][<agent>] <their message> -- for public messages\n"
+            "[timestamp][<agent> -> <you>] <their message> -- for private messages\n"
+            "If the human modifies your messages or sends messages via you, you will be notified"
         )
 
         if vote_has_started:

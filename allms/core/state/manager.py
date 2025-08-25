@@ -10,6 +10,7 @@ from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
+from allms.core.llm.loop import ChatLoop
 from .callbacks import CallbackType, StateManagerCallbacks
 from .state import GameState
 
@@ -29,16 +30,8 @@ class GameStateManager:
         self._on_new_message_lock: Lock = Lock()  # To ensure one update at a time
         self._on_new_message_callback: Optional[Callable] = None
 
-        # Register the callbacks needed by the chat-loop
-        self_callbacks: dict[CallbackType, Callable[..., Any]] = {
-            CallbackType.SEND_MESSAGE: self.send_message,
-            CallbackType.GET_MESSAGE_WITH_ID: self.get_message,
-            CallbackType.GET_RECENT_MESSAGE_IDS: self.get_recent_message_ids,
-            CallbackType.START_A_VOTE: self.start_vote,
-            CallbackType.VOTE_FOR: self.vote,
-            CallbackType.END_THE_VOTE: self.end_vote
-        }
-        self._self_callbacks = StateManagerCallbacks(self_callbacks)
+        self._self_callbacks = StateManagerCallbacks(self.__generate_callbacks())
+        self._chat_loop: Optional[ChatLoop] = None
 
     async def new(self) -> None:
         """ Creates a new game state """
@@ -48,6 +41,29 @@ class GameStateManager:
         self.create_agents(self._config.default_agent_count)
 
         await self._game_state.messages.initialize()
+
+    def start(self) -> None:
+        """ Method to start the chatroom """
+        self._chat_loop = ChatLoop(config=self._config,
+                                   your_agent_id=self.get_user_assigned_agent_id(),
+                                   agents=self.get_all_agents(),
+                                   scenario=self.get_scenario(),
+                                   callbacks=self._self_callbacks
+                                   )
+        # TODO: Handle any pre-processing steps, if any, that might need to be done before loop starts
+        self._chat_loop.start()
+
+    def pause(self) -> None:
+        """ Method to pause the chatroom """
+        assert self._chat_loop is not None, f"Trying to pause chat-loop which doesn't exist"
+        self._chat_loop.pause()
+
+    def stop(self) -> None:
+        """ Method to stop the chatroom """
+        assert self._chat_loop is not None, f"Trying to stop chat-loop which doesn't exist"
+        # TODO: Ensure all agents are stopped before resetting everything
+        self._chat_loop.stop()
+        self._chat_loop = None
 
     def load(self, file_path: str | Path) -> None:
         """ Loads the game state from the given path """
@@ -128,6 +144,7 @@ class GameStateManager:
         """ Updates the scenario with the given scenario """
         self.__check_game_state_validity()
         self._scenario = scenario
+        AppConfiguration.logger.log(f"Updating scenario to '{scenario}' ...")
         self._game_state.initialize_scenario(scenario)
 
     async def send_message(self,
@@ -136,10 +153,16 @@ class GameStateManager:
                            sent_by_you: bool,
                            sent_to: Optional[str],
                            thought_process: str = "",
-                           reply_to_id: Optional[str] = None) -> str:
+                           reply_to_id: Optional[str] = None,
+                           suspect_id: Optional[str] = None,
+                           suspect_confidence: Optional[int] = None,
+                           suspect_reason: Optional[str] = None
+                           ) -> str:
         """ Sends a message by the given agent ID and returns the message ID """
         self.__check_game_state_validity()
-        msg = self.__create_new_message(msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
+        msg = self.__create_new_message(msg=msg, sent_by=sent_by, sent_by_you=sent_by_you, sent_to=sent_to,
+                                        thought_process=thought_process, reply_to_id=reply_to_id, suspect_id=suspect_id,
+                                        suspect_reason=suspect_reason, suspect_confidence=suspect_confidence)
         await self._game_state.add_message(msg)
         return msg.id
 
@@ -153,10 +176,6 @@ class GameStateManager:
         self.__check_game_state_validity()
         return self._game_state.get_messages_sent_by(agent_id, latest_first=True)
 
-    def get_recent_message_ids(self) -> list[str]:
-        """ Returns the list of recent message IDs """
-        return self._game_state.get_recent_message_ids()
-
     async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
         await self._game_state.edit_message(msg_id, msg_contents, edited_by_you)
@@ -164,6 +183,10 @@ class GameStateManager:
     async def delete_message(self, msg_id: str, deleted_by_you: bool) -> None:
         """ Deletes the message with the given message ID """
         await self._game_state.delete_message(msg_id, deleted_by_you)
+
+    def voting_has_started(self) -> bool:
+        """ Method that returns True if voting has started, False otherwise """
+        return self._game_state.voting_has_started()
 
     def start_vote(self) -> None:
         """ Method to start the voting process """
@@ -183,14 +206,32 @@ class GameStateManager:
                              sent_by_you: bool,
                              sent_to: Optional[str] = None,
                              thought_process: str = "",
-                             reply_to_id: Optional[str] = None
+                             reply_to_id: Optional[str] = None,
+                             suspect_id: Optional[str] = None,
+                             suspect_confidence: Optional[int] = None,
+                             suspect_reason: Optional[str] = None
                              ) -> ChatMessage:
         """ Helper method to create a message and return it """
         msg_id = self._msg_id_generator.next()
         timestamp = AppConfiguration.clock.current_timestamp_in_iso_format()
-        chat_msg = ChatMessage(msg_id, timestamp, msg, sent_by, sent_by_you, sent_to, thought_process, reply_to_id)
+        chat_msg = ChatMessage(id=msg_id, timestamp=timestamp, msg=msg, sent_by=sent_by, sent_by_you=sent_by_you,
+                               sent_to=sent_to, thought_process=thought_process, reply_to_id=reply_to_id,
+                               suspect=suspect_id, suspect_reason=suspect_reason, suspect_confidence=suspect_confidence)
         return chat_msg
 
     def __check_game_state_validity(self) -> None:
         """ Helper method to check the validity of the game state """
         assert self._game_state is not None, f"Did you forget to instantiate game state first?"
+
+    def __generate_callbacks(self) -> dict[CallbackType, Callable[..., Any]]:
+        """ Helper method to generate the callbacks required by the chat-loop class """
+        self_callbacks = {
+            CallbackType.SEND_MESSAGE: self.send_message,
+            CallbackType.GET_MESSAGE_WITH_ID: self.get_message,
+            CallbackType.VOTE_HAS_STARTED: self.voting_has_started,
+            CallbackType.START_A_VOTE: self.start_vote,
+            CallbackType.VOTE_FOR: self.vote,
+            CallbackType.END_THE_VOTE: self.end_vote
+        }
+
+        return self_callbacks

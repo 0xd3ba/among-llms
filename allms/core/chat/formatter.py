@@ -21,6 +21,17 @@ class ChatMessageFormatter:
         return fmt_msg
 
     @staticmethod
+    def create_suspicion_message(msg: ChatMessage) -> str:
+        """ Format a suspicion message """
+        suspect = msg.suspect
+        assert suspect is not None, f"Creating a suspicion message but the suspect is None. Should not have invoked."
+
+        suspect_reason = msg.suspect_reason
+        suspect_confidence = msg.suspect_confidence
+        fmt_msg = f"Current suspect: {suspect}; Confidence: {suspect_confidence}; Reason: {suspect_reason}."
+        return fmt_msg
+
+    @staticmethod
     def create_sent_by_human_message(msg: ChatMessage) -> str:
         """ Format a notification message indicating message has been sent by the human """
         timestamp = msg.timestamp
