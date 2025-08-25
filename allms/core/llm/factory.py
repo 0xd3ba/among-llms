@@ -6,7 +6,7 @@ from .client import *
 def client_factory(model: str, is_offline: bool) -> Instructor:
     """ Factory method for the client """
     models_map = {
-        ("gpt-oss-20b", True): OllamaOfflineLLMClient,
+        ("gpt-oss:20b", True): OllamaOfflineLLMClient,
         ("gpt-oss:120b", True): OllamaOfflineLLMClient,
         # Add your model here as a (model_name, is_offline) tuple
         # Note: If your model is not offline, you will need to set its appropriate API key in an environment variable
