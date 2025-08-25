@@ -21,6 +21,17 @@ class ChatMessageFormatter:
         return fmt_msg
 
     @staticmethod
+    def create_sent_by_human_message(msg: ChatMessage) -> str:
+        """ Format a notification message indicating message has been sent by the human """
+        timestamp = msg.timestamp
+        contents = msg.msg
+
+        # Format:
+        # [timestamp][IMPORTANT] The human has SENT the following message via you -- '<message>
+        fmt_msg = f"[{timestamp}][IMPORTANT] The human has SENT the following message via you -- '{contents}'"
+        return fmt_msg
+
+    @staticmethod
     def create_hacked_by_human_message(msg: ChatMessage, is_edit: bool = True) -> str:
         """ Format a notification message indicating message has been tampered """
         assert len(msg.history_log) > 0, f"There is nothing in the history log for {msg}. This should not happen. A bug?"
@@ -29,8 +40,8 @@ class ChatMessageFormatter:
         modify_timestamp = msg.history_log[-1].timestamp
 
         # Format:
-        # [timestamp] The human has EDITED your previous message -- '<prev_message>' to '<new_message>'
-        # [timestamp] The human has DELETED your previous message -- '<prev_message>'
+        # [timestamp][IMPORTANT] The human has EDITED your previous message -- '<prev_message>' to '<new_message>'
+        # [timestamp][IMPORTANT] The human has DELETED your previous message -- '<prev_message>'
         modifier = "EDITED" if is_edit else "DELETED"
         fmt_msg = f"[{modify_timestamp}][IMPORTANT] The human has {modifier} your previous message -- '{msg_previous}'"
         if is_edit:

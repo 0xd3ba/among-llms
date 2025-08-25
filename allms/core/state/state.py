@@ -92,7 +92,11 @@ class GameState:
 
         agent_from = self.get_agent(agent_id)
         agent_from.add_message_id(message.id)
-        agent_from.add_to_chat_log(ChatMessageFormatter.format_to_string(message))
+
+        if (agent_id != self.your_agent_id) and message.sent_by_you:
+            agent_from.add_to_chat_log(message.id, ChatMessageFormatter.create_sent_by_human_message(message))
+        else:
+            agent_from.add_to_chat_log(message.id, ChatMessageFormatter.format_to_string(message))
 
         # Now check if the message is a DM (sent_to is not None)
         sent_to = message.sent_to
@@ -152,4 +156,4 @@ class GameState:
         # Note: is_edit=False implies deleting their message
         tgt_agent = self.get_agent(msg.sent_by)
         fmt_msg = ChatMessageFormatter.create_hacked_by_human_message(msg, is_edit=is_edit)
-        tgt_agent.add_to_chat_log(fmt_msg)
+        tgt_agent.add_to_chat_log(msg_id, fmt_msg)
