@@ -3,13 +3,14 @@ import random
 from collections import Counter
 from pathlib import Path
 from threading import Lock
-from typing import Callable, Optional, Type
+from typing import Any, Callable, Optional
 
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
+from .callbacks import CallbackType, StateManagerCallbacks
 from .state import GameState
 
 
@@ -26,7 +27,18 @@ class GameStateManager:
         self._scenario: str = ""
         self._game_state: Optional[GameState] = None
         self._on_new_message_lock: Lock = Lock()  # To ensure one update at a time
-        self._on_new_message_callback: Type[Callable] = None
+        self._on_new_message_callback: Optional[Callable] = None
+
+        # Register the callbacks needed by the chat-loop
+        self_callbacks: dict[CallbackType, Callable[..., Any]] = {
+            CallbackType.SEND_MESSAGE: self.send_message,
+            CallbackType.GET_MESSAGE_WITH_ID: self.get_message,
+            CallbackType.GET_RECENT_MESSAGE_IDS: self.get_recent_message_ids,
+            CallbackType.START_A_VOTE: self.start_vote,
+            CallbackType.VOTE_FOR: self.vote,
+            CallbackType.END_THE_VOTE: self.end_vote
+        }
+        self._self_callbacks = StateManagerCallbacks(self_callbacks)
 
     async def new(self) -> None:
         """ Creates a new game state """
@@ -47,9 +59,10 @@ class GameStateManager:
         # TODO: Implement the saving logic
         raise NotImplementedError
 
-    def register_on_new_message_callback(self, on_new_message: Type[Callable]) -> None:
+    def register_on_new_message_callback(self, on_new_message: Callable) -> None:
         """ Register a callback for handling when new message arrives """
         self._on_new_message_callback = on_new_message
+        self._self_callbacks.register_callback(CallbackType.UPDATE_UI_ON_NEW_MESSAGE, on_new_message)
 
     def on_new_message_received(self, msg_id: str) -> None:
         """ Method to update the message on the UI by using the callback registered """
@@ -139,6 +152,10 @@ class GameStateManager:
         """ Returns the list of messages sent by the specified agent id """
         self.__check_game_state_validity()
         return self._game_state.get_messages_sent_by(agent_id, latest_first=True)
+
+    def get_recent_message_ids(self) -> list[str]:
+        """ Returns the list of recent message IDs """
+        return self._game_state.get_recent_message_ids()
 
     async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
