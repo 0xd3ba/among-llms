@@ -30,6 +30,11 @@ class ChatMessage:
     edited_by_you: bool = False        # Set to true if it was YOU who edited the message
     deleted_by_you: bool = False       # Set to true if it was YOU who deleted the message
 
+    # Only set by the LLMs if they suspect anybody
+    suspect: Optional[str] = None             # Agent ID of the current suspect while this message was sent
+    suspect_confidence: Optional[int] = None  # A score between [0, 100] range describing the confidence
+    suspect_reason: Optional[str] = None      # The reason behind suspecting the agent
+
     # Stores the history of the edits/delete of the message
     history_log: list[ChatMessageEditLog] = field(default_factory=list)
 

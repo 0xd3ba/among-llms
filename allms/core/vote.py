@@ -27,7 +27,7 @@ class AgentVoting:
     __vote_map: dict[str, str] = field(default_factory=dict)
     __vote_has_started: bool = False
 
-    def voting_is_in_progress(self) -> bool:
+    def voting_has_started(self) -> bool:
         return self.__vote_has_started
 
     def start_vote(self) -> None:

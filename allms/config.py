@@ -51,6 +51,9 @@ class AppConfiguration:
     #   - Changing this to a larger value may reduce the performance as the models may take longer to produce replies
     max_lookback_messages: int = 25
 
+    # Maximum duration of an active vote (in minutes)
+    max_vote_duration_min: int = 2
+
     # Path of the resource files
     __resource_dir_root = Path(__file__).parent / "res"
     resource_persona_path = __resource_dir_root / "persona.yml"

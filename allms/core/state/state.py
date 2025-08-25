@@ -130,6 +130,10 @@ class GameState:
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
+    def voting_has_started(self) -> bool:
+        """ Returns True if voting has started. False otherwise """
+        return self._voting.voting_has_started()
+
     def start_voting(self) -> None:
         """ Starts the voting process """
         self._voting.start_vote()

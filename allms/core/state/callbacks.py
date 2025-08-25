@@ -13,6 +13,7 @@ class CallbackType(str, Enum):
     GET_RECENT_MESSAGE_IDS = "get_recent_message_ids"
     GET_MESSAGE_WITH_ID = "get_message_with_id"
     SEND_MESSAGE = "send_message"
+    VOTE_HAS_STARTED = "vote_started"
     START_A_VOTE = "start_vote"
     VOTE_FOR = "vote_for"
     END_THE_VOTE = "end_vote"
