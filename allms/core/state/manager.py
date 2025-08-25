@@ -1,5 +1,6 @@
 import logging
 import random
+from collections import Counter
 from pathlib import Path
 from threading import Lock
 from typing import Callable, Optional, Type
@@ -146,6 +147,18 @@ class GameStateManager:
     async def delete_message(self, msg_id: str, deleted_by_you: bool) -> None:
         """ Deletes the message with the given message ID """
         await self._game_state.delete_message(msg_id, deleted_by_you)
+
+    def start_vote(self) -> None:
+        """ Method to start the voting process """
+        self._game_state.start_voting()
+
+    def end_vote(self) -> Counter:
+        """ Method to end the voting process """
+        return self._game_state.end_voting()
+
+    def vote(self, by_agent: str, for_agent: str) -> None:
+        """ Method to participate in the vote """
+        self._game_state.vote(by_agent, for_agent)
 
     def __create_new_message(self,
                              msg: str,

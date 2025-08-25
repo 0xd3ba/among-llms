@@ -1,8 +1,10 @@
+from collections import Counter
 from dataclasses import dataclass, field
 
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat.history import ChatMessage, ChatMessageHistory
 from allms.core.log import GameEventLogs
+from allms.core.vote import AgentVoting
 
 
 @dataclass
@@ -21,6 +23,7 @@ class GameState:
     events: GameEventLogs = field(default_factory=GameEventLogs)              # History of the game events (for debugging)
     _all_agents: dict[str, Agent] = field(default_factory=dict)               # Mapping between agent ID and agent object
     _remaining_agent_ids: set[str] = field(default_factory=set)               # Set of all the remaining agent IDs in the game
+    _voting: AgentVoting = field(default_factory=AgentVoting)                 # For handling voting
 
     def initialize_scenario(self, scenario: str) -> None:
         """ Initializes the game scenario """
@@ -117,3 +120,16 @@ class GameState:
     async def delete_message(self, msg_id, deleted_by_you) -> None:
         """ Deletes the message with the given message ID """
         await self.messages.delete(msg_id, deleted_by_you)
+
+    def start_voting(self) -> None:
+        """ Starts the voting process """
+        self._voting.start_vote()
+
+    def vote(self, by_agent: str, for_agent: str) -> None:
+        assert by_agent in self._remaining_agent_ids, f"{by_agent} is trying to vote but is not in the remaining agents list"
+        assert for_agent in self._remaining_agent_ids, f"{by_agent} is voting for {for_agent} who is not in the remaining agents list"
+        self._voting.vote(by_agent, for_agent)
+
+    def end_voting(self) -> Counter:
+        """ Stops the voting process and returns the results """
+        return self._voting.end_vote()
