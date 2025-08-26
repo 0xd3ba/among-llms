@@ -54,7 +54,8 @@ class ChatBubbleWidget(Container):
             if self._config.show_thought_process and not self._your_message:
                 extra_txt = f"[italic dim]([b]Intent[/]: {thought_process})[/]"
 
-            if self._config.show_suspects and not self._your_message and suspect:
+            # Show suspects only if config allows, it was not sent by you and the message contains a suspect
+            if self._config.show_suspects and not self._your_message and (self._message.suspect is not None):
                 suspect_txt = f"[dim][b]Suspect[/]:    {suspect}[/]\n" + \
                               f"[dim][b]Confidence[/]: {suspect_confidence}[/]\n" + \
                               f"[dim][b]Reason[/]:     {suspect_reason}[/]\n"
