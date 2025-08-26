@@ -89,7 +89,7 @@ class BindingConfiguration:
     modify_msgs_mark_unmark_delete: str = "ctrl+x"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RunTimeConfiguration:
     """ Configuration class holding constants from CLI and YAML config file """
 

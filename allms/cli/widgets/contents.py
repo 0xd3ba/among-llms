@@ -1,7 +1,8 @@
 from typing import Optional
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import Container, Vertical, VerticalScroll
+from textual.widget import Widget
 from textual.widgets import Label, Static
 
 from allms.config import StyleConfiguration, RunTimeConfiguration
@@ -9,15 +10,24 @@ from allms.core.state import GameStateManager
 from allms.core.chat import ChatMessage
 
 
-class ChatBubbleWidget(Vertical):
+class ChatBubbleWidget(Container):
     """ Class for a widget hosting a single message """
-    def __init__(self, message: ChatMessage, state_manager: GameStateManager, your_message: bool, sent_by: str, *args, **kwargs):
+    def __init__(self,
+                 config: RunTimeConfiguration,
+                 message: ChatMessage,
+                 state_manager: GameStateManager,
+                 your_message: bool,
+                 sent_by: str,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._config = config
         self._message = message
         self._state_manager = state_manager
         self._your_message = your_message
         self._sent_by = sent_by
+        self._container = Vertical()
         self._chat_bubble: Optional[Static] = None
+        self._extra_bubble: Optional[Static] = None
 
         self._css_id_your_message = "chat-bubble-you"
         self._css_id_other_message = "chat-bubble-other"
@@ -29,19 +39,44 @@ class ChatBubbleWidget(Vertical):
 
     def compose(self) -> ComposeResult:
         msg_txt = self._message.msg
-        title, subtitle = self.__create_border_title_subtitle()
+        extra_txt = ""
+        thought_process = self._message.thought_process
+        suspect = "-"
+        suspect_confidence = "-"
+        suspect_reason = "-"
 
-        self._chat_bubble = Static(msg_txt)
-        self._chat_bubble.add_class(StyleConfiguration.class_border)
-        self.__add_border_text(title, subtitle)
+        with self._container:
+            if self._message.suspect is not None:
+                suspect = self._message.suspect
+                suspect_confidence = self._message.suspect_confidence
+                suspect_reason = self._message.suspect_reason
 
-        yield self._chat_bubble
+            if self._config.show_thought_process and not self._your_message:
+                extra_txt = f"[italic dim]([b]Intent[/]: {thought_process})[/]"
+
+            if self._config.show_suspects and not self._your_message and suspect:
+                suspect_txt = f"[dim][b]Suspect[/]:    {suspect}[/]\n" + \
+                              f"[dim][b]Confidence[/]: {suspect_confidence}[/]\n" + \
+                              f"[dim][b]Reason[/]:     {suspect_reason}[/]\n"
+                extra_txt = f"{extra_txt}\n\n{suspect_txt}"
+
+            self._chat_bubble = Static(msg_txt)
+            self._extra_bubble = Static(extra_txt)
+
+            title, subtitle = self.__create_border_title_subtitle()
+            self._container.add_class(StyleConfiguration.class_border)
+            self.__add_border_text(title, subtitle, self._container)
+
+            yield self._chat_bubble
+            if not self._message.sent_by_you:
+                yield self._extra_bubble
+        yield self._container
 
     def edit_contents(self) -> None:
         """ Edits the contents of the chat bubble with the new contents """
         self._chat_bubble.update(self._message.msg)
         title, subtitle = self.__create_border_title_subtitle()
-        self.__add_border_text(title, subtitle)
+        self.__add_border_text(title, subtitle, self._container)
 
     def delete_contents(self) -> None:
         """ Deletes the contents of the chat bubble """
@@ -50,11 +85,11 @@ class ChatBubbleWidget(Vertical):
         title, subtitle = self.__create_border_title_subtitle()
         self.__add_border_text(title, subtitle)
 
-    def __add_border_text(self, title: str, subtitle: str) -> None:
+    @staticmethod
+    def __add_border_text(title: str, subtitle: str, widget: Container | Widget) -> None:
         """ Helper method to add border title and subtitle to the chat bubble """
-        if self._chat_bubble is not None:
-            self._chat_bubble.border_title = title
-            self._chat_bubble.border_subtitle = subtitle
+        widget.border_title = title
+        widget.border_subtitle = subtitle
 
     def __create_border_title_subtitle(self) -> tuple[str, str]:
         """ Helper method to create the border text and returns it """
@@ -109,7 +144,7 @@ class ChatroomContentsWidget(VerticalScroll):
         if your_msg:  # If sending as yourself, update the display name to reflect it
             sent_by = self._display_you_as
 
-        msg_widget = ChatBubbleWidget(msg, self._state_manager, your_message=your_msg, sent_by=sent_by)
+        msg_widget = ChatBubbleWidget(self._config, msg, self._state_manager, your_message=your_msg, sent_by=sent_by)
         self._msg_map[msg_id] = msg_widget
 
         self.mount(msg_widget)

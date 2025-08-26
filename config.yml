@@ -46,4 +46,4 @@ showSuspects: True
 # Set the below to True if you want to debug the UI
 # without starting the LLM, i.e. updating/testing
 # the UI layout. Otherwise, set to False
-uiDeveloperMode: True
+uiDeveloperMode: False

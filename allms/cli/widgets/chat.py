@@ -1,4 +1,3 @@
-import anyio
 import asyncio
 from typing import Optional
 

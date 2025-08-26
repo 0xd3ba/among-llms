@@ -44,6 +44,9 @@ class GameStateManager:
 
     async def start(self) -> None:
         """ Method to start the chatroom """
+        if self._config.ui_dev_mode:
+            return
+
         self._chat_loop = ChatLoop(config=self._config,
                                    your_agent_id=self.get_user_assigned_agent_id(),
                                    agents=self.get_all_agents(),
@@ -55,8 +58,8 @@ class GameStateManager:
 
     async def pause(self) -> None:
         """ Method to pause the chatroom """
-        assert self._chat_loop is not None, f"Trying to pause chat-loop which doesn't exist"
-        self._chat_loop.pause()
+        if self._chat_loop is not None:
+            self._chat_loop.pause()
 
     async def stop(self) -> None:
         """ Method to stop the chatroom """
