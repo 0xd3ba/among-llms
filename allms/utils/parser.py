@@ -45,6 +45,8 @@ class YAMLConfigFileParser(BaseYAMLParser):
     key_reasoning_level: str = "reasoningLevel"
     key_max_agent_count: str = "maximumAgentCount"
     key_enable_rag: str = "enableRAG"
+    key_show_thought_process: str = "showThoughtProcess"
+    key_show_suspects: str = "showSuspects"
     key_ui_dev_mode: str = "uiDeveloperMode"
 
     def __init__(self, file_path: str | Path):
@@ -54,6 +56,8 @@ class YAMLConfigFileParser(BaseYAMLParser):
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
         self.enable_rag: bool | None = None
+        self.show_thought_process: bool | None = None
+        self.show_suspects: bool | None = None
         self.ui_dev_mode: bool | None = None
 
     def parse(self, root_key: str = None) -> dict:
@@ -63,6 +67,8 @@ class YAMLConfigFileParser(BaseYAMLParser):
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
         self.enable_rag = yml_data[self.key_enable_rag]
+        self.show_thought_process = yml_data[self.key_show_thought_process]
+        self.show_suspects = yml_data[self.key_show_suspects]
         self.ui_dev_mode = yml_data[self.key_ui_dev_mode]
         return yml_data
 
@@ -98,6 +104,14 @@ class YAMLConfigFileParser(BaseYAMLParser):
         if not isinstance(self.enable_rag, bool):
             is_error = True
             logging.error(f"enable RAG must be a boolean (True or False) but got {self.enable_rag} instead")
+
+        if not isinstance(self.show_thought_process, bool):
+            is_error = True
+            logging.error(f"show thought process must be a boolean (True or False) but got {self.show_thought_process} instead")
+
+        if not isinstance(self.show_suspects, bool):
+            is_error = True
+            logging.error(f"show suspects must be a boolean (True or False) but got {self.show_suspects} instead")
 
         if not isinstance(self.ui_dev_mode, bool):
             is_error = True

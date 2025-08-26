@@ -40,6 +40,8 @@ def main():
                                           ai_reasoning_lvl=yml_parser.reasoning_level,
                                           max_agent_count=yml_parser.max_agent_count,
                                           enable_rag=yml_parser.enable_rag,
+                                          show_thought_process=yml_parser.show_thought_process,
+                                          show_suspects=yml_parser.show_suspects,
                                           ui_dev_mode=yml_parser.ui_dev_mode,
                                           default_agent_count=default_agent_count,
                                           skip_intro=skip_intro)

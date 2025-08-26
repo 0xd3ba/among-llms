@@ -99,5 +99,7 @@ class RunTimeConfiguration:
     max_agent_count: int
     default_agent_count: int
     enable_rag: bool
+    show_thought_process: bool
+    show_suspects: bool
     ui_dev_mode: bool
     skip_intro: bool

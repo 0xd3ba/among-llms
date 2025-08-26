@@ -27,7 +27,20 @@ maximumAgentCount: 10
 # Enable/Disable Retrieval-Augmented Generation
 # Set to False if causing performance issues
 # Allowed values: True / False
+# Note: This value is currently ignored as this functionality has not been implemented yet
 enableRAG: False
+
+# Show thought process behind the messages or not
+# Set this to True if you want the agents to show their reasoning behind their messages
+# Set it to False if you want a challenge
+showThoughtProcess: True
+
+# Show current suspects of each agent
+# Set this to True if you want to know who each agent suspects and
+# by how much (on a scale of 0-100) they believe that agent is a human
+# Set it to False if you want a challenge
+showSuspects: True
+
 
 ################# DEVELOPERS ONLY #################
 # Set the below to True if you want to debug the UI
