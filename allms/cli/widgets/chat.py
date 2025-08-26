@@ -1,10 +1,13 @@
+import anyio
 import asyncio
+from typing import Optional
 
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Label, Select
+from textual.worker import Worker
 
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
@@ -78,10 +81,16 @@ class ChatroomWidget(Vertical):
 
         # Finally, register the callback for updating the new chat messages
         self._state_manager.register_on_new_message_callback(self.__update_chat_message_callback)
+        self._chat_worker: Optional[Worker] = None
 
     def on_show(self) -> None:
         # Show what the agent the user has been assigned
         self.__show_assignment_screen()
+        self._chat_worker = self.run_worker(
+            self._state_manager.start(),
+            group="chat-loop",
+            exclusive=True,
+        )
 
     def compose(self) -> ComposeResult:
         yield self._contents_widget
@@ -215,7 +224,8 @@ class ChatroomWidget(Vertical):
                                                         chat_msg_delete_callback=self._contents_widget.delete_message))
         self.app.push_screen(screen)
 
-    def action_chatroom_quit(self) -> None:
+    async def action_chatroom_quit(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
-        self._state_manager.stop()
-        self.app.pop_screen()
+        await self._state_manager.stop()
+        self._chat_worker.cancel()
+        await self.app.pop_screen()

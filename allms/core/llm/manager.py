@@ -39,7 +39,7 @@ class LLMAgentsManager:
 
         while tries < AppConfiguration.max_model_retries:
             tries += 1
-            response = self._client.chat.completions.create(
+            response = await self._client.chat.completions.create(
                 response_model=None,  # We will handle it ourselves
                 model=self._config.ai_model,
                 messages=messages
@@ -60,7 +60,7 @@ class LLMAgentsManager:
                 AppConfiguration.logger.log(f"[{tries}] {agent_id} generated a malformed response: {generated_message}. " +
                                             f"Exception: {e}. ENSURE YOU ADHERE TO THE EXPECTED OUTPUT SCHEMA", level=logging.CRITICAL)
                 # Add in the exception message to the list of messages inorder for the model to generate a better response next time
-                exception_msg = self.__create_message(sent_by_agent=False, content=str(e), role=role_system)
+                exception_msg = self.__create_message(content=str(e), role=LLMRoles.system)
                 messages.append(exception_msg)
                 continue
 

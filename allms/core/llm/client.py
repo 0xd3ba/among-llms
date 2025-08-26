@@ -1,5 +1,5 @@
 import instructor
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 
 class LLMBaseClient:
@@ -19,7 +19,7 @@ class OllamaOfflineLLMClient(LLMBaseClient):
     @staticmethod
     def create_client(api_key: str = None) -> instructor.Instructor:
         """ Creates the Ollama client and returns it """
-        ollama_client = OpenAI(
+        ollama_client = AsyncOpenAI(
             base_url="http://localhost:11434/v1",  # Ollama default
             api_key="ollama",                      # dummy key, Ollama ignores it
         )
