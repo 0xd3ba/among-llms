@@ -30,7 +30,8 @@ class ChatroomWidget(Vertical):
         Binding(BindingConfiguration.chatroom_show_scenario, "view_scenario", "Scenario"),
         Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "Your persona"),
         Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All personas"),
-        Binding(BindingConfiguration.chatroom_modify_msgs, "modify_msgs", "Modify Messages")
+        Binding(BindingConfiguration.chatroom_modify_msgs, "modify_msgs", "Modify Messages"),
+        Binding(BindingConfiguration.chatroom_quit, f"chatroom_quit", "Quit Chatroom", priority=True)
     ]
 
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
@@ -213,3 +214,8 @@ class ChatroomWidget(Vertical):
                                      widget_params=dict(chat_msg_edit_callback=self._contents_widget.edit_message,
                                                         chat_msg_delete_callback=self._contents_widget.delete_message))
         self.app.push_screen(screen)
+
+    def action_chatroom_quit(self) -> None:
+        """ Invoked when key binding for modifying messages is pressed """
+        self._state_manager.stop()
+        self.app.pop_screen()

@@ -83,6 +83,7 @@ class BindingConfiguration:
     chatroom_show_all_persona: str = "f3"
     chatroom_modify_msgs: str = "f4"
     chatroom_send_message: str = "enter"
+    chatroom_quit: str = "ctrl+w"
 
     # Bindings for modify message screen
     modify_msgs_mark_unmark_delete: str = "ctrl+x"

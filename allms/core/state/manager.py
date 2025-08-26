@@ -60,10 +60,10 @@ class GameStateManager:
 
     def stop(self) -> None:
         """ Method to stop the chatroom """
-        assert self._chat_loop is not None, f"Trying to stop chat-loop which doesn't exist"
-        # TODO: Ensure all agents are stopped before resetting everything
-        self._chat_loop.stop()
-        self._chat_loop = None
+        if self._chat_loop is not None:
+            # TODO: Ensure all agents are stopped before resetting everything
+            self._chat_loop.stop()
+            self._chat_loop = None
 
     def load(self, file_path: str | Path) -> None:
         """ Loads the game state from the given path """
