@@ -69,8 +69,8 @@ class LLMAgentsManager:
             AppConfiguration.logger.log(f"{agent_id} exceeded max. tries and could not generate a response. Returning None")
         return parsed_response
 
-    def get_input_prompt(self, agent_id: str, voting_has_started: bool) -> str:
-        return self._prompt.generate_input_prompt(agent_id, voting_has_started)
+    def get_input_prompt(self, agent_id: str, voting_has_started: bool, started_by: str = None) -> str:
+        return self._prompt.generate_input_prompt(agent_id, voting_has_started, started_by)
 
     def __get_background_prompt(self) -> str:
         return self._prompt.generate_background_prompt()

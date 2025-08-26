@@ -45,9 +45,11 @@ class LLMPromptGenerator:
         """
         return prompt
 
-    def generate_input_prompt(self, agent_id: str, vote_has_started: bool = False) -> str:
+    def generate_input_prompt(self, agent_id: str, vote_has_started: bool = False, started_by: str = None) -> str:
         """ Method to generate the input prompt fed on every iteration """
         assert agent_id in self._agents_map, f"Agent ID ({agent_id}) does not exist: {list(self._agents_map.keys())}"
+        if vote_has_started:
+            assert (started_by is not None), f"Vote has started but did the agent ID who started it is None"
 
         persona = self._agents_map[agent_id].get_persona()
         prompt = (
@@ -61,7 +63,7 @@ class LLMPromptGenerator:
         )
 
         if vote_has_started:
-            prompt += "A vote is in progress. Vote for the agent you find most suspicious or hate the most."
+            prompt += f"A VOTE IS IN PROGRESS. Started by {started_by}. Vote for the agent you find most suspicious or hate the most."
         else:
             prompt += (
                 "You may start a vote ONLY IF you strongly suspect or dislike someone. "

@@ -187,13 +187,13 @@ class GameStateManager:
         """ Deletes the message with the given message ID """
         await self._game_state.delete_message(msg_id, deleted_by_you)
 
-    def voting_has_started(self) -> bool:
-        """ Method that returns True if voting has started, False otherwise """
+    def voting_has_started(self) -> tuple[bool, Optional[str]]:
+        """ Method that returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
         return self._game_state.voting_has_started()
 
-    def start_vote(self) -> None:
+    def start_vote(self, started_by: str) -> None:
         """ Method to start the voting process """
-        self._game_state.start_voting()
+        self._game_state.start_voting(started_by=started_by)
 
     def end_vote(self) -> Counter:
         """ Method to end the voting process """

@@ -81,7 +81,6 @@ class ChatLoop:
     async def agent_loop(self, agent: Agent) -> None:
         """ Main loop of the LLM agent """
         agent_id = agent.id
-        voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True)
         voting_not_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=False)
 
         try:
@@ -94,7 +93,10 @@ class ChatLoop:
                     continue
 
                 curr_time_ms = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
-                vote_started = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
+                vote_started, vote_started_by = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
+                if vote_started:
+                    voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True, started_by=vote_started_by)
+
                 # Terminate the vote if the max. duration of the vote has passed or everyone has voted
                 # TODO: Check if everyone has voted
                 if vote_started and (curr_time_ms > self._vote_end_time):
@@ -131,10 +133,12 @@ class ChatLoop:
                 await self._callbacks.invoke(CallbackType.UPDATE_UI_ON_NEW_MESSAGE, msg_id=msg_id)
 
                 # 3. Start the vote if the agent requested to start the vote
+                # Note: Vote might have started while the model was generating a response. Recheck again
+                vote_started = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
                 if start_a_vote and (not vote_started):
                     AppConfiguration.logger.log(f"{agent_id} has requested to start a vote. Initiating the voting process ...")
 
-                    await self._callbacks.invoke(CallbackType.START_A_VOTE)
+                    await self._callbacks.invoke(CallbackType.START_A_VOTE, started_by=agent_id)
                     await self._callbacks.invoke(CallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
                     # TODO: Display UI on the screen for voting
 

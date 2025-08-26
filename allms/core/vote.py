@@ -1,6 +1,6 @@
-import logging
 from collections import Counter
 from dataclasses import dataclass, field
+from typing import Optional
 
 from allms.config import AppConfiguration
 
@@ -26,14 +26,16 @@ class AgentVoting:
     # Mapping between an agent ID and the agent they voted for
     __vote_map: dict[str, str] = field(default_factory=dict)
     __vote_has_started: bool = False
+    __started_by: Optional[str] = None
 
-    def voting_has_started(self) -> bool:
-        return self.__vote_has_started
+    def voting_has_started(self) -> tuple[bool, Optional[str]]:
+        return self.__vote_has_started, self.__started_by
 
-    def start_vote(self) -> None:
+    def start_vote(self, started_by: str) -> None:
         """ Starts the voting process """
         AppConfiguration.logger.log(f"-- Voting process has started --")
         self.__vote_has_started = True
+        self.__started_by = started_by
         self.__vote_map.clear()
 
     def vote(self, by_agent: str, for_agent: str) -> None:

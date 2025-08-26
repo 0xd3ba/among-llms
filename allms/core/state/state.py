@@ -1,5 +1,6 @@
 from collections import Counter
 from dataclasses import dataclass, field
+from typing import Optional
 
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageFormatter, ChatMessageHistory
@@ -144,13 +145,13 @@ class GameState:
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
-    def voting_has_started(self) -> bool:
-        """ Returns True if voting has started. False otherwise """
+    def voting_has_started(self) -> tuple[bool, Optional[str]]:
+        """ Returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
         return self._voting.voting_has_started()
 
-    def start_voting(self) -> None:
+    def start_voting(self, started_by: str) -> None:
         """ Starts the voting process """
-        self._voting.start_vote()
+        self._voting.start_vote(started_by=started_by)
 
     def vote(self, by_agent: str, for_agent: str) -> None:
         assert by_agent in self._remaining_agent_ids, f"{by_agent} is trying to vote but is not in the remaining agents list"
