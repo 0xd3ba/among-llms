@@ -57,12 +57,12 @@ async def main(config: RunTimeConfiguration):
     logging.critical(f"You have been assigned the following agent: {state_manager.get_user_assigned_agent_id()}")
 
     # Start the loop!
-    state_manager.start()
+    await state_manager.start()
 
     while not cancel_tasks:
         await asyncio.sleep(1)
 
-    state_manager.stop()
+    await state_manager.stop()
 
 
 if __name__ == "__main__":
@@ -72,6 +72,8 @@ if __name__ == "__main__":
         ai_reasoning_lvl="medium",  # Parameter not used
         max_agent_count=len(PERSONAS),
         default_agent_count=len(PERSONAS),
+        show_suspects=True,
+        show_thought_process=True,
         enable_rag=False,           # Parameter not used
         ui_dev_mode=False,          # Parameter not used
         skip_intro=False            # Parameter not used
