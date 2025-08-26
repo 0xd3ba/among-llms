@@ -29,8 +29,8 @@ class AppConfiguration:
 
     # List of AI models supported
     ai_models: list[str] = [
-        "gpt-oss-20b",
-        "gpt-oss-120b",
+        "gpt-oss:20b",
+        "gpt-oss:120b",
     ]
 
     ai_reasoning_levels: list[str] = [

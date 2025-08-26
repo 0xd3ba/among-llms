@@ -3,9 +3,9 @@
 
 # The OpenAI model to use
 # Supported models:
-#   - gpt-oss-20b
-#   - gpt-oss-120b
-model: gpt-oss-20b
+#   - gpt-oss:20b
+#   - gpt-oss:120b
+model: gpt-oss:20b
 
 # Offline model or online ?
 # If online model (set the value to False), you will need to set the API key accordingly
