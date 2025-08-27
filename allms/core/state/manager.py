@@ -97,6 +97,7 @@ class GameStateManager:
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
         genre = self.get_genre()
+        AppConfiguration.logger.log(f"Creating {n_agents} agents for given the genre: '{genre}' ...")
         agents = AgentFactory.create(genre=genre, n_agents=n_agents)
         self.__check_game_state_validity()
 
@@ -164,6 +165,7 @@ class GameStateManager:
 
         curr_genre = self._game_state.get_genre()
         if genre != curr_genre:
+            AppConfiguration.logger.log(f"Updating genre to '{genre}' ...")
             self._game_state.update_genre(genre)
             self._scenario_generator = ScenarioGenerator(genre)
             self._persona_generator = PersonaGenerator(genre)
