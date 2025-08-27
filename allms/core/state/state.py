@@ -154,9 +154,18 @@ class GameState:
         self._voting.start_vote(started_by=started_by)
 
     def vote(self, by_agent: str, for_agent: str) -> None:
+        """ Vote for a specific agent by the given agent """
         assert by_agent in self._remaining_agent_ids, f"{by_agent} is trying to vote but is not in the remaining agents list"
         assert for_agent in self._remaining_agent_ids, f"{by_agent} is voting for {for_agent} who is not in the remaining agents list"
         self._voting.vote(by_agent, for_agent)
+
+    def get_voted_for_who(self, by_agent: str) -> Optional[str]:
+        """ Returns the ID of the agent that the given agent voted for (if any), else None """
+        return self._voting.get_voted_for_who(by_agent)
+
+    def can_vote(self, agent_id: str) -> bool:
+        """ Returns True if the agent is allowed to vote """
+        return self._voting.can_vote(by_agent=agent_id)
 
     def end_voting(self) -> Counter:
         """ Stops the voting process and returns the results """

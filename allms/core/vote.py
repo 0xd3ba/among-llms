@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Optional
@@ -33,15 +34,25 @@ class AgentVoting:
 
     def start_vote(self, started_by: str) -> None:
         """ Starts the voting process """
-        AppConfiguration.logger.log(f"-- Voting process has started --")
-        self.__vote_has_started = True
-        self.__started_by = started_by
-        self.__vote_map.clear()
+        if not self.__vote_has_started:
+            AppConfiguration.logger.log(f"-- Voting process has been started by {started_by} --")
+            self.__vote_has_started = True
+            self.__started_by = started_by
+            self.__vote_map.clear()
+        else:
+            AppConfiguration.logger.log(f"Trying to start a vote by {started_by} which was already started " +
+                                        f"previously by {started_by}", level=logging.WARNING)
 
     def vote(self, by_agent: str, for_agent: str) -> None:
-        if self.__can_vote(by_agent):
+        if self.can_vote(by_agent):
             AppConfiguration.logger.log(f"{by_agent} is voting for {for_agent}")
             self.__vote_map[by_agent] = for_agent
+
+    def get_voted_for_who(self, by_agent: str) -> Optional[str]:
+        """ Returns the ID of the agent that the given agent voted for (if any), else None """
+        if self.__vote_has_started:
+            return self.__vote_map.get(by_agent, None)
+        return None
 
     def end_vote(self) -> Counter:
         """
@@ -57,12 +68,11 @@ class AgentVoting:
 
         return result.get_results()
 
-    def __can_vote(self, by_agent: str) -> bool:
+    def can_vote(self, by_agent: str) -> bool:
         """ Returns True if the given agent is allowed to vote """
         if by_agent in self.__vote_map:
-            AppConfiguration.logger.log(f"{by_agent} already voted previously and trying to vote again")
             return False
         if not self.__vote_has_started:
-            AppConfiguration.logger.log(f"Voting has not started yet and {by_agent} is trying to vote")
+            AppConfiguration.logger.log(f"Voting has not started yet (or ended) and {by_agent} is trying to vote")
 
         return self.__vote_has_started

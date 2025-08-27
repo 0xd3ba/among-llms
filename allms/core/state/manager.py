@@ -42,7 +42,7 @@ class GameStateManager:
 
         await self._game_state.messages.initialize()
 
-    async def start(self) -> None:
+    async def start_llms(self) -> None:
         """ Method to start the chatroom """
         if self._config.ui_dev_mode:
             return
@@ -56,12 +56,12 @@ class GameStateManager:
         # TODO: Handle any pre-processing steps, if any, that might need to be done before loop starts
         self._chat_loop.start()
 
-    async def pause(self) -> None:
+    async def pause_llms(self) -> None:
         """ Method to pause the chatroom """
         if self._chat_loop is not None:
             self._chat_loop.pause()
 
-    async def stop(self) -> None:
+    async def stop_llms(self) -> None:
         """ Method to stop the chatroom """
         if self._chat_loop is not None:
             # TODO: Ensure all agents are stopped before resetting everything
@@ -195,6 +195,10 @@ class GameStateManager:
         """ Method to start the voting process """
         self._game_state.start_voting(started_by=started_by)
 
+    def can_vote(self, agent_id: str) -> bool:
+        """ Returns True if the given agent is allowed to vote, else False"""
+        return self._game_state.can_vote(agent_id)
+
     def end_vote(self) -> Counter:
         """ Method to end the voting process """
         return self._game_state.end_voting()
@@ -202,6 +206,10 @@ class GameStateManager:
     def vote(self, by_agent: str, for_agent: str) -> None:
         """ Method to participate in the vote """
         self._game_state.vote(by_agent, for_agent)
+
+    def get_voted_for_who(self, by_agent: str) -> Optional[str]:
+        """ Returns the ID of the agent that the given agent voted for (if any), else None """
+        return self._game_state.get_voted_for_who(by_agent)
 
     def __create_new_message(self,
                              msg: str,

@@ -12,6 +12,7 @@ from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
 from allms.cli.screens.modify import ModifyMessageScreen
 from allms.cli.screens.scenario import ChatScenarioScreen
+from allms.cli.screens.vote import VotingScreen
 from allms.cli.widgets.input import MessageBox
 from allms.cli.widgets.contents import ChatroomContentsWidget
 from allms.config import BindingConfiguration, RunTimeConfiguration
@@ -30,10 +31,11 @@ class ChatroomWidget(Vertical):
 
     BINDINGS = [
         Binding(BindingConfiguration.chatroom_show_scenario, "view_scenario", "Scenario"),
-        Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "Your persona"),
-        Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All personas"),
+        Binding(BindingConfiguration.chatroom_show_your_persona, "view_persona", "Your Persona"),
+        Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All Personas"),
         Binding(BindingConfiguration.chatroom_modify_msgs, "modify_msgs", "Modify Messages"),
-        Binding(BindingConfiguration.chatroom_quit, f"chatroom_quit", "Quit Chatroom", priority=True)
+        Binding(BindingConfiguration.chatroom_start_vote, "start_a_vote", "Vote"),
+        Binding(BindingConfiguration.chatroom_quit, f"chatroom_quit", "Quit", priority=True)
     ]
 
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):
@@ -86,7 +88,7 @@ class ChatroomWidget(Vertical):
         # Show what the agent the user has been assigned
         self.__show_assignment_screen()
         self._chat_worker = self.run_worker(
-            self._state_manager.start(),
+            self._state_manager.start_llms(),
             group="chat-loop",
             exclusive=True,
         )
@@ -225,6 +227,14 @@ class ChatroomWidget(Vertical):
 
     async def action_chatroom_quit(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
-        await self._state_manager.stop()
+        await self._state_manager.stop_llms()
         self._chat_worker.cancel()
         await self.app.pop_screen()
+
+    def action_start_a_vote(self) -> None:
+        """ Invoked when key binding for starting a vote is pressed """
+
+        voting_in_progress, _ = self._state_manager.voting_has_started()
+        screen_title = "Voting in Progress" if voting_in_progress else "Start a Vote"
+        screen = VotingScreen(screen_title, self._config, self._state_manager)
+        self.app.push_screen(screen)

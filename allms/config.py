@@ -82,6 +82,7 @@ class BindingConfiguration:
     chatroom_show_your_persona: str = "f2"
     chatroom_show_all_persona: str = "f3"
     chatroom_modify_msgs: str = "f4"
+    chatroom_start_vote: str = "f5"
     chatroom_send_message: str = "enter"
     chatroom_quit: str = "ctrl+w"
 
