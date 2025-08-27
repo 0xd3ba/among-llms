@@ -82,6 +82,7 @@ class ChatLoop:
         """ Main loop of the LLM agent """
         agent_id = agent.id
         voting_not_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=False)
+        voting_started_prompt = ""
 
         try:
             while not self._stop_loop[agent.id]:
