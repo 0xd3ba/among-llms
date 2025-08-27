@@ -104,7 +104,7 @@ personas:
     - "Impish"
     - "Disciplined"
 
-  voice:
+  voices:
     - "Gruff and commanding, speaks with authority and confidence."
     - "Calm and measured, thoughtful in speech."
     - "Sarcastic and witty, often teasing others."

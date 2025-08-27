@@ -107,7 +107,7 @@ personas:
     - "Inquisitive"
     - "Assertive"
 
-  voice:
+  voices:
     - "Gruff and commanding, speaks with authority and experience."
     - "Calm and calculating, rarely shows emotion."
     - "Sarcastic and witty, often mocking others."

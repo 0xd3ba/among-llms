@@ -100,7 +100,7 @@ personas:
     - "Adaptive"
     - "Imaginative"
 
-  voice:
+  voices:
     - "Whispery and secretive, as if hiding knowledge."
     - "Gruff and cautious, speaking with mistrust."
     - "Calm and measured, attempting to soothe fear."
