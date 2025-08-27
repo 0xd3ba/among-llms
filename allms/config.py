@@ -55,9 +55,12 @@ class AppConfiguration:
     max_vote_duration_min: int = 2
 
     # Path of the resource files
-    __resource_dir_root = Path(__file__).parent / "scenarios"
-    resource_persona_path = __resource_dir_root / "persona.yml"
-    resource_scenario_path = __resource_dir_root / "scenario.yml"
+    __resource_dir_root = Path(__file__).parent / "res"
+    scenario_dir = __resource_dir_root / "scenarios"
+    resource_persona_yml = "persona.yml"
+    resource_scenario_yml = "scenario.yml"
+
+    default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
 
 
 class StyleConfiguration:

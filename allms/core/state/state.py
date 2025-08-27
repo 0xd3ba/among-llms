@@ -2,6 +2,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Optional
 
+from allms.config import AppConfiguration
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageFormatter, ChatMessageHistory
 from allms.core.llm.roles import LLMRoles
@@ -12,10 +13,11 @@ from allms.core.vote import AgentVoting
 @dataclass
 class GameState:
     """ Class containing the latest state of the game """
-    your_agent_id: str = ""       # The identifier of the agent assigned to you
-    scenario: str = ""            # The game scenario on which all the agents act on
-    start_time: int = 0           # The start time of the game in UNIX milliseconds
-    elapsed_duration: int = 0     # The elapsed duration in UNIX milliseconds
+    your_agent_id: str = ""                      # The identifier of the agent assigned to you
+    genre: str = AppConfiguration.default_genre  # The genre of the scenario and personas
+    scenario: str = ""                           # The game scenario on which all the agents act on
+    start_time: int = 0                          # The start time of the game in UNIX milliseconds
+    elapsed_duration: int = 0                    # The elapsed duration in UNIX milliseconds
 
     game_paused: bool = True      # Set to true if the game is currently paused
     game_ended: bool = False      # Set to true if the game has ended, i.e. you got exposed
@@ -43,6 +45,14 @@ class GameState:
 
             self._all_agents[agent_id] = agent
             self._remaining_agent_ids.add(agent_id)
+
+    def get_genre(self) -> str:
+        """ Returns the currently set genre """
+        return self.genre
+
+    def update_genre(self, genre: str) -> None:
+        """ Updates the currently set genre with new genre """
+        self.genre = genre
 
     def assign_agent_id_to_user(self, agent_id: str) -> None:
         """ Assigns the given agent to the user """

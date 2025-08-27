@@ -22,6 +22,7 @@ class GameStateManager:
         self._config = config
         self._logger = logging.getLogger(self.__class__.__name__)
         self._msg_id_generator = ChatMessageIDGenerator()
+        self._valid_genres = self.get_available_genres()
         self._scenario_generator = ScenarioGenerator()
         self._persona_generator = PersonaGenerator()
 
@@ -95,7 +96,8 @@ class GameStateManager:
 
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
-        agents = AgentFactory.create(n_agents)
+        genre = self.get_genre()
+        agents = AgentFactory.create(genre=genre, n_agents=n_agents)
         self.__check_game_state_validity()
 
         self._game_state.initialize_agents(agents)
@@ -131,17 +133,40 @@ class GameStateManager:
         self.__check_game_state_validity()
         return self._game_state.get_user_assigned_agent_id()
 
-    def generate_persona(self, agent_id: str, agent_ids: list[str]) -> str:
-        """ Generates a new agent persona and returns it """
+    def get_available_genres(self) -> set[str]:
+        """ Returns the list of available genres """
+        genres = {genre.name for genre in AppConfiguration.scenario_dir.glob("*") if genre.is_dir()}
+        return genres
+
+    def get_genre(self) -> str:
+        """ Returns the currently set genre """
+        return self._game_state.get_genre()
+
+    def generate_persona(self) -> str:
+        """
+        Generates a new agent persona (based on the currently set genre) and returns it
+        Note: Might generate a duplicate persona
+        """
         self.__check_game_state_validity()
-        persona = self._persona_generator.generate()
-        persona = self._persona_generator.set_relationships(agent_id, agent_ids)
-        return persona
+        persona = self._persona_generator.generate(n=1)
+        return persona[0]
 
     def generate_scenario(self) -> str:
-        """ Generates a random scenario and returns it """
+        """ Generates a random scenario (based on currently set genre) and returns it """
+        self.__check_game_state_validity()
         scenario = self._scenario_generator.generate()
-        return scenario
+        return scenario[0]
+
+    def update_genre(self, genre: str) -> None:
+        """ Updates the genre """
+        self.__check_game_state_validity()
+        self.__check_genre_validity(genre)
+
+        curr_genre = self._game_state.get_genre()
+        if genre != curr_genre:
+            self._game_state.update_genre(genre)
+            self._scenario_generator = ScenarioGenerator(genre)
+            self._persona_generator = PersonaGenerator(genre)
 
     def update_scenario(self, scenario: str) -> None:
         """ Updates the scenario with the given scenario """
@@ -233,6 +258,10 @@ class GameStateManager:
     def __check_game_state_validity(self) -> None:
         """ Helper method to check the validity of the game state """
         assert self._game_state is not None, f"Did you forget to instantiate game state first?"
+
+    def __check_genre_validity(self, genre: str) -> None:
+        """ Helper method to check if the given genre is valid """
+        assert genre in self._valid_genres, f"Given genre({genre}) is not supported. Valid genres: {self._valid_genres}"
 
     def __generate_callbacks(self) -> dict[CallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """

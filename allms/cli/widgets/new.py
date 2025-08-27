@@ -13,7 +13,6 @@ from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfigur
 from allms.core.state import GameStateManager
 
 
-# TODO: Add support for randomizing agent personas and screen for customizing agent personas
 class NewChatroomWidget(ModalScreenWidget):
 
     BINDINGS = [
