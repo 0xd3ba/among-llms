@@ -55,7 +55,7 @@ class AppConfiguration:
     max_vote_duration_min: int = 2
 
     # Path of the resource files
-    __resource_dir_root = Path(__file__).parent / "res"
+    __resource_dir_root = Path(__file__).parent / "scenarios"
     resource_persona_path = __resource_dir_root / "persona.yml"
     resource_scenario_path = __resource_dir_root / "scenario.yml"
 
