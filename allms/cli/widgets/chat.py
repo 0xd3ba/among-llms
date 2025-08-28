@@ -83,15 +83,14 @@ class ChatroomWidget(Vertical):
         # Finally, register the callback for updating the new chat messages
         self._state_manager.register_on_new_message_callback(self.__update_chat_message_callback)
         self._chat_worker: Optional[Worker] = None
+        self._background_worker: Optional[Worker] = None
 
     def on_show(self) -> None:
         # Show what the agent the user has been assigned
         self.__show_assignment_screen()
-        self._chat_worker = self.run_worker(
-            self._state_manager.start_llms(),
-            group="chat-loop",
-            exclusive=True,
-        )
+        worker_group = "chat-loop"
+        self._chat_worker = self.run_worker(self._state_manager.start_llms(), group=worker_group, exclusive=True)
+        self._background_worker = self.run_worker(self._state_manager.background_worker(), group=worker_group, exclusive=True)
 
     def compose(self) -> ComposeResult:
         yield self._contents_widget
@@ -227,8 +226,9 @@ class ChatroomWidget(Vertical):
 
     async def action_chatroom_quit(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
-        await self._state_manager.stop_llms()
+        self._state_manager.stop_llms()
         self._chat_worker.cancel()
+        self._background_worker.cancel()
         await self.app.pop_screen()
 
     def action_start_a_vote(self) -> None:

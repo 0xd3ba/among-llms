@@ -87,6 +87,8 @@ class AgentFactory:
         names_generator = NameGenerator()
 
         agent_ids = names_generator.generate(n=n_agents)
+        assert len(agent_ids) == len(set(agent_ids)), f"Got duplicates in agent IDs list: {agent_ids}. This should not happen"
+
         personas = persona_generator.generate(n=n_agents)
 
         for agent_id, persona in zip(agent_ids, personas):

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import random
 from collections import Counter
@@ -43,7 +44,7 @@ class GameStateManager:
 
         await self._game_state.messages.initialize()
 
-    async def start_llms(self) -> None:
+    def start_llms(self) -> None:
         """ Method to start the chatroom """
         if self._config.ui_dev_mode:
             return
@@ -57,12 +58,12 @@ class GameStateManager:
         # TODO: Handle any pre-processing steps, if any, that might need to be done before loop starts
         self._chat_loop.start()
 
-    async def pause_llms(self) -> None:
+    def pause_llms(self) -> None:
         """ Method to pause the chatroom """
         if self._chat_loop is not None:
             self._chat_loop.pause()
 
-    async def stop_llms(self) -> None:
+    def stop_llms(self) -> None:
         """ Method to stop the chatroom """
         if self._chat_loop is not None:
             # TODO: Ensure all agents are stopped before resetting everything
@@ -237,6 +238,17 @@ class GameStateManager:
     def get_voted_for_who(self, by_agent: str) -> Optional[str]:
         """ Returns the ID of the agent that the given agent voted for (if any), else None """
         return self._game_state.get_voted_for_who(by_agent)
+
+    async def background_worker(self) -> None:
+        """ Worker that runs in background checking for voting status, tracking duration etc. """
+        AppConfiguration.logger.log(f"Starting worker in the the background ...")
+        try:
+            while True:
+                await asyncio.sleep(1)  # Give control to others
+        except (asyncio.CancelledError, Exception) as e:
+            AppConfiguration.logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
+
+        AppConfiguration.logger.log(f"Stopping background worker")
 
     def __create_new_message(self,
                              msg: str,
