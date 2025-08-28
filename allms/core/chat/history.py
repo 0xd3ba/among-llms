@@ -4,22 +4,21 @@ from dataclasses import dataclass, field
 
 from allms.config import AppConfiguration
 from .message import ChatMessage
-from .database import ChatHistoryDatabase
 
 
 @dataclass(frozen=True)
 class ChatMessageHistory:
     """ Class for a storing the history of chat messages """
-    enable_rag: bool = False   # Whether to enable Retrival Augmented Generation or not. Set to False if having performance issues
+    # Whether to enable Retrival Augmented Generation or not. Set to False if having performance issues
+    # Note: Currently ignored as implementing RAG is left for future work
+    enable_rag: bool = False
 
     # Maps message ID to the message for efficient retrieval and modification
     _history_all: OrderedDict[str, ChatMessage] = field(default_factory=OrderedDict)
-    _global_database: ChatHistoryDatabase = field(default_factory=lambda: ChatHistoryDatabase("global_history"))
-    # TODO: Maybe add a DM database for each agent as well ? Currently have no idea on how it might impact performance
 
     async def initialize(self) -> None:
-        AppConfiguration.logger.log("Trying to initialize history database ...")
-        await self._global_database.initialize(self.enable_rag)
+        # TODO: Initialize the vector database
+        pass
 
     async def add(self, message: ChatMessage) -> None:
         """ Inserts the message into the history """
@@ -28,11 +27,6 @@ class ChatMessageHistory:
         self._history_all[msg_id] = message
 
         AppConfiguration.logger.log(f"Request received to add message to history: {message}")
-        # Insert to the global database only if the message is sent to everyone, i.e. sent_to is None
-        # Also insert to the recent message IDs -- this will be the short-term context that will be provided to the agents
-        sent_to = message.sent_to
-        if sent_to is None:
-            await self._global_database.insert(message)
 
     async def edit(self, msg_id: str, message: str, edited_by_you: bool = False) -> None:
         """ Edits the contents of the message in the history """

@@ -15,7 +15,7 @@ class BaseYAMLParser:
         self._logger = logging.getLogger(self.__class__.__name__)
 
     def parse(self, root_key: str = None) -> dict | list:
-        with open(self._file_path, "r") as f:
+        with open(self._file_path, "r", encoding="utf-8") as f:
             yml_data = yaml.safe_load(f)
             if root_key is not None:
                 assert root_key in yml_data, f"Provided root key({root_key}) is not valid"

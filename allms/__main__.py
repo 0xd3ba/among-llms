@@ -1,10 +1,8 @@
-import asyncio
 import logging
 import sys
 from argparse import ArgumentParser
 
 from allms.config import AppConfiguration, RunTimeConfiguration
-from allms.core.chat.database import SingletonSentenceTransformer
 from allms.utils.parser import YAMLConfigFileParser
 from .cli import AmongLLMs
 
@@ -48,8 +46,8 @@ def main():
 
     # Preload the sentence transformer before starting the app to avoid performance issues in the UI
     if yml_parser.enable_rag:
-        AppConfiguration.logger.log(f"Please wait while sentence-transformer is being loaded ...")
-        _ = SingletonSentenceTransformer.get()
+        AppConfiguration.logger.log(f"RAG is currently not supported. Ignoring the setting.", level=logging.WARNING)
+        # TODO: Pre-load the sentence transformer
 
     # Remove the handler that outputs the logs to the console as it may cause visual glitches in the UI
     AppConfiguration.logger.remove_handler_of_console_stream()
