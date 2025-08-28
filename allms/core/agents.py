@@ -2,7 +2,7 @@ from collections import deque
 from dataclasses import dataclass, field
 
 from allms.config import AppConfiguration
-from .generate import PersonaGenerator
+from .generate import NameGenerator, PersonaGenerator
 
 
 @dataclass
@@ -84,9 +84,9 @@ class AgentFactory:
 
         agents = []
         persona_generator = PersonaGenerator(genre)
+        names_generator = NameGenerator()
 
-        # TODO: Create better agent IDs
-        agent_ids = [AgentFactory.create_agent_id(i) for i in range(1, n_agents+1)]
+        agent_ids = names_generator.generate(n=n_agents)
         personas = persona_generator.generate(n=n_agents)
 
         for agent_id, persona in zip(agent_ids, personas):
@@ -96,13 +96,6 @@ class AgentFactory:
         return agents
 
     @staticmethod
-    def create_agent_id(i: int) -> str:
-        """ Given an integer, returns the current agent ID """
-        # Note: If you change this, make sure to change the comparator function below as well
-        prefix = "Agent-"
-        return f"{prefix}{i}"
-
-    @staticmethod
-    def agent_id_comparator(agent_id: str) -> int:
+    def agent_id_comparator(agent_id: str) -> str:
         """ Comparator for sorting agents to be used when sorting agent IDs """
-        return int(agent_id.split("-")[-1])
+        return agent_id

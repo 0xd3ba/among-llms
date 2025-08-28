@@ -56,9 +56,11 @@ class AppConfiguration:
 
     # Path of the resource files
     __resource_dir_root = Path(__file__).parent / "res"
-    scenario_dir = __resource_dir_root / "scenarios"
+    resource_scenario_dir = __resource_dir_root / "scenarios"
+    resource_names_dir = __resource_dir_root / "names"
     resource_persona_yml = "persona.yml"
     resource_scenario_yml = "scenario.yml"
+    resource_name_yml = "names.yml"
 
     default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
 

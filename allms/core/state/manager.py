@@ -136,7 +136,7 @@ class GameStateManager:
 
     def get_available_genres(self) -> set[str]:
         """ Returns the list of available genres """
-        genres = {genre.name for genre in AppConfiguration.scenario_dir.glob("*") if genre.is_dir()}
+        genres = {genre.name for genre in AppConfiguration.resource_scenario_dir.glob("*") if genre.is_dir()}
         return genres
 
     def get_genre(self) -> str:

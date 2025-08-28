@@ -1,19 +1,19 @@
 import random
+from pathlib import Path
 from typing import Optional, Type
 
 from allms.config import AppConfiguration
-from allms.utils.parser import BaseYAMLParser, YAMLPersonaParser, YAMLScenarioParser
+from allms.utils.parser import BaseYAMLParser, YAMLNamesParser, YAMLPersonaParser, YAMLScenarioParser
 
 
 class BaseGenerator:
     """ Base class for a persona/scenario generator """
-    def __init__(self, genre: Optional[str], file: str, parser_cls: Type[BaseYAMLParser], random_seed: int = None):
-        self._genre = genre if (genre is not None) else AppConfiguration.default_genre
-        self._file_path = AppConfiguration.scenario_dir / self._genre / file
+    def __init__(self, file_dir: str | Path, file: str, parser_cls: Type[BaseYAMLParser], random_seed: int = None):
+        self._file_path = Path(file_dir) / file
         self._parser = parser_cls(self._file_path)
         self._random_seed = random_seed
 
-        assert self._file_path.exists(), f"File {self._file_path.name} does not exist in {self._genre}/"
+        assert self._file_path.exists(), f"File {self._file_path.name} does not exist in {file_dir}/"
 
         self.data = self._parser.parse()
         self._parser.validate(self.data)
@@ -38,11 +38,12 @@ class BaseGenerator:
 
 class PersonaGenerator(BaseGenerator):
     """ Class for randomly generating a persona """
-    def __init__(self, genre: str = None, max_choices: int = 4):
-        super().__init__(genre=genre, file=AppConfiguration.resource_persona_yml, parser_cls=YAMLPersonaParser)
-        self._max_choices = max_choices
+    def __init__(self, genre: str = None):
+        genre = genre if (genre is not None) else AppConfiguration.default_genre
+        file_dir = AppConfiguration.resource_scenario_dir / genre
+        super().__init__(file_dir=file_dir, file=AppConfiguration.resource_persona_yml, parser_cls=YAMLPersonaParser)
 
-    def generate(self, n: int, *args, **kwargs) -> list[str]:
+    def generate(self, n: int, max_choices: int = 4, *args, **kwargs) -> list[str]:
         """ Generate N random personas and returns them """
 
         backgrounds = self.data[YAMLPersonaParser.key_backgrounds]
@@ -60,7 +61,7 @@ class PersonaGenerator(BaseGenerator):
             return _items[0]
 
         for agent_bg, agent_voice in zip(agent_backgrounds, agent_voices):
-            agent_characteristics = self.choose_from(characteristics, self._max_choices, is_random_count=True)
+            agent_characteristics = self.choose_from(characteristics, max_choices, is_random_count=True)
             agent_character = _join_items(agent_characteristics)
             persona = f"{agent_bg} {agent_voice.capitalize()} {agent_character.capitalize()}."
 
@@ -72,7 +73,9 @@ class PersonaGenerator(BaseGenerator):
 class ScenarioGenerator(BaseGenerator):
     """ Class for randomly generating a scenario """
     def __init__(self, genre: str = None):
-        super().__init__(genre=genre, file=AppConfiguration.resource_scenario_yml, parser_cls=YAMLScenarioParser)
+        genre = genre if (genre is not None) else AppConfiguration.default_genre
+        file_dir = AppConfiguration.resource_scenario_dir / genre
+        super().__init__(file_dir=file_dir, file=AppConfiguration.resource_scenario_yml, parser_cls=YAMLScenarioParser)
 
     def generate(self, *args, **kwargs) -> list[str]:
         """ Generate a random scenario and returns it """
@@ -80,3 +83,17 @@ class ScenarioGenerator(BaseGenerator):
         scenario = self.choose_from(scenarios)
 
         return scenario
+
+
+class NameGenerator(BaseGenerator):
+    """ Class for randomly generating a name """
+    def __init__(self):
+        file_dir = AppConfiguration.resource_names_dir
+        super().__init__(file_dir=file_dir, file=AppConfiguration.resource_name_yml, parser_cls=YAMLNamesParser)
+
+    def generate(self, n: int, *args, **kwargs) -> list[str]:
+        """ Generate a list of random names and returns it """
+        names: list[str] = self.data
+        agent_names = self.choose_from(names, max_count=n)
+
+        return agent_names

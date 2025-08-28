@@ -154,3 +154,13 @@ class YAMLScenarioParser(YAMLPersonaParser):
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         # Since it shares same functionality with Persona parser, just inherit it
+
+
+class YAMLNamesParser(YAMLScenarioParser):
+    """ Parser for the names file """
+
+    root: str = "names"
+
+    def __init__(self, file_path: str | Path):
+        super().__init__(file_path)
+        # Since it shares same functionality with Scenario parser, just inherit it
