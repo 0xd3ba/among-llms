@@ -35,7 +35,7 @@ class ChatroomWidget(Vertical):
         Binding(BindingConfiguration.chatroom_show_all_persona, "view_all_personas", "All Personas"),
         Binding(BindingConfiguration.chatroom_modify_msgs, "modify_msgs", "Modify Messages"),
         Binding(BindingConfiguration.chatroom_start_vote, "start_a_vote", "Vote"),
-        Binding(BindingConfiguration.chatroom_quit, f"chatroom_quit", "Quit", priority=True)
+        Binding(BindingConfiguration.chatroom_quit, "chatroom_quit", "Quit", priority=True)
     ]
 
     def __init__(self, config: RunTimeConfiguration, state_manager: GameStateManager, is_disabled: bool = False, *args, **kwargs):

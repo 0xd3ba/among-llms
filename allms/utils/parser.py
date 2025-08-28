@@ -14,7 +14,7 @@ class BaseYAMLParser:
 
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def parse(self, root_key: str = None) -> dict:
+    def parse(self, root_key: str = None) -> dict | list:
         with open(self._file_path, "r") as f:
             yml_data = yaml.safe_load(f)
             if root_key is not None:
@@ -124,18 +124,10 @@ class YAMLConfigFileParser(BaseYAMLParser):
 class YAMLPersonaParser(BaseYAMLParser):
     """ Parser for the agent persona file """
 
-    root: str = "persona"
-    key_species: str = "species"
-    key_gender: str = "gender"
-    key_intelligence: str = "intelligence-level"
-    key_likes: str = "likes"
-    key_dislikes: str = "dislikes"
-    key_jobs: str = "jobs"
-    key_traits: str = "traits"
-    key_personality: str = "personality"
-    key_hobbies: str = "hobbies"
-    key_additional_languages: str = "additional-languages"
-    key_relationships: str = "relationships"
+    root: str = "personas"
+    key_backgrounds: str = "backgrounds"
+    key_characteristics: str = "characteristics"
+    key_voices: str = "voices"
 
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
@@ -157,12 +149,18 @@ class YAMLPersonaParser(BaseYAMLParser):
 class YAMLScenarioParser(YAMLPersonaParser):
     """ Parser for the scenario file """
 
-    root: str = "scenario"
-    key_base_setting: str = "base-setting"
-    key_backgrounds: str = "backgrounds"
-    key_actions: str = "actions"
-    key_twists: str = "twists"
+    root: str = "scenarios"
 
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         # Since it shares same functionality with Persona parser, just inherit it
+
+
+class YAMLNamesParser(YAMLScenarioParser):
+    """ Parser for the names file """
+
+    root: str = "names"
+
+    def __init__(self, file_path: str | Path):
+        super().__init__(file_path)
+        # Since it shares same functionality with Scenario parser, just inherit it

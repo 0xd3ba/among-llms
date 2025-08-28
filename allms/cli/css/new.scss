@@ -1,3 +1,12 @@
+/* Class for new chatroom creation */
+NewChatScreen {
+    /* Override the defaults for the main container */
+    & .modal-container {
+        min-height: 30;
+        max-height: 60%;
+    }
+}
+
 /* Main container for new chatroom widget */
 NewChatroomWidget {
 
