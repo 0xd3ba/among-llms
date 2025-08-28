@@ -93,7 +93,7 @@ class NameGenerator(BaseGenerator):
 
     def generate(self, n: int, *args, **kwargs) -> list[str]:
         """ Generate a list of random names and returns it """
-        names: list[str] = self.data
+        names: list[str] = list(set(self.data))  # Need to ensure each name is unique
         agent_names = self.choose_from(names, max_count=n)
 
         return agent_names
