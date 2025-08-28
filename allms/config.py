@@ -45,6 +45,11 @@ class AppConfiguration:
     # Minimum number of agents that should be in the game
     min_agent_count: int = 3
 
+    # Min. threshold % for a vote to be considered valid (must be a number in range (0, 1] )
+    # For example, if threshold=0.75 and n_agents_left=6, for a vote to be considered as valid, at least
+    # ceil(threshold * n_agents_left) = ceil(0.75*6) = 4 agents must have voted; else the vote is rejected
+    min_vote_valid_threshold = 0.75
+
     # Context size for the model -- Max. no. of messages in the chat history (public messages, DMs and notifications)
     # the model gets as context for generating a reply
     # Note(s):

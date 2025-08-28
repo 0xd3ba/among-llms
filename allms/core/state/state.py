@@ -83,6 +83,10 @@ class GameState:
         remaining_ids = sorted(list(self._remaining_agent_ids), key=AgentFactory.agent_id_comparator)
         return remaining_ids
 
+    def get_number_of_remaining_agents(self) -> int:
+        """ Returns the count of the remaining agents """
+        return len(self._remaining_agent_ids)
+
     def remove_agent(self, agent_id: str) -> None:
         """ Removes the agent from the tracked agents """
         assert agent_id in self._remaining_agent_ids, f"Trying to remove agent ID({agent_id}) which is not present"
@@ -183,15 +187,23 @@ class GameState:
         """ Returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
         return self._voting.voting_has_started()
 
-    def start_voting(self, started_by: str) -> None:
-        """ Starts the voting process """
-        self._voting.start_vote(started_by=started_by)
+    def get_total_voters(self) -> int:
+        """ Returns the total number of voters who voted so far """
+        return self._voting.total_voters()
 
-    def vote(self, by_agent: str, for_agent: str) -> None:
-        """ Vote for a specific agent by the given agent """
+    def start_voting(self, started_by: str) -> bool:
+        """ Starts the voting process. Returns True if started. False otherwise """
+        if self.voting_has_started()[0]:
+            AppConfiguration.logger.log(f"Trying to start a vote by {started_by} when it's already started. Ignoring.")
+            return False
+        self._voting.start_vote(started_by=started_by)
+        return True
+
+    def vote(self, by_agent: str, for_agent: str) -> bool:
+        """ Vote for a specific agent by the given agent. Returns True if agent could vote. False otherwise """
         assert by_agent in self._remaining_agent_ids, f"{by_agent} is trying to vote but is not in the remaining agents list"
         assert for_agent in self._remaining_agent_ids, f"{by_agent} is voting for {for_agent} who is not in the remaining agents list"
-        self._voting.vote(by_agent, for_agent)
+        return self._voting.vote(by_agent, for_agent)
 
     def get_voted_for_who(self, by_agent: str) -> Optional[str]:
         """ Returns the ID of the agent that the given agent voted for (if any), else None """
@@ -201,10 +213,15 @@ class GameState:
         """ Returns True if the agent is allowed to vote """
         return self._voting.can_vote(by_agent=agent_id)
 
-    def end_voting(self) -> Counter:
+    def end_voting(self) -> tuple[Optional[Counter], Optional[list[tuple[str, str]]]]:
         """ Stops the voting process and returns the results """
-        # TODO: Inform the agents in their chat-logs that voting has ended and who got kicked out etc.
-        return self._voting.end_vote()
+        if self.voting_has_started()[0]:
+            vote_list = self._voting.get_who_voted_and_for_whom()
+            return self._voting.end_vote(), vote_list
+
+        # Vote already ended -- nothing to do
+        AppConfiguration.logger.log(f"Trying to end a vote when it has already ended. Ignoring.")
+        return None, None
 
     def __check_and_notify_if_modifying_others_message(self, msg_id: str, is_edit: bool = True) -> None:
         """ Helper method to check if modifying other's message """

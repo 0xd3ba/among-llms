@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 import random
 from collections import Counter
 from pathlib import Path
@@ -31,6 +32,9 @@ class GameStateManager:
         self._game_state: Optional[GameState] = None
         self._on_new_message_lock: Lock = Lock()  # To ensure one update at a time
         self._on_new_message_callback: Optional[Callable] = None
+
+        self._vote_started_timestamp: Optional[int] = None
+        self._vote_will_end_on_timestamp: Optional[int] = None
 
         self._self_callbacks = StateManagerCallbacks(self.__generate_callbacks())
         self._chat_loop: Optional[ChatLoop] = None
@@ -221,23 +225,67 @@ class GameStateManager:
 
     def start_vote(self, started_by: str) -> None:
         """ Method to start the voting process """
-        self._game_state.start_voting(started_by=started_by)
+        started = self._game_state.start_voting(started_by=started_by)
+        if not started:
+            return
+
+        # New voting has been started -- track the timestamp
+        # Need this to ensure vote ends after pre-specified amount of time
+        curr_ts = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
+        vote_duration_min = AppConfiguration.max_vote_duration_min
+
+        self._vote_started_timestamp = curr_ts
+        self._vote_will_end_on_timestamp = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
+        # TODO: Update the UI with a message / toast
 
     def can_vote(self, agent_id: str) -> bool:
         """ Returns True if the given agent is allowed to vote, else False"""
         return self._game_state.can_vote(agent_id)
 
-    def end_vote(self) -> Counter:
+    def end_vote(self) -> None:
         """ Method to end the voting process """
-        return self._game_state.end_voting()
+        results, vote_list = self._game_state.end_voting()
+        if results is None:
+            return
+
+        kick_agent_id, vote_conclusion = self.__process_vote_results(results, vote_list)
+        AppConfiguration.logger.log(f"Vote conclusion: {vote_conclusion}")
+        if kick_agent_id is not None:
+            self.terminate_agent(kick_agent_id)
+
+        # TODO: Inform agents in their chat-logs that voting has ended, who got how many votes, who got kicked out etc.
+        # TODO: Update the UI with a message/toast that the vote has concluded
+
+        # Reset the timestamps to None
+        self._vote_started_timestamp = None
+        self._vote_will_end_on_timestamp = None
 
     def vote(self, by_agent: str, for_agent: str) -> None:
         """ Method to participate in the vote """
-        self._game_state.vote(by_agent, for_agent)
+        could_vote = self._game_state.vote(by_agent, for_agent)
+        if not could_vote:
+            return
+
+        # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
+        total_voters_so_far = self._game_state.get_total_voters()
+        n_agents_remaining = self._game_state.get_number_of_remaining_agents()
+        assert total_voters_so_far <= n_agents_remaining, (
+            f"Total voters ({total_voters_so_far}) > number of agents remaining ({n_agents_remaining}). " +
+            f"This should not happen."
+        )
+
+        if total_voters_so_far == n_agents_remaining:
+            self.end_vote()
 
     def get_voted_for_who(self, by_agent: str) -> Optional[str]:
         """ Returns the ID of the agent that the given agent voted for (if any), else None """
         return self._game_state.get_voted_for_who(by_agent)
+
+    def terminate_agent(self, agent_id: str) -> None:
+        """ Terminates the agent with the given ID """
+        self._game_state.remove_agent(agent_id)
+        # TODO: Stop the LLM associated with this agent
+        # TODO: If the agent was you, stop every LLM and end the game
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """
@@ -253,6 +301,8 @@ class GameStateManager:
                 await asyncio.sleep(1)  # Give control to others
                 curr_ts = clock.current_timestamp_in_milliseconds_utc()
                 self._game_state.update_duration(curr_ts)
+
+                # TODO: Check the voting status
 
         except (asyncio.CancelledError, Exception) as e:
             logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
@@ -288,6 +338,50 @@ class GameStateManager:
     def __check_genre_validity(self, genre: str) -> None:
         """ Helper method to check if the given genre is valid """
         assert genre in self._valid_genres, f"Given genre({genre}) is not supported. Valid genres: {self._valid_genres}"
+
+    def __process_vote_results(self, results: Counter, vote_list: list[tuple[str, str]]) -> tuple[Optional[str], str]:
+        """
+        Helper method to processes the vote results. Returns a tuple of form:
+            (agent_to_kick, vote_conclusion)
+
+        Note: agent_to_kick can be None if vote was not concluded
+        """
+        min_thresh = AppConfiguration.min_vote_valid_threshold
+        assert (0 < min_thresh <= 1), f"Expected voting threshold to be in range (0, 1] but got {min_thresh} instead"
+
+        remaining_agents = self.get_all_remaining_agents_ids()
+        n_remaining = len(remaining_agents)
+        min_count = math.ceil(min_thresh * n_remaining)  # Min. number of total votes required for the vote to be valid
+        total_votes = results.total()
+
+        # Get list of agents who did not vote
+        did_not_vote_agents = set(remaining_agents) - {aid for (aid, _) in vote_list}
+        did_not_vote_str = (
+            f"Following agents did not vote: {', '.join(did_not_vote_agents)}"
+            if did_not_vote_agents else ""
+        )
+
+        if total_votes == 0:
+            return None, f"Vote Rejected. No votes were cast. {did_not_vote_str}"
+
+        elif total_votes < min_count:
+            conclusion = f"Vote Rejected. Only {total_votes} agents have voted. Minimum required: {min_count}. {did_not_vote_str}"
+            return None, conclusion  # No agent getting kicked
+        else:
+            max_votes = max(results.values())  # Max. votes received by an agent
+            kick_agents = [aid for (aid, n) in results.items() if (n == max_votes)]
+
+            # Note: There might be > 1 agent with the max. votes -- in this case, reject the vote as well
+            if len(kick_agents) > 1:
+                agents_str = ", ".join(kick_agents)
+                conclusion = f"Vote Rejected. {len(kick_agents)} agents ({agents_str}) received " + \
+                    f"same number of votes ({max_votes}). {did_not_vote_str}"
+                return None, conclusion
+
+            # It means someone needs to get kicked out. Is that you (hehe) ? Who knows ...
+            agent_to_kick = kick_agents[0]
+            conclusion = f"Vote Concluded. {agent_to_kick} will be terminated. {did_not_vote_str}"
+            return agent_to_kick, conclusion
 
     def __generate_callbacks(self) -> dict[CallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """
