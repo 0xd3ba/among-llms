@@ -135,7 +135,7 @@ class ChatLoop:
 
                 # 3. Start the vote if the agent requested to start the vote
                 # Note: Vote might have started while the model was generating a response. Recheck again
-                vote_started = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
+                vote_started, _ = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
                 if start_a_vote and (not vote_started):
                     AppConfiguration.logger.log(f"{agent_id} has requested to start a vote. Initiating the voting process ...")
 
