@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 from textual import log
 
@@ -65,13 +67,17 @@ class Time:
         ts_utc = ts_local.tz_convert("UTC")
         utc_ms = int(ts_utc.timestamp() * 1000)   # Need to convert seconds to milliseconds
         return utc_ms
-    
-    def calculate_duration(self, end_ts_ms: int, start_ts_ms: int) -> tuple[float | int, str]:
+
+    def calculate_duration(self, duration_ms: Optional[int], end_ts_ms: int = 0, start_ts_ms: int = 0) -> tuple[float | int, str]:
         """
-        Calculates the duration between the end timestamp (in ms) and start timestamp (in ms)
-        and returns the duration (in milliseconds, seconds, minutes, hours, days)
+        Calculates the duration on the given duration (if not None) or between the end timestamp (in ms) and
+        start timestamp (in ms) (if duration is None) and returns the duration (in milliseconds, seconds,
+        minutes, hours, days)
         """
-        duration = end_ts_ms - start_ts_ms
+        duration = duration_ms
+        if duration_ms is None:
+            duration = end_ts_ms - start_ts_ms
+
         second = 1_000        # 1s = 1000ms
         minute = second * 60  # 1m = 60 * 1000ms
         hour = minute * 60    # 1h = 60 * 60 * 1000ms

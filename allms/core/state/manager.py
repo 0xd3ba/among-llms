@@ -241,14 +241,26 @@ class GameStateManager:
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """
-        AppConfiguration.logger.log(f"Starting worker in the the background ...")
+        clock = AppConfiguration.clock
+        logger = AppConfiguration.logger
+
+        logger.log(f"Starting worker in the the background ...")
+        start_ts = clock.current_timestamp_in_milliseconds_utc()
+        self._game_state.update_start_time(start_ts)
+
         try:
             while True:
                 await asyncio.sleep(1)  # Give control to others
-        except (asyncio.CancelledError, Exception) as e:
-            AppConfiguration.logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
+                curr_ts = clock.current_timestamp_in_milliseconds_utc()
+                self._game_state.update_duration(curr_ts)
 
-        AppConfiguration.logger.log(f"Stopping background worker")
+        except (asyncio.CancelledError, Exception) as e:
+            logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
+
+        duration = self._game_state.get_duration()
+        duration, duration_unit = clock.calculate_duration(duration_ms=duration)
+        logger.log(f"Stopping background worker")
+        logger.log(f"Elapsed chatroom duration: {duration} {duration_unit}")
 
     def __create_new_message(self,
                              msg: str,

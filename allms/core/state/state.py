@@ -88,6 +88,30 @@ class GameState:
         assert agent_id in self._remaining_agent_ids, f"Trying to remove agent ID({agent_id}) which is not present"
         self._remaining_agent_ids.remove(agent_id)
 
+    def get_start_time(self) -> int:
+        """ Returns the start time (in UNIX milliseconds) """
+        return self.start_time
+
+    def update_start_time(self, start_timestamp_ms: int) -> None:
+        """ Sets the start time (in UNIX milliseconds) """
+        assert isinstance(start_timestamp_ms, int) and start_timestamp_ms > 0, f"Expecting start time to be a positive integer"
+        self.start_time = start_timestamp_ms
+
+    def get_duration(self) -> int:
+        """ Returns the elapsed duration (in UNIX milliseconds) """
+        return self.elapsed_duration
+
+    def set_duration(self, duration_ms: int) -> None:
+        """ Sets the duration to the given value """
+        assert isinstance(duration_ms, int) and duration_ms > 0, f"Expected duration to be a UNIX millisecond but got {duration_ms} instead"
+        self.elapsed_duration = duration_ms
+
+    def update_duration(self, curr_timestamp_ms: int) -> None:
+        """ Updates the duration (in milliseconds) since the start. Expects timestamp to be a UNIX millisecond """
+        assert isinstance(curr_timestamp_ms, int) and curr_timestamp_ms > 0, f"Expecting timestamp to be a positive integer"
+        assert curr_timestamp_ms >= self.start_time, f"Current timestamp ({curr_timestamp_ms}) < start timestamp ({self.start_time})"
+        self.elapsed_duration = curr_timestamp_ms - self.start_time
+
     async def add_message(self, message: ChatMessage) -> None:
         """ Adds the given message to the message history log """
         # Check if the message is a reply to a previous message ID -- if yes, then the message must exist
