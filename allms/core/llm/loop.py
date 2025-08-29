@@ -40,8 +40,7 @@ class ChatLoop:
         # global messages per agent
         self._llm_chat_history: dict[str, deque[str]] = {agent_id: deque() for agent_id in self._llm_agent_ids}
 
-        # Set the class attributes of the allowed agent-IDs in the response models
-        LLMResponseModel.set_allowed_ids(self._agents.keys())
+        self.__update_response_model_allowed_ids()
         self._llm_agents_mgr = LLMAgentsManager(config=config, scenario=scenario, agents=self._agents)
 
     def start(self) -> None:
@@ -77,6 +76,9 @@ class ChatLoop:
             assert agent_id in self._agent_tasks, f"Trying to cancel agent ID: {agent_id} but is not present in the tasks map"
             self._stop_loop[agent_id] = True
             self._agent_tasks[agent_id].cancel()
+
+            self._llm_agent_ids.remove(agent_id)
+            self.__update_response_model_allowed_ids()
 
     async def agent_loop(self, agent: Agent) -> None:
         """ Main loop of the LLM agent """
@@ -149,3 +151,11 @@ class ChatLoop:
         except asyncio.CancelledError:
             # TODO: Handle when the task is cancelled
             AppConfiguration.logger.log(f"Agent ({agent_id}) has been stopped")
+
+    def __update_response_model_allowed_ids(self) -> None:
+        """ Helper method to update the allowed agent IDs in the response model """
+        allowed_ids = self._llm_agent_ids
+        allowed_ids.add(self._your_id)
+
+        # Set the class attributes of the allowed agent-IDs in the response models
+        LLMResponseModel.set_allowed_ids(allowed_ids)

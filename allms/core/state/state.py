@@ -223,6 +223,11 @@ class GameState:
         AppConfiguration.logger.log(f"Trying to end a vote when it has already ended. Ignoring.")
         return None, None
 
+    def end_game(self, won: bool) -> None:
+        self.game_ended = True
+        self.game_won = won
+        # TODO: Compute the game duration
+
     def __check_and_notify_if_modifying_others_message(self, msg_id: str, is_edit: bool = True) -> None:
         """ Helper method to check if modifying other's message """
         your_id = self.your_agent_id

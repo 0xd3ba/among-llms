@@ -67,12 +67,19 @@ class GameStateManager:
         if self._chat_loop is not None:
             self._chat_loop.pause()
 
-    def stop_llms(self) -> None:
-        """ Method to stop the chatroom """
-        if self._chat_loop is not None:
+    def stop_llms(self, agent_id: str = None) -> None:
+        """ Method to stop all the chatroom LLMs (agent_id = None) or a specific agent's LLM (agent_id) """
+        if self._chat_loop is None:
+            llm_for = "all LLMs" if (agent_id is None) else f"LLM for {agent_id}"
+            AppConfiguration.logger.log(f"Trying to stop {llm_for} when there is no chat loop running", level=logging.WARNING)
+            return
+
+        if agent_id is None:
             # TODO: Ensure all agents are stopped before resetting everything
             self._chat_loop.stop()
             self._chat_loop = None
+        else:
+            self._chat_loop.stop_agents(agent_id)
 
     def load(self, file_path: str | Path) -> None:
         """ Loads the game state from the given path """
@@ -297,9 +304,28 @@ class GameStateManager:
 
     def terminate_agent(self, agent_id: str) -> None:
         """ Terminates the agent with the given ID """
+        your_id = self.get_user_assigned_agent_id()
+        n_remaining = self._game_state.get_number_of_remaining_agents()
+        won = (n_remaining == 3) and (agent_id != your_id)  # n == 3 because we have not removed the agent yet
+
         self._game_state.remove_agent(agent_id)
-        # TODO: Stop the LLM associated with this agent
-        # TODO: If the agent was you, stop every LLM and end the game
+        AppConfiguration.logger.log(f"{agent_id} terminated", level=logging.CRITICAL)
+
+        # Stop the LLM associated with this agent
+        if (agent_id != your_id) and (not won):
+            self.stop_llms(agent_id)
+            # TODO: Remove this agent from LLMResponseModel's allowed agent IDs list as well
+            # TODO: Inform the LLMs in their logs that this was not the human
+
+        # You got caught, or you won -- either ways, the game has ended
+        else:
+            self.stop_llms()
+            self.end_game(won)
+
+    def end_game(self, won: bool) -> None:
+        """ Method that stops the game """
+        # TODO: Show game ended screen on the UI
+        self._game_state.end_game(won)
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """
