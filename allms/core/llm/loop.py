@@ -76,9 +76,9 @@ class ChatLoop:
             assert agent_id in self._agent_tasks, f"Trying to cancel agent ID: {agent_id} but is not present in the tasks map"
             self._stop_loop[agent_id] = True
             self._agent_tasks[agent_id].cancel()
-
             self._llm_agent_ids.remove(agent_id)
-            self.__update_response_model_allowed_ids()
+
+        self.__update_response_model_allowed_ids()
 
     async def agent_loop(self, agent: Agent) -> None:
         """ Main loop of the LLM agent """
