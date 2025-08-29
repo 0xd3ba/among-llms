@@ -109,19 +109,23 @@ ModifyMessageScreen {
 VotingWidget {
 
     /* The widget hosting the radio buttons */
-    & _RadioSetComponent {
-        height: auto;
-        padding: 1;
-        border: none;
+    & #voting-radio-container {
+        height: 1fr;
+        min-height: 10;
 
-        &:focus {
+        & _RadioSetComponent {
+            height: 100%;
+            padding: 1;
             border: none;
+
+            &:focus {
+                border: none;
+            }
         }
     }
 
     /* The informative text for voting */
     & #voting-info-container {
-        height: 1fr;
         align: center middle;
 
         & Static {

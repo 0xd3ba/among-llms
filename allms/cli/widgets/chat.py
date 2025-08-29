@@ -233,7 +233,6 @@ class ChatroomWidget(Vertical):
 
     def action_start_a_vote(self) -> None:
         """ Invoked when key binding for starting a vote is pressed """
-
         voting_in_progress, _ = self._state_manager.voting_has_started()
         screen_title = "Voting in Progress" if voting_in_progress else "Start a Vote"
         screen = VotingScreen(screen_title, self._config, self._state_manager)

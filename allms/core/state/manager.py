@@ -223,11 +223,18 @@ class GameStateManager:
         """ Method that returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
         return self._game_state.voting_has_started()
 
-    def start_vote(self, started_by: str) -> None:
+    def start_vote(self, started_by: str, started_by_you: bool = False) -> None:
         """ Method to start the voting process """
         started = self._game_state.start_voting(started_by=started_by)
         if not started:
             return
+
+        your_agent_id = self.get_user_assigned_agent_id()
+        need_to_inform = True if (started_by_you and (started_by != your_agent_id)) else False
+
+        if need_to_inform:
+            AppConfiguration.logger.log(f"Informing {started_by} that you have started the vote as them ...")
+            pass  # TODO: Inform the agent that it was you (the human) who started the vote on their behalf
 
         # New voting has been started -- track the timestamp
         # Need this to ensure vote ends after pre-specified amount of time
@@ -260,11 +267,18 @@ class GameStateManager:
         self._vote_started_timestamp = None
         self._vote_will_end_on_timestamp = None
 
-    def vote(self, by_agent: str, for_agent: str) -> None:
+    def vote(self, by_agent: str, for_agent: str, voting_by_you: bool = False) -> None:
         """ Method to participate in the vote """
         could_vote = self._game_state.vote(by_agent, for_agent)
         if not could_vote:
             return
+
+        your_agent_id = self.get_user_assigned_agent_id()
+        need_to_inform = True if (voting_by_you and (by_agent != your_agent_id)) else False
+
+        if need_to_inform:
+            AppConfiguration.logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
+            pass  # TODO: Inform the agent that it was you (the human) who did the vote on their behalf
 
         # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
         total_voters_so_far = self._game_state.get_total_voters()
