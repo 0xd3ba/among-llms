@@ -226,6 +226,11 @@ class GameStateManager:
         """ Deletes the message with the given message ID """
         await self._game_state.delete_message(msg_id, deleted_by_you)
 
+    def announce_to_agents(self, inform_msg: str, announce_to: str = None) -> None:
+        """ Announces the given message to the specified agent or all the agents (announce_to=None) """
+        msg = self.__create_new_message(msg=inform_msg, sent_to=announce_to, is_announcement=True)
+        self._game_state.announce_to_agents(msg)
+
     def voting_has_started(self) -> tuple[bool, Optional[str]]:
         """ Method that returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
         return self._game_state.voting_has_started()
@@ -243,8 +248,7 @@ class GameStateManager:
             # Inform the agent that it was you (the human) who started the vote on their behalf
             self._logger.log(f"Informing {started_by} that you have started the vote as them ...")
             inform_msg = "The human has started the vote as you"
-            msg = self.__create_new_message(msg=inform_msg, sent_to=started_by, is_announcement=True)
-            self._game_state.announce_to_agents(msg)
+            self.announce_to_agents(inform_msg, announce_to=started_by)
 
         # New voting has been started -- track the timestamp
         # Need this to ensure vote ends after pre-specified amount of time
@@ -273,8 +277,7 @@ class GameStateManager:
             self.terminate_agent(kick_agent_id)
 
         # Inform agents in their chat-logs that voting has ended, who got how many votes, who got kicked out etc.
-        msg = self.__create_new_message(msg=vote_conclusion, is_announcement=True)
-        self._game_state.announce_to_agents(msg=msg)
+        self.announce_to_agents(inform_msg=vote_conclusion)
         # TODO: Update the UI with a message/toast that the vote has concluded
 
         # Reset the timestamps to None
@@ -294,8 +297,7 @@ class GameStateManager:
             # Inform the agent that it was you (the human) who did the vote on their behalf
             self._logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
             inform_msg = f"The human has voted for <{for_agent}> as you"
-            msg = self.__create_new_message(msg=inform_msg, sent_to=by_agent, is_announcement=True)
-            self._game_state.announce_to_agents(msg=msg)
+            self.announce_to_agents(inform_msg=inform_msg, announce_to=by_agent)
 
         # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
         total_voters_so_far = self._game_state.get_total_voters()
@@ -328,9 +330,7 @@ class GameStateManager:
             # Inform the LLMs in their logs that this was not the human
             inform_msg = f"{agent_id} has been TERMINATED. {agent_id} was NOT the HUMAN ..."
             self._logger.log(f"Announcing the following to all the LLMs: {inform_msg}")
-
-            msg = self.__create_new_message(msg=inform_msg, is_announcement=True)
-            self._game_state.announce_to_agents(msg)
+            self.announce_to_agents(inform_msg=inform_msg)
 
             # TODO: Update the selection list in the UI to not include this agent
 
