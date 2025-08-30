@@ -19,8 +19,12 @@ class Agent:
     dm_msg_ids_sent: dict[str, set] = field(default_factory=dict)  # Mapping between agent ID and sent msg id
 
     # Maintain a rolling history of chat-logs of DMs, public messages and notifications
-    # Each item is of form (role, message)
-    chat_logs: deque[tuple[str, str]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
+    # Each item is of form (role, message/message_id, is_message_id)
+    # Need to do it this way because if an agent modifies their message (edit/delete), it becomes difficult to update
+    # the state in each and every chat log -- a better way is to just store the message IDs of all chat messages
+    # and keep the notifications etc. as normal formatted messages. On every iteration, the LLM will fetch the latest
+    # contents (even if edited/deleted) instead of stale version (if stored as formatted messages instead of IDs)
+    chat_logs: deque[tuple[str, str, bool]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
 
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
@@ -34,12 +38,13 @@ class Agent:
             dm_map[agent_id] = set()
         dm_map[agent_id].add(msg_id)
 
-    def add_to_chat_log(self, role: str, msg: str) -> None:
-        """ Add the given message to the chat log """
-        AppConfiguration.logger.log(f"Adding the following message to chat-log for agent({self.id}): {msg}")
-        self.chat_logs.append((role, msg))
+    def add_to_chat_log(self, role: str, msg: str, is_message_id: bool = False) -> None:
+        """ Add the given message/message ID to the chat log """
+        msg_type = "message ID" if is_message_id else "message"
+        AppConfiguration.logger.log(f"Adding the following {msg_type} to chat-log for agent({self.id}): {msg}")
+        self.chat_logs.append((role, msg, is_message_id))
 
-    def get_chat_logs(self) -> list[tuple[str, str]]:
+    def get_chat_logs(self) -> list[tuple[str, str, bool]]:
         return list(self.chat_logs)
 
     def get_message_ids(self, latest_first: bool = True) -> list[str]:

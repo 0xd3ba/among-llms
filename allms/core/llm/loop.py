@@ -38,7 +38,7 @@ class ChatLoop:
         self._llm_chat_history: dict[str, deque[str]] = {agent_id: deque() for agent_id in self._llm_agent_ids}
 
         self.__update_response_model_allowed_ids()
-        self._llm_agents_mgr = LLMAgentsManager(config=config, scenario=scenario, agents=self._agents)
+        self._llm_agents_mgr = LLMAgentsManager(config=config, scenario=scenario, agents=self._agents, callbacks=self._callbacks)
 
     def start(self) -> None:
         """ Start the loop """
@@ -87,12 +87,11 @@ class ChatLoop:
             while not self._stop_loop[agent.id]:
 
                 # Sleep for N random seconds to simulate delays, like in a group-chat and to prevent spamming
-                delay = random.randint(1, 4)
+                delay = random.randint(3, 7)
                 await asyncio.sleep(delay)
                 if self._pause_loop:  # If paused, prevent agents from interacting with the model
                     continue
 
-                curr_time_ms = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
                 vote_started, vote_started_by = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
                 if vote_started:
                     voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True, started_by=vote_started_by)

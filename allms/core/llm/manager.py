@@ -4,6 +4,8 @@ import instructor
 
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent
+from allms.core.chat import ChatMessage, ChatMessageFormatter
+from allms.core.state.callbacks import StateManagerCallbackType, StateManagerCallbacks
 from .factory import client_factory
 from .parser import LLMResponseParser
 from .prompt import LLMPromptGenerator
@@ -13,10 +15,11 @@ from .roles import LLMRoles
 
 class LLMAgentsManager:
     """ Class for managing the agents """
-    def __init__(self, config: RunTimeConfiguration, scenario: str, agents: dict[str, Agent]):
+    def __init__(self, config: RunTimeConfiguration, scenario: str, agents: dict[str, Agent], callbacks: StateManagerCallbacks):
         self._config = config
         self._scenario = scenario
         self._agents = agents
+        self._callbacks = callbacks
         self._prompt = LLMPromptGenerator(scenario=self._scenario, agents=self._agents)
         self._client: instructor.Instructor = client_factory(model=self._config.ai_model, is_offline=self._config.offline_model)
 
@@ -31,11 +34,12 @@ class LLMAgentsManager:
         parsed_response = None
 
         # Note: Need to include the instructions in the history
-        human_prompt = self.__create_message(content=self._there_is_a_human_prompt)
-        bg_prompt = self.__create_message(content=self._bg_prompt)
-        op_prompt = self.__create_message(content=self._op_prompt)
-        ip_prompt = self.__create_message(content=input_prompt)
-        messages = [bg_prompt] + self.__prepare_history(agent_id) + [ip_prompt, human_prompt, op_prompt]
+        human_prompt = await self.__create_message(content=self._there_is_a_human_prompt)
+        bg_prompt = await self.__create_message(content=self._bg_prompt)
+        op_prompt = await self.__create_message(content=self._op_prompt)
+        ip_prompt = await self.__create_message(content=input_prompt)
+        history = await self.__prepare_history(agent_id)
+        messages = [bg_prompt] + history + [ip_prompt, human_prompt, op_prompt]
 
         while tries < AppConfiguration.max_model_retries:
             tries += 1
@@ -60,7 +64,7 @@ class LLMAgentsManager:
                 AppConfiguration.logger.log(f"[{tries}] {agent_id} generated a malformed response: {generated_message}. " +
                                             f"Exception: {e}. ENSURE YOU ADHERE TO THE EXPECTED OUTPUT SCHEMA", level=logging.CRITICAL)
                 # Add in the exception message to the list of messages inorder for the model to generate a better response next time
-                exception_msg = self.__create_message(content=str(e), role=LLMRoles.system)
+                exception_msg = await self.__create_message(content=str(e), role=LLMRoles.system)
                 messages.append(exception_msg)
                 continue
 
@@ -81,19 +85,27 @@ class LLMAgentsManager:
     def __get_presence_of_human_prompt(self) -> str:
         return self._prompt.generate_presence_of_human_prompt()
 
-    def __prepare_history(self, agent_id: str) -> list[dict[str, str]]:
+    async def __prepare_history(self, agent_id: str) -> list[dict[str, str]]:
         """ Helper method to prepare the message history of the agent required for context """
         agent = self._agents[agent_id]
-        chat_log = agent.get_chat_logs()
+        chat_log = agent.get_chat_logs()  # Each item is of form (role, message/message_ID, is_message_id)
 
         # Each message must be of the following format
         # {"role": "user",      "content": <message>} for messages by other agents
         # {"role": "assistant", "content": <message>} for messages by this agent
-        messages = [self.__create_message(role=role, content=msg) for (role, msg) in chat_log]
+        messages = []
+        for (role, msg, is_id) in chat_log:
+            message = await self.__create_message(role=role, content=msg, is_message_id=is_id)
+            messages.append(message)
+
         return messages
 
-    @staticmethod
-    def __create_message(content: str, role: str = LLMRoles.system) -> dict[str, str]:
+    async def __create_message(self, content: str, role: str = LLMRoles.system, is_message_id: bool = False) -> dict[str, str]:
         """ Helper method to create the dict in the format required """
+        # If the contents is actually a message ID, need to fetch the message contents and then format it
+        if is_message_id:
+            msg: ChatMessage = await self._callbacks.invoke(StateManagerCallbackType.GET_MESSAGE_WITH_ID, content)
+            content = ChatMessageFormatter.format_to_string(msg)
+
         message = dict(role=role, content=content)
         return message

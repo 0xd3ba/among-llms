@@ -139,7 +139,6 @@ class GameState:
         agent_from.add_message_id(message.id)
 
         broadcast_msg_to = {agent_id}
-        fmt_msg = ChatMessageFormatter.format_to_string(message)
 
         # The message was sent by you via a different agent -- notify the agent in their logs
         if (agent_id != self.your_agent_id) and message.sent_by_you:
@@ -161,7 +160,7 @@ class GameState:
 
         for aid in broadcast_msg_to:
             role = LLMRoles.assistant if (aid == agent_id) else LLMRoles.user
-            self._all_agents[aid].add_to_chat_log(role, fmt_msg)
+            self._all_agents[aid].add_to_chat_log(role, message.id, is_message_id=True)
 
     def get_message(self, message_id: str) -> ChatMessage:
         """ Fetches the message with the given message ID and returns it """
@@ -179,12 +178,14 @@ class GameState:
     async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
         await self.messages.edit(msg_id, msg_contents, edited_by_you)
+        # TODO: Update the agent's chat-log
         if edited_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=True)
 
     async def delete_message(self, msg_id, deleted_by_you) -> None:
         """ Deletes the message with the given message ID """
         await self.messages.delete(msg_id, deleted_by_you)
+        # TODO: Update the agent's chat-log
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
