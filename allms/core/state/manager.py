@@ -22,7 +22,7 @@ class GameStateManager:
 
     def __init__(self, config: RunTimeConfiguration):
         self._config = config
-        self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger = AppConfiguration.logger
         self._msg_id_generator = ChatMessageIDGenerator()
         self._valid_genres = self.get_available_genres()
         self._scenario_generator = ScenarioGenerator()
@@ -41,7 +41,7 @@ class GameStateManager:
 
     async def new(self) -> None:
         """ Creates a new game state """
-        AppConfiguration.logger.log("Creating a new game state ...")
+        self._logger.log("Creating a new game state ...")
         self._game_state = GameState()
         self.update_scenario(self.generate_scenario())
         self.create_agents(self._config.default_agent_count)
@@ -71,7 +71,7 @@ class GameStateManager:
         """ Method to stop all the chatroom LLMs (agent_id = None) or a specific agent's LLM (agent_id) """
         if self._chat_loop is None:
             llm_for = "all LLMs" if (agent_id is None) else f"LLM for {agent_id}"
-            AppConfiguration.logger.log(f"Trying to stop {llm_for} when there is no chat loop running", level=logging.WARNING)
+            self._logger.log(f"Trying to stop {llm_for} when there is no chat loop running", level=logging.WARNING)
             return
 
         if agent_id is None:
@@ -109,7 +109,7 @@ class GameStateManager:
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
         genre = self.get_genre()
-        AppConfiguration.logger.log(f"Creating {n_agents} agents for given the genre: '{genre}' ...")
+        self._logger.log(f"Creating {n_agents} agents for given the genre: '{genre}' ...")
         agents = AgentFactory.create(genre=genre, n_agents=n_agents)
         self.__check_game_state_validity()
 
@@ -177,7 +177,7 @@ class GameStateManager:
 
         curr_genre = self._game_state.get_genre()
         if genre != curr_genre:
-            AppConfiguration.logger.log(f"Updating genre to '{genre}' ...")
+            self._logger.log(f"Updating genre to '{genre}' ...")
             self._game_state.update_genre(genre)
             self._scenario_generator = ScenarioGenerator(genre)
             self._persona_generator = PersonaGenerator(genre)
@@ -186,7 +186,7 @@ class GameStateManager:
         """ Updates the scenario with the given scenario """
         self.__check_game_state_validity()
         self._scenario = scenario
-        AppConfiguration.logger.log(f"Updating scenario to '{scenario}' ...")
+        self._logger.log(f"Updating scenario to '{scenario}' ...")
         self._game_state.initialize_scenario(scenario)
 
     async def send_message(self,
@@ -240,7 +240,7 @@ class GameStateManager:
         need_to_inform = True if (started_by_you and (started_by != your_agent_id)) else False
 
         if need_to_inform:
-            AppConfiguration.logger.log(f"Informing {started_by} that you have started the vote as them ...")
+            self._logger.log(f"Informing {started_by} that you have started the vote as them ...")
             pass  # TODO: Inform the agent that it was you (the human) who started the vote on their behalf
 
         # New voting has been started -- track the timestamp
@@ -251,7 +251,7 @@ class GameStateManager:
 
         self._vote_started_timestamp = curr_ts
         self._vote_will_end_on_timestamp = end_ts
-        AppConfiguration.logger.log(f"Voting will end on {AppConfiguration.clock.milliseconds_to_iso_format(end_ts)}")
+        self._logger.log(f"Voting will end on {AppConfiguration.clock.milliseconds_to_iso_format(end_ts)}")
         # TODO: Update the UI with a message / toast
 
     def can_vote(self, agent_id: str) -> bool:
@@ -265,7 +265,7 @@ class GameStateManager:
             return
 
         kick_agent_id, vote_conclusion = self.__process_vote_results(results, vote_list)
-        AppConfiguration.logger.log(f"Result: {vote_conclusion}")
+        self._logger.log(f"Result: {vote_conclusion}")
         if kick_agent_id is not None:
             self.terminate_agent(kick_agent_id)
 
@@ -286,7 +286,7 @@ class GameStateManager:
         need_to_inform = True if (voting_by_you and (by_agent != your_agent_id)) else False
 
         if need_to_inform:
-            AppConfiguration.logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
+            self._logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
             pass  # TODO: Inform the agent that it was you (the human) who did the vote on their behalf
 
         # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
@@ -311,7 +311,7 @@ class GameStateManager:
         won = (n_remaining == 3) and (agent_id != your_id)  # n == 3 because we have not removed the agent yet
 
         self._game_state.remove_agent(agent_id)
-        AppConfiguration.logger.log(f"{agent_id} terminated", level=logging.CRITICAL)
+        self._logger.log(f"{agent_id} terminated", level=logging.CRITICAL)
 
         # Stop the LLM associated with this agent
         if (agent_id != your_id) and (not won):
@@ -331,9 +331,8 @@ class GameStateManager:
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """
         clock = AppConfiguration.clock
-        logger = AppConfiguration.logger
 
-        logger.log(f"Starting worker in the the background ...")
+        self._logger.log(f"Starting worker in the the background ...")
         start_ts = clock.current_timestamp_in_milliseconds_utc()
         self._game_state.update_start_time(start_ts)
 
@@ -346,16 +345,16 @@ class GameStateManager:
                 # Check the voting status
                 if self._vote_started_timestamp is not None:
                     if curr_ts >= self._vote_will_end_on_timestamp:
-                        AppConfiguration.logger.log(f"Ending vote due to duration timeout ...")
+                        self._logger.log(f"Ending vote due to duration timeout ...")
                         self.end_vote()
 
         except (asyncio.CancelledError, Exception) as e:
-            logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
+            self._logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
 
         duration = self._game_state.get_duration()
         duration, duration_unit = clock.calculate_duration(duration_ms=duration)
-        logger.log(f"Stopping background worker")
-        logger.log(f"Elapsed chatroom duration: {duration} {duration_unit}")
+        self._logger.log(f"Stopping background worker")
+        self._logger.log(f"Elapsed chatroom duration: {duration} {duration_unit}")
 
     def __create_new_message(self,
                              msg: str,
