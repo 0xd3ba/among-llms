@@ -131,6 +131,9 @@ class ChatroomContentsWidget(VerticalScroll):
         self._your_agent_id = self._state_manager.get_user_assigned_agent_id()
         self._display_you_as = display_you_as
 
+        self._css_class_announcement_widget = "chatroom-announcement-widget"
+        self._css_class_announcement_container = "chatroom-announcement-container"
+
         # Mapping between a message ID, and it's corresponding chat-bubble widget
         self._msg_map: dict[str, ChatBubbleWidget] = {}
 
@@ -147,9 +150,7 @@ class ChatroomContentsWidget(VerticalScroll):
 
         msg_widget = ChatBubbleWidget(self._config, msg, self._state_manager, your_message=your_msg, sent_by=sent_by)
         self._msg_map[msg_id] = msg_widget
-
-        self.mount(msg_widget)
-        self.scroll_end(animate=False)
+        self.__add_widget_to_screen(msg_widget)
 
     async def edit_message(self, msg_id: str) -> None:
         """ Method to edit an existing chat message """
@@ -160,3 +161,24 @@ class ChatroomContentsWidget(VerticalScroll):
         """ Method to delete an existing chat message """
         msg_widget = self._msg_map[msg_id]
         msg_widget.delete_contents()
+
+    def inform_vote_has_started(self, started_by: str) -> None:
+        """ Method that adds a widget to the screen informing that vote has started """
+        msg = f"Vote has been started by {started_by}"
+        widget = self.__create_announcement_widget(msg)
+        self.__add_widget_to_screen(widget)
+
+    def inform_vote_has_ended(self, conclusion: str) -> None:
+        """ Method that adds a widget to the screen informing that vote has ended """
+        widget = self.__create_announcement_widget(conclusion)
+        self.__add_widget_to_screen(widget)
+
+    def __create_announcement_widget(self, msg: str) -> Container:
+        """ Helper method to create a widget for the voting status """
+        widget = Static(msg, classes=self._css_class_announcement_widget)
+        return Container(widget, classes=self._css_class_announcement_container)
+
+    def __add_widget_to_screen(self, widget: ChatBubbleWidget | Widget | Container) -> None:
+        """ Helper method to add the given widget to the screen """
+        self.mount(widget)
+        self.scroll_end(animate=False)

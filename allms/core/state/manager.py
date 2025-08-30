@@ -4,7 +4,6 @@ import math
 import random
 from collections import Counter
 from pathlib import Path
-from threading import Lock
 from typing import Any, Callable, Optional
 
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
@@ -31,7 +30,7 @@ class GameStateManager:
 
         self._scenario: str = ""
         self._game_state: Optional[GameState] = None
-        self._on_new_message_lock: Lock = Lock()  # To ensure one update at a time
+        self._on_new_message_lock: asyncio.Lock = asyncio.Lock()  # To ensure one update at a time
         self._on_new_message_callback: Optional[Callable] = None
 
         self._vote_started_timestamp: Optional[int] = None
@@ -253,6 +252,9 @@ class GameStateManager:
         vote_duration_min = AppConfiguration.max_vote_duration_min
         end_ts = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
 
+        # Update the UI that a vote has started
+        self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_STARTED, started_by=started_by)
+
         self._vote_started_timestamp = curr_ts
         self._vote_will_end_on_timestamp = end_ts
         self._logger.log(f"Voting will end on {AppConfiguration.clock.milliseconds_to_iso_format(end_ts)}")
@@ -275,7 +277,8 @@ class GameStateManager:
 
         # Inform agents in their chat-logs that voting has ended, who got how many votes, who got kicked out etc.
         self.announce_to_agents(inform_msg=vote_conclusion)
-        # TODO: Update the UI with a message/toast that the vote has concluded
+        # Update the UI with a message that the vote has concluded
+        self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_ENDED, conclusion=vote_conclusion)
 
         # Reset the timestamps to None
         self._vote_started_timestamp = None
@@ -448,17 +451,20 @@ class GameStateManager:
 
             # It means someone needs to get kicked out. Is that you (hehe) ? Who knows ...
             agent_to_kick = kick_agents[0]
-            conclusion = f"Vote Concluded. {agent_to_kick} will be terminated. {did_not_vote_str}"
+            conclusion = (
+                f"Vote Concluded. {agent_to_kick} received {max_votes} out of {total_votes} votes and hence, "
+                f"will be terminated. {did_not_vote_str}"
+            )
             return agent_to_kick, conclusion
 
     async def on_new_message_received(self, msg_id: str) -> None:
         """ Method to update the message on the UI by using the callback registered """
-        with self._on_new_message_lock:
-            await self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
+        async with self._on_new_message_lock:
+            self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
 
-    async def __invoke_chat_callback(self, callback_type: ChatCallbackType, *args, **kwargs) -> None:
+    def __invoke_chat_callback(self, callback_type: ChatCallbackType, *args, **kwargs) -> None:
         """ Helper method to invoke the callback for the updating the UI of the chat """
-        await self._chat_callbacks.invoke(callback_type, *args, **kwargs)
+        asyncio.gather(self._chat_callbacks.invoke(callback_type, *args, **kwargs))
 
     def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """

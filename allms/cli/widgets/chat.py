@@ -141,7 +141,9 @@ class ChatroomWidget(Vertical):
     def __generate_callbacks(self) -> dict:
         """ Generates the callback mapping and returns it """
         callback_map = {
-            ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback
+            ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback,
+            ChatCallbackType.VOTE_HAS_STARTED: self._contents_widget.inform_vote_has_started,
+            ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended
         }
 
         return callback_map

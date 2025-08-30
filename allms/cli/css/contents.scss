@@ -8,7 +8,7 @@ ChatBubbleWidget {
     /* Actual text content within the bubble */
     & Vertical {
         height: auto;
-        min-width: 40;
+        min-width: 20;
         width: 55%;
         background: $surface 50%;
         border-title-style: bold;
@@ -17,4 +17,21 @@ ChatBubbleWidget {
     & Static {
         padding: 1;
     }
+}
+
+
+/* Chatroom announcement container hosting the widget */
+.chatroom-announcement-container {
+    height: auto;
+    align: center middle;
+    padding: 0;
+}
+
+/* Chatroom announcement widget */
+.chatroom-announcement-widget {
+    color: $foreground 50%;
+    width: 60%;
+    content-align: center middle;
+    text-align: center;
+    padding: 1;
 }

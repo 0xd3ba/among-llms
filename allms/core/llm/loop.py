@@ -31,9 +31,6 @@ class ChatLoop:
         self._agent_tasks: dict[str, asyncio.Task] = {}
         self._pause_loop: bool = False
 
-        self._vote_start_time: Optional[int] = None
-        self._vote_end_time: Optional[int] = None
-
         # Maintain a rolling chat history per agent -- includes public messages, DMs and notifications
         # Since the number of agents would be typically small (if you configure it to be a value like > 100, either
         # you're crazy or you have a supercomputer powered by god himself idk), it's okay-ish to maintain redundant
@@ -100,13 +97,6 @@ class ChatLoop:
                 if vote_started:
                     voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True, started_by=vote_started_by)
 
-                # Terminate the vote if the max. duration of the vote has passed or everyone has voted
-                # TODO: Check if everyone has voted
-                if vote_started and (curr_time_ms > self._vote_end_time):
-                    vote_started = False
-                    AppConfiguration.logger.log(f"Voting has ended due to timeout")
-                    # TODO: Gather the vote results and do whatever needs to be done
-
                 AppConfiguration.logger.log(f"Requesting response from agent ({agent_id}) ... ")
                 input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
                 model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id, input_prompt=input_prompt)
@@ -140,14 +130,12 @@ class ChatLoop:
                 vote_started, _ = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
                 if start_a_vote and (not vote_started):
                     AppConfiguration.logger.log(f"{agent_id} has requested to start a vote. Initiating the voting process ...")
-
                     await self._callbacks.invoke(StateManagerCallbackType.START_A_VOTE, started_by=agent_id)
-                    await self._callbacks.invoke(StateManagerCallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
-                    # TODO: Display UI on the screen for voting
+                    vote_started = True
 
-                    self._vote_start_time = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
-                    self._vote_end_time = AppConfiguration.clock.add_n_minutes(self._vote_start_time,
-                                                                               n_minutes=AppConfiguration.max_vote_duration_min)
+                if vote_started:
+                    await self._callbacks.invoke(StateManagerCallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
+
         except asyncio.CancelledError:
             # TODO: Handle when the task is cancelled
             AppConfiguration.logger.log(f"Agent ({agent_id}) has been stopped")
