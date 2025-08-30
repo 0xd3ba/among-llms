@@ -53,8 +53,10 @@ class GameStateManager:
         if self._config.ui_dev_mode:
             return
 
+        your_id = self.get_user_assigned_agent_id()
+        self._logger.log(f"You have been assigned as  {your_id}")
         self._chat_loop = ChatLoop(config=self._config,
-                                   your_agent_id=self.get_user_assigned_agent_id(),
+                                   your_agent_id=your_id,
                                    agents=self.get_all_agents(),
                                    scenario=self.get_scenario(),
                                    callbacks=self._self_callbacks
@@ -94,7 +96,6 @@ class GameStateManager:
     def register_on_new_message_callback(self, on_new_message: Callable) -> None:
         """ Register a callback for handling when new message arrives """
         self._on_new_message_callback = on_new_message
-        self._self_callbacks.register_callback(StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE, on_new_message)
 
     def on_new_message_received(self, msg_id: str) -> None:
         """ Method to update the message on the UI by using the callback registered """
@@ -458,6 +459,7 @@ class GameStateManager:
         """ Helper method to generate the callbacks required by the chat-loop class """
         self_callbacks = {
             StateManagerCallbackType.SEND_MESSAGE: self.send_message,
+            StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE: self.on_new_message_received,
             StateManagerCallbackType.GET_MESSAGE_WITH_ID: self.get_message,
             StateManagerCallbackType.VOTE_HAS_STARTED: self.voting_has_started,
             StateManagerCallbackType.START_A_VOTE: self.start_vote,
