@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Optional
@@ -201,9 +202,14 @@ class GameState:
 
     def vote(self, by_agent: str, for_agent: str) -> bool:
         """ Vote for a specific agent by the given agent. Returns True if agent could vote. False otherwise """
-        assert by_agent in self._remaining_agent_ids, f"{by_agent} is trying to vote but is not in the remaining agents list"
-        assert for_agent in self._remaining_agent_ids, f"{by_agent} is voting for {for_agent} who is not in the remaining agents list"
-        return self._voting.vote(by_agent, for_agent)
+        if by_agent not in self._remaining_agent_ids:
+            AppConfiguration.logger.log(f"{by_agent} is trying to vote but is not in the remaining agents list", level=logging.CRITICAL)
+            return False
+        elif for_agent not in self._remaining_agent_ids:
+            AppConfiguration.logger.log(f"{by_agent} is voting for {for_agent} who is not in the remaining agents list", level=logging.CRITICAL)
+            return False
+        else:
+            return self._voting.vote(by_agent, for_agent)
 
     def get_voted_for_who(self, by_agent: str) -> Optional[str]:
         """ Returns the ID of the agent that the given agent voted for (if any), else None """

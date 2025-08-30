@@ -247,9 +247,11 @@ class GameStateManager:
         # Need this to ensure vote ends after pre-specified amount of time
         curr_ts = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
         vote_duration_min = AppConfiguration.max_vote_duration_min
+        end_ts = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
 
         self._vote_started_timestamp = curr_ts
-        self._vote_will_end_on_timestamp = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
+        self._vote_will_end_on_timestamp = end_ts
+        AppConfiguration.logger.log(f"Voting will end on {AppConfiguration.clock.milliseconds_to_iso_format(end_ts)}")
         # TODO: Update the UI with a message / toast
 
     def can_vote(self, agent_id: str) -> bool:
@@ -263,7 +265,7 @@ class GameStateManager:
             return
 
         kick_agent_id, vote_conclusion = self.__process_vote_results(results, vote_list)
-        AppConfiguration.logger.log(f"Vote conclusion: {vote_conclusion}")
+        AppConfiguration.logger.log(f"Result: {vote_conclusion}")
         if kick_agent_id is not None:
             self.terminate_agent(kick_agent_id)
 
@@ -314,7 +316,6 @@ class GameStateManager:
         # Stop the LLM associated with this agent
         if (agent_id != your_id) and (not won):
             self.stop_llms(agent_id)
-            # TODO: Remove this agent from LLMResponseModel's allowed agent IDs list as well
             # TODO: Inform the LLMs in their logs that this was not the human
 
         # You got caught, or you won -- either ways, the game has ended
@@ -342,7 +343,11 @@ class GameStateManager:
                 curr_ts = clock.current_timestamp_in_milliseconds_utc()
                 self._game_state.update_duration(curr_ts)
 
-                # TODO: Check the voting status
+                # Check the voting status
+                if self._vote_started_timestamp is not None:
+                    if curr_ts >= self._vote_will_end_on_timestamp:
+                        AppConfiguration.logger.log(f"Ending vote due to duration timeout ...")
+                        self.end_vote()
 
         except (asyncio.CancelledError, Exception) as e:
             logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
