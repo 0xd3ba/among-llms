@@ -29,6 +29,7 @@ class ChatMessage:
     deleted: bool = False              # Set to true if the message was deleted (either by you or the LLM)
     edited_by_you: bool = False        # Set to true if it was YOU who edited the message
     deleted_by_you: bool = False       # Set to true if it was YOU who deleted the message
+    is_announcement: bool = False      # Is the message an announcement ?
 
     # Only set by the LLMs if they suspect anybody
     suspect: Optional[str] = None             # Agent ID of the current suspect while this message was sent

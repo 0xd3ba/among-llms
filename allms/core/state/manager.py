@@ -316,7 +316,13 @@ class GameStateManager:
         # Stop the LLM associated with this agent
         if (agent_id != your_id) and (not won):
             self.stop_llms(agent_id)
-            # TODO: Inform the LLMs in their logs that this was not the human
+
+            # Inform the LLMs in their logs that this was not the human
+            inform_msg = f"{agent_id} has been TERMINATED. {agent_id} was NOT the HUMAN ..."
+            self._logger.log(f"Announcing the following to all the LLMs: {inform_msg}")
+
+            msg = self.__create_new_message(msg=inform_msg, sent_by="", sent_by_you=False, is_announcement=True)
+            self._game_state.announce_to_agents(msg)
 
         # You got caught, or you won -- either ways, the game has ended
         else:
@@ -365,14 +371,23 @@ class GameStateManager:
                              reply_to_id: Optional[str] = None,
                              suspect_id: Optional[str] = None,
                              suspect_confidence: Optional[int] = None,
-                             suspect_reason: Optional[str] = None
+                             suspect_reason: Optional[str] = None,
+                             is_announcement: bool = False
                              ) -> ChatMessage:
         """ Helper method to create a message and return it """
         msg_id = self._msg_id_generator.next()
         timestamp = AppConfiguration.clock.current_timestamp_in_iso_format()
+
+        # If the message is an announcement message, overwrite the sent_by parameter
+        # Didn't think yet what would be an appropriate sent_by name or how it will be displayed in exported chats
+        # but for now, let's leave it as "System"
+        if is_announcement:
+            sent_by = "System"
+
         chat_msg = ChatMessage(id=msg_id, timestamp=timestamp, msg=msg, sent_by=sent_by, sent_by_you=sent_by_you,
                                sent_to=sent_to, thought_process=thought_process, reply_to_id=reply_to_id,
-                               suspect=suspect_id, suspect_reason=suspect_reason, suspect_confidence=suspect_confidence)
+                               suspect=suspect_id, suspect_reason=suspect_reason, suspect_confidence=suspect_confidence,
+                               is_announcement=is_announcement)
         return chat_msg
 
     def __check_game_state_validity(self) -> None:

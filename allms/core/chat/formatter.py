@@ -21,6 +21,14 @@ class ChatMessageFormatter:
         return fmt_msg
 
     @staticmethod
+    def create_announcement_message(msg: ChatMessage) -> str:
+        """ Creates an announcement message and returns it """
+        timestamp = msg.timestamp
+        contents = msg.msg
+        fmt_msg = f"[{timestamp}] SYSTEM ANNOUNCEMENT: {contents}"
+        return fmt_msg
+
+    @staticmethod
     def create_suspicion_message(msg: ChatMessage) -> str:
         """ Format a suspicion message """
         suspect = msg.suspect

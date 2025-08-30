@@ -124,12 +124,16 @@ class GameState:
             assert self.messages.exists(message.reply_to_id), f"Trying to reply to a message ID " + \
                 f"({message.reply_to_id}) which does not exist in the history"
 
-        await self.messages.add(message)
-
         # Update the list of message IDs sent by the agent
         agent_id = message.sent_by
-        assert agent_id in self._remaining_agent_ids, f"Agent({agent_id}) is trying to send a message but is not in" + \
-            f" the set of (remaining) agents: {self._remaining_agent_ids}"
+        if agent_id not in self._remaining_agent_ids:
+            AppConfiguration.logger.log(
+                f"Agent({agent_id}) is trying to send a message but is not in " +
+                f"the set of (remaining) agents: {self._remaining_agent_ids}"
+            )
+            return
+
+        await self.messages.add(message)
 
         agent_from = self.get_agent(agent_id)
         agent_from.add_message_id(message.id)
@@ -183,6 +187,20 @@ class GameState:
         await self.messages.delete(msg_id, deleted_by_you)
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
+
+    async def announce_to_agents(self, msg: ChatMessage, agent_ids: list[str] = None) -> None:
+        """ Broadcasts the given message to the given list of agents (if None, then to all the remaining agents) """
+        role = LLMRoles.system
+        if agent_ids is None:
+            agent_ids = self.get_all_remaining_agents_ids()
+
+        await self.messages.add(msg)  # Also store it in the history, so that exported chats include this announcement
+
+        AppConfiguration.logger.log(f"Announcing to {agent_ids} ... ")
+
+        fmt_msg = ChatMessageFormatter.create_announcement_message(msg=msg)
+        for agent_id in agent_ids:
+            self._all_agents[agent_id].add_to_chat_log(role=role, msg=fmt_msg)
 
     def voting_has_started(self) -> tuple[bool, Optional[str]]:
         """ Returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
