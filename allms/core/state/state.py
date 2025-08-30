@@ -168,7 +168,7 @@ class GameState:
 
     def get_messages_sent_by(self, agent_id: str, latest_first: bool = True) -> list[ChatMessage]:
         """ Fetches all the messages sent by agent ID and returns it """
-        assert agent_id in self._remaining_agent_ids, f"Trying to fetch messages by agent ID({agent_id}) which is not present"
+        assert agent_id in self._all_agents, f"Trying to fetch messages by agent ID({agent_id}) which is not present"
         agent = self._all_agents[agent_id]
         all_msg_ids = agent.get_message_ids(latest_first=latest_first)
         all_msgs = [self.messages.get(msg_id) for msg_id in all_msg_ids]

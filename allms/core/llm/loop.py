@@ -127,6 +127,7 @@ class ChatLoop:
 
                 # 2. Update the GUI
                 await self._callbacks.invoke(StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE, msg_id=msg_id)
+                await asyncio.sleep(0.1)  # Give up control for ~100ms to allow textual to render the message
 
                 # 3. Start the vote if the agent requested to start the vote
                 # Note: Vote might have started while the model was generating a response. Recheck again

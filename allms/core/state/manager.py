@@ -343,6 +343,7 @@ class GameStateManager:
         """ Method that stops the game """
         # TODO: Show game ended screen on the UI
         self._game_state.end_game(won)
+        self.__invoke_chat_callback(ChatCallbackType.TERMINATE)
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """

@@ -143,7 +143,8 @@ class ChatroomWidget(Vertical):
         callback_map = {
             ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback,
             ChatCallbackType.VOTE_HAS_STARTED: self._contents_widget.inform_vote_has_started,
-            ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended
+            ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended,
+            ChatCallbackType.TERMINATE: self.__cancel_all_bg_tasks
         }
 
         return callback_map
@@ -152,6 +153,17 @@ class ChatroomWidget(Vertical):
         """ Callback method to display the message with the given ID to the widget """
         # Note: Do not call this method directly, instead use the state manager to invoke this callback
         self._contents_widget.add_new_message(msg_id)
+
+    def __cancel_all_bg_tasks(self) -> None:
+        """ Callback method to cancel all the background tasks and disable the inputs """
+        self._chat_worker.cancel()
+        self._background_worker.cancel()
+
+        # Disable all the inputs since this is only called on game termination
+        self._send_to_list.disabled = True
+        self._input_area.disabled = True
+        self._send_as_list.disabled = True
+        self._btn_send.disabled = True
 
     @on(Input.Changed)
     def handler_user_text_message_changed(self, event: Input.Changed) -> None:
@@ -239,8 +251,8 @@ class ChatroomWidget(Vertical):
     async def action_chatroom_quit(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
         self._state_manager.stop_llms()
-        self._chat_worker.cancel()
-        self._background_worker.cancel()
+        self.__cancel_all_bg_tasks()
+        # TODO: Show confirmation screen to export chats etc.
         await self.app.pop_screen()
 
     def action_start_a_vote(self) -> None:
