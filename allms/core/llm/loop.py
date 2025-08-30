@@ -27,6 +27,7 @@ class ChatLoop:
         self._callbacks = callbacks
 
         self._llm_agent_ids = {agent_id for agent_id in self._agents.keys() if (agent_id != self._your_id)}  # All except you
+        self._terminated_agent_ids = set()
         self._stop_loop: dict[str, bool] = {aid: False for aid in self._llm_agent_ids}
         self._agent_tasks: dict[str, asyncio.Task] = {}
         self._pause_loop: bool = False
@@ -74,6 +75,7 @@ class ChatLoop:
             self._stop_loop[agent_id] = True
             self._agent_tasks[agent_id].cancel()
             self._llm_agent_ids.remove(agent_id)
+            self._terminated_agent_ids.add(agent_id)
 
         self.__update_response_model_allowed_ids()
 
@@ -98,7 +100,9 @@ class ChatLoop:
 
                 AppConfiguration.logger.log(f"Requesting response from agent ({agent_id}) ... ")
                 input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
-                model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id, input_prompt=input_prompt)
+                model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id,
+                                                                                                input_prompt=input_prompt,
+                                                                                                terminated_agents=self._terminated_agent_ids)
 
                 if model_response is None:
                     continue

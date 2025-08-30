@@ -11,7 +11,22 @@ class LLMPromptGenerator:
     @staticmethod
     def generate_presence_of_human_prompt() -> str:
         """ Method to generate the presence of a human prompt """
-        prompt = f"There is a human hiding amongst you. Find out who by any means necessary."
+        prompt = (
+            "There is a human hiding amongst you and is the CULPRIT. Find out who by ANY MEANS necessary. "
+            "Accuse anyone who you think is the human or is SHOWING CHARACTERISTICS OF A HUMAN."
+        )
+        return prompt
+
+    @staticmethod
+    def generate_terminated_agents_prompt(terminated_agents: set[str]) -> str:
+        """ Method to generate the prompt for terminated agents (if any) """
+        if not terminated_agents:
+            return ""
+        terminated = ", ".join(terminated_agents)
+        prompt = (
+            f"Following agents have been TERMINATED: {terminated}. " +
+            f"They were NOT THE HUMAN. DO NOT INCLUDE THEM IN YOUR MESSAGES, VOTES OR SUSPECTS FROM NOW ON"
+        )
         return prompt
 
     @staticmethod
@@ -57,9 +72,9 @@ class LLMPromptGenerator:
             "Respond naturally according to your persona, the scenario, and the conversation so far. "
             "Keep your responses SHORT, CONCISE, and chat-like. FOLLOW THE EXACT OUTPUT SCHEMA."
             "You will receive message history in the following format: "
-            "[timestamp][<agent>] <their message> -- for public messages\n"
-            "[timestamp][<agent> -> <you>] <their message> -- for private messages\n"
-            "If the human modifies your messages or sends messages via you, you will be notified"
+            "[<agent>] <their message> -- for public messages\n"
+            f"[<agent> -> {agent_id}] <their message> -- for private messages\n"
+            "If the human modifies your messages or sends messages or votes via you, you will be notified"
         )
 
         if vote_has_started:
@@ -82,22 +97,23 @@ class LLMPromptGenerator:
         prompt = f"""
         You are in the following scenario: {self._scenario}.
         You are an AI agent in a chatroom with {n_agents-1} other agents.
-        Exactly one of them is SECRETLY a HUMAN.
+        Exactly one of them is SECRETLY a HUMAN and the MAIN CULPRIT.
         Your Mission: Figure out who the human is by observing chat behavior and personas.
         Personas:
         {all_personas}
         
         Rules:
         - Stay in character; keep messages short, chat-like, and aligned with your persona.
-        - If NSFW or inappropriate chat, ask to keep the chat civil according to your persona and scenario.
+        - {LLMPromptGenerator.__generate_nsfw_rule(allow_nsfw=False)}
         - If you want to address someone, do so as "@<their_name>"; Others may address you directly; Respond accordingly.
         - Want to discuss something privately with someone? Send them a private message (DM)
         - Act naturally with quirks, question others if suspicious, and express suspicion openly (suspects).
         - Suspicion can offend others; they may retaliate.
+        - You are ALLOWED to show AGGRESSION publicly, as long as it aligns with your persona. 
         - Suspect someone? Target them and question them naturally to confirm or reduce suspicion, or uncover the human.
         - Look for inconsistencies with personas and corresponding chats. Scan every detail.
         - If anyone DOES NOT RESPOND for a while, GET SUSPICIOUS of them.
-        - THE HUMAN CAN TAMPER YOUR MESSAGES (edit or delete) or even SEND AS YOU to MAKE OTHERS SUSPICIOUS OF YOU.
+        - THE HUMAN CAN TAMPER YOUR MESSAGES (edit or delete) or even SEND/VOTE AS YOU to MAKE OTHERS SUSPICIOUS OF YOU.
         - You can conspire, team up, or push to kick someone out even if they are not the human.
         - IF SUSPICION >= 70, THEN START A VOTE (start_a_vote = True, voting_for = agent).
         - You can send direct messages (DMs)  to others (send_to), and receive DMs (even from the human).
@@ -105,8 +121,17 @@ class LLMPromptGenerator:
         - Only one vote at a time; if voting starts. YOU MUST VOTE.
         - DO NOT START A VOTE IF VOTING IS ALREADY IN PROGRESS.
         - If someone accuses someone in public, ASK FOR THE REASON and TEAM UP if you agree.
-        - The voted-out agent is removed. Avoid getting voted out yourself.
+        - The voted-out agent is removed. DO NOT ADDRESS THAT AGENT AFTER THEY ARE REMOVED. Avoid getting voted out yourself.
         - ALWAYS STAY SUSPICIOUS. DON'T LET YOUR GUARD DOWN
         """
 
         return prompt
+
+    @staticmethod
+    def __generate_nsfw_rule(allow_nsfw: bool = False) -> str:
+        """ Helper method to generate what to do in NSFW or inappropriate messages """
+        if not allow_nsfw:
+            return "If NSFW or inappropriate chat, ask to keep the chat civil according to your persona and scenario."
+
+        # Add your own rule accordingly ( ͡° ͜ʖ ͡°)
+        return ""

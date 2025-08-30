@@ -27,7 +27,7 @@ class LLMAgentsManager:
         self._bg_prompt = self.__get_background_prompt()
         self._op_prompt = self.__get_output_prompt()
 
-    async def generate_response(self, agent_id: str, input_prompt: str) -> LLMResponseModel | None:
+    async def generate_response(self, agent_id: str, input_prompt: str, terminated_agents: set[str]) -> LLMResponseModel | None:
         """ Generates a response by the LLM and returns it """
         tries = 0
         generated_message = ""
@@ -38,8 +38,9 @@ class LLMAgentsManager:
         bg_prompt = await self.__create_message(content=self._bg_prompt)
         op_prompt = await self.__create_message(content=self._op_prompt)
         ip_prompt = await self.__create_message(content=input_prompt)
+        term_prompt = await self.__create_message(content=self._prompt.generate_terminated_agents_prompt(terminated_agents))
         history = await self.__prepare_history(agent_id)
-        messages = [bg_prompt] + history + [ip_prompt, human_prompt, op_prompt]
+        messages = [bg_prompt] + history + [ip_prompt, human_prompt, term_prompt, op_prompt]
 
         while tries < AppConfiguration.max_model_retries:
             tries += 1
