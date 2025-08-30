@@ -23,7 +23,7 @@ class ChatMessageFormatter:
     def create_announcement_message(msg: ChatMessage) -> str:
         """ Creates an announcement message and returns it """
         contents = msg.msg
-        fmt_msg = f"SYSTEM ANNOUNCEMENT: {contents}"
+        fmt_msg = f"[IMPORTANT] {contents}"
         return fmt_msg
 
     @staticmethod

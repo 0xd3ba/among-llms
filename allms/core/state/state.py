@@ -188,11 +188,17 @@ class GameState:
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
-    async def announce_to_agents(self, msg: ChatMessage, agent_ids: list[str] = None) -> None:
-        """ Broadcasts the given message to the given list of agents (if None, then to all the remaining agents) """
-        role = LLMRoles.system
+    async def announce_to_agents(self, msg: ChatMessage) -> None:
+        """
+        Broadcasts the given message to the intended recipients (if None, broadcasts to all remaining agents)
+        Note: Use this method to only announce those messages that you want to be visible in the exported chat
+        """
+        agent_ids = msg.sent_to
+
         if agent_ids is None:
             agent_ids = self.get_all_remaining_agents_ids()
+        elif isinstance(agent_ids, str):
+            agent_ids = [agent_ids]
 
         await self.messages.add(msg)  # Also store it in the history, so that exported chats include this announcement
 
@@ -200,7 +206,7 @@ class GameState:
 
         fmt_msg = ChatMessageFormatter.create_announcement_message(msg=msg)
         for agent_id in agent_ids:
-            self._all_agents[agent_id].add_to_chat_log(role=role, msg=fmt_msg)
+            self._all_agents[agent_id].add_to_chat_log(role=LLMRoles.system, msg=fmt_msg)
 
     def voting_has_started(self) -> tuple[bool, Optional[str]]:
         """ Returns (True, agent_id_who_started_it) if voting has started. (False, None) otherwise """
