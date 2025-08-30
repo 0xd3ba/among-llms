@@ -13,7 +13,7 @@ from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenera
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
 from allms.core.llm.loop import ChatLoop
-from .callbacks import CallbackType, StateManagerCallbacks
+from .callbacks import StateManagerCallbackType, StateManagerCallbacks
 from .state import GameState
 
 
@@ -94,7 +94,7 @@ class GameStateManager:
     def register_on_new_message_callback(self, on_new_message: Callable) -> None:
         """ Register a callback for handling when new message arrives """
         self._on_new_message_callback = on_new_message
-        self._self_callbacks.register_callback(CallbackType.UPDATE_UI_ON_NEW_MESSAGE, on_new_message)
+        self._self_callbacks.register_callback(StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE, on_new_message)
 
     def on_new_message_received(self, msg_id: str) -> None:
         """ Method to update the message on the UI by using the callback registered """
@@ -454,15 +454,15 @@ class GameStateManager:
             conclusion = f"Vote Concluded. {agent_to_kick} will be terminated. {did_not_vote_str}"
             return agent_to_kick, conclusion
 
-    def __generate_callbacks(self) -> dict[CallbackType, Callable[..., Any]]:
+    def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """
         self_callbacks = {
-            CallbackType.SEND_MESSAGE: self.send_message,
-            CallbackType.GET_MESSAGE_WITH_ID: self.get_message,
-            CallbackType.VOTE_HAS_STARTED: self.voting_has_started,
-            CallbackType.START_A_VOTE: self.start_vote,
-            CallbackType.VOTE_FOR: self.vote,
-            CallbackType.END_THE_VOTE: self.end_vote
+            StateManagerCallbackType.SEND_MESSAGE: self.send_message,
+            StateManagerCallbackType.GET_MESSAGE_WITH_ID: self.get_message,
+            StateManagerCallbackType.VOTE_HAS_STARTED: self.voting_has_started,
+            StateManagerCallbackType.START_A_VOTE: self.start_vote,
+            StateManagerCallbackType.VOTE_FOR: self.vote,
+            StateManagerCallbackType.END_THE_VOTE: self.end_vote
         }
 
         return self_callbacks

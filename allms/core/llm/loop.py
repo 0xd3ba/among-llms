@@ -5,7 +5,7 @@ from typing import Iterable, Optional
 
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent
-from allms.core.state.callbacks import CallbackType, StateManagerCallbacks
+from allms.core.state.callbacks import StateManagerCallbackType, StateManagerCallbacks
 from .manager import LLMAgentsManager
 from .response import LLMResponseModel
 
@@ -96,7 +96,7 @@ class ChatLoop:
                     continue
 
                 curr_time_ms = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
-                vote_started, vote_started_by = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
+                vote_started, vote_started_by = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
                 if vote_started:
                     voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True, started_by=vote_started_by)
 
@@ -128,21 +128,21 @@ class ChatLoop:
                 voting_for: Optional[str] = model_response.voting_for
 
                 # 1. Send the message
-                msg_id = await self._callbacks.invoke(CallbackType.SEND_MESSAGE, msg=msg, sent_by=agent_id, sent_by_you=False,
+                msg_id = await self._callbacks.invoke(StateManagerCallbackType.SEND_MESSAGE, msg=msg, sent_by=agent_id, sent_by_you=False,
                                                       sent_to=send_to, thought_process=thought_process, suspect_id=suspect,
                                                       suspect_reason=suspect_reason, suspect_confidence=suspect_confidence)
 
                 # 2. Update the GUI
-                await self._callbacks.invoke(CallbackType.UPDATE_UI_ON_NEW_MESSAGE, msg_id=msg_id)
+                await self._callbacks.invoke(StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE, msg_id=msg_id)
 
                 # 3. Start the vote if the agent requested to start the vote
                 # Note: Vote might have started while the model was generating a response. Recheck again
-                vote_started, _ = await self._callbacks.invoke(CallbackType.VOTE_HAS_STARTED)
+                vote_started, _ = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
                 if start_a_vote and (not vote_started):
                     AppConfiguration.logger.log(f"{agent_id} has requested to start a vote. Initiating the voting process ...")
 
-                    await self._callbacks.invoke(CallbackType.START_A_VOTE, started_by=agent_id)
-                    await self._callbacks.invoke(CallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
+                    await self._callbacks.invoke(StateManagerCallbackType.START_A_VOTE, started_by=agent_id)
+                    await self._callbacks.invoke(StateManagerCallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
                     # TODO: Display UI on the screen for voting
 
                     self._vote_start_time = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
