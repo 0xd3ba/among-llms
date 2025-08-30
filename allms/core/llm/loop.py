@@ -61,12 +61,12 @@ class ChatLoop:
 
     def stop(self) -> None:
         """ Stops all the agents """
-        self.stop_agents(self._llm_agent_ids)
+        self.stop_agents(self._llm_agent_ids.copy())
 
     def stop_agents(self, agent_ids: str | Iterable[str] = None) -> None:
         """ Stops a given agent or a list of agents. If no agent is provided, stops every agent """
         if agent_ids is None:
-            agent_ids = self._llm_agent_ids
+            agent_ids = self._llm_agent_ids.copy()
         if isinstance(agent_ids, str):
             agent_ids = [agent_ids]
 
@@ -154,7 +154,7 @@ class ChatLoop:
 
     def __update_response_model_allowed_ids(self) -> None:
         """ Helper method to update the allowed agent IDs in the response model """
-        allowed_ids = self._llm_agent_ids
+        allowed_ids = self._llm_agent_ids.copy()
         allowed_ids.add(self._your_id)
 
         # Set the class attributes of the allowed agent-IDs in the response models
