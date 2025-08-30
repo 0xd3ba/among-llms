@@ -57,7 +57,7 @@ class AppConfiguration:
     max_lookback_messages: int = 15
 
     # Maximum duration of an active vote (in minutes)
-    max_vote_duration_min: int = 2
+    max_vote_duration_min: int = 10
 
     # Path of the resource files
     __resource_dir_root = Path(__file__).parent / "res"

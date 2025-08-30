@@ -8,6 +8,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Label, Select
 from textual.worker import Worker
 
+from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
 from allms.cli.screens.modify import ModifyMessageScreen
@@ -81,7 +82,8 @@ class ChatroomWidget(Vertical):
         self._current_send_to: str = ""
 
         # Finally, register the callback for updating the new chat messages
-        self._state_manager.register_on_new_message_callback(self.__update_chat_message_callback)
+        self._self_callbacks = ChatCallbacks(self.__generate_callbacks())
+        self._state_manager.register_chat_callbacks(self._self_callbacks)
         self._chat_worker: Optional[Worker] = None
         self._background_worker: Optional[Worker] = None
 
@@ -135,6 +137,14 @@ class ChatroomWidget(Vertical):
             if aid == your_agent_id:
                 continue
             choices_list.append(aid)
+
+    def __generate_callbacks(self) -> dict:
+        """ Generates the callback mapping and returns it """
+        callback_map = {
+            ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback
+        }
+
+        return callback_map
 
     def __update_chat_message_callback(self, msg_id: str) -> None:
         """ Callback method to display the message with the given ID to the widget """
@@ -207,7 +217,7 @@ class ChatroomWidget(Vertical):
         async def _send():
             """ Asynchronous helper method to send the message """
             msg_id = await self._state_manager.send_message(msg=current_msg, sent_by=send_as, sent_to=send_to, sent_by_you=sent_by_you)
-            self._state_manager.on_new_message_received(msg_id)
+            await self._state_manager.on_new_message_received(msg_id)
 
         asyncio.gather(_send())
         # TODO: What if the user is replying to an older message? I guess the chat-contents class should take care of this

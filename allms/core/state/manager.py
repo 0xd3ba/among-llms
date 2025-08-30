@@ -7,6 +7,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Optional
 
+from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator
@@ -36,7 +37,8 @@ class GameStateManager:
         self._vote_started_timestamp: Optional[int] = None
         self._vote_will_end_on_timestamp: Optional[int] = None
 
-        self._self_callbacks = StateManagerCallbacks(self.__generate_callbacks())
+        self._chat_callbacks: Optional[ChatCallbacks] = None
+        self._self_callbacks: StateManagerCallbacks = StateManagerCallbacks(self.__generate_callbacks())
         self._chat_loop: Optional[ChatLoop] = None
 
     async def new(self) -> None:
@@ -93,15 +95,9 @@ class GameStateManager:
         # TODO: Implement the saving logic
         raise NotImplementedError
 
-    def register_on_new_message_callback(self, on_new_message: Callable) -> None:
-        """ Register a callback for handling when new message arrives """
-        self._on_new_message_callback = on_new_message
-
-    def on_new_message_received(self, msg_id: str) -> None:
-        """ Method to update the message on the UI by using the callback registered """
-        assert self._on_new_message_callback is not None, f"Callback for updating message to UI is not registered yet"
-        with self._on_new_message_lock:
-            self._on_new_message_callback(msg_id)
+    def register_chat_callbacks(self, callbacks: ChatCallbacks) -> None:
+        """ Registers the chat callbacks """
+        self._chat_callbacks = callbacks
 
     def get_scenario(self) -> str:
         """ Returns the current scenario """
@@ -454,6 +450,15 @@ class GameStateManager:
             agent_to_kick = kick_agents[0]
             conclusion = f"Vote Concluded. {agent_to_kick} will be terminated. {did_not_vote_str}"
             return agent_to_kick, conclusion
+
+    async def on_new_message_received(self, msg_id: str) -> None:
+        """ Method to update the message on the UI by using the callback registered """
+        with self._on_new_message_lock:
+            await self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
+
+    async def __invoke_chat_callback(self, callback_type: ChatCallbackType, *args, **kwargs) -> None:
+        """ Helper method to invoke the callback for the updating the UI of the chat """
+        await self._chat_callbacks.invoke(callback_type, *args, **kwargs)
 
     def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """
