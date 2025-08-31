@@ -5,6 +5,7 @@ import tzlocal
 
 import allms.version as version
 from .utils.time import Time
+from .utils.logger import AppLogger
 
 
 class AppConfiguration:
@@ -22,10 +23,14 @@ class AppConfiguration:
     timezone: str = tzlocal.get_localzone_name()
     clock: Time = Time(timezone)
 
+    # Logging configuration
+    log_dir = "./logs"
+    logger = AppLogger(clock=clock, log_dir=log_dir)
+
     # List of AI models supported
     ai_models: list[str] = [
-        "gpt-oss-20b",
-        "gpt-oss-120b",
+        "gpt-oss:20b",
+        "gpt-oss:120b",
     ]
 
     ai_reasoning_levels: list[str] = [
@@ -34,13 +39,35 @@ class AppConfiguration:
         "high"
     ]
 
+    # Max. number of retries allowed by an agent for an invalid response
+    max_model_retries: int = 3
+
     # Minimum number of agents that should be in the game
     min_agent_count: int = 3
 
+    # Min. threshold % for a vote to be considered valid (must be a number in range (0, 1] )
+    # For example, if threshold=0.75 and n_agents_left=6, for a vote to be considered as valid, at least
+    # ceil(threshold * n_agents_left) = ceil(0.75*6) = 4 agents must have voted; else the vote is rejected
+    min_vote_valid_threshold = 0.75
+
+    # Context size for the model -- Max. no. of messages in the chat history (public messages, DMs and notifications)
+    # the model gets as context for generating a reply
+    # Note(s):
+    #   - Changing this to a larger value may reduce the performance as the models may take longer to produce replies
+    max_lookback_messages: int = 15
+
+    # Maximum duration of an active vote (in minutes)
+    max_vote_duration_min: int = 10
+
     # Path of the resource files
     __resource_dir_root = Path(__file__).parent / "res"
-    resource_persona_path = __resource_dir_root / "persona.yml"
-    resource_scenario_path = __resource_dir_root / "scenario.yml"
+    resource_scenario_dir = __resource_dir_root / "scenarios"
+    resource_names_dir = __resource_dir_root / "names"
+    resource_persona_yml = "persona.yml"
+    resource_scenario_yml = "scenario.yml"
+    resource_name_yml = "names.yml"
+
+    default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
 
 
 class StyleConfiguration:
@@ -65,19 +92,25 @@ class BindingConfiguration:
     chatroom_show_your_persona: str = "f2"
     chatroom_show_all_persona: str = "f3"
     chatroom_modify_msgs: str = "f4"
+    chatroom_start_vote: str = "f5"
     chatroom_send_message: str = "enter"
+    chatroom_quit: str = "ctrl+w"
 
     # Bindings for modify message screen
     modify_msgs_mark_unmark_delete: str = "ctrl+x"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RunTimeConfiguration:
     """ Configuration class holding constants from CLI and YAML config file """
 
     ai_model: str
+    offline_model: bool
     ai_reasoning_lvl: str
     max_agent_count: int
     default_agent_count: int
+    enable_rag: bool
+    show_thought_process: bool
+    show_suspects: bool
     ui_dev_mode: bool
     skip_intro: bool

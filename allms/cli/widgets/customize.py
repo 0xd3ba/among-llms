@@ -93,8 +93,7 @@ class CustomizeAgentsWidget(ModalScreenWidget):
 
     def action_randomize_agent_persona(self) -> None:
         """ Invoked when key binding for randomizing agent persona is pressed """
-        agent_id = self._curr_agent_id_selected
-        persona = self._state_manager.generate_persona(agent_id, self._agent_ids)
+        persona = self._state_manager.generate_persona()
         self._edited_agents_personas[self._curr_agent_id_selected] = persona
 
         self._persona_text_box.text = persona

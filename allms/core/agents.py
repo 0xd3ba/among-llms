@@ -1,7 +1,8 @@
+from collections import deque
 from dataclasses import dataclass, field
 
 from allms.config import AppConfiguration
-from .generate import PersonaGenerator
+from .generate import NameGenerator, PersonaGenerator
 
 
 @dataclass
@@ -17,6 +18,14 @@ class Agent:
     dm_msg_ids_recv: dict[str, set] = field(default_factory=dict)  # Mapping between agent ID and received msg id
     dm_msg_ids_sent: dict[str, set] = field(default_factory=dict)  # Mapping between agent ID and sent msg id
 
+    # Maintain a rolling history of chat-logs of DMs, public messages and notifications
+    # Each item is of form (role, message/message_id, is_message_id)
+    # Need to do it this way because if an agent modifies their message (edit/delete), it becomes difficult to update
+    # the state in each and every chat log -- a better way is to just store the message IDs of all chat messages
+    # and keep the notifications etc. as normal formatted messages. On every iteration, the LLM will fetch the latest
+    # contents (even if edited/deleted) instead of stale version (if stored as formatted messages instead of IDs)
+    chat_logs: deque[tuple[str, str, bool]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
+
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
         if msg_id not in self.msg_ids:
@@ -28,6 +37,15 @@ class Agent:
         if agent_id not in dm_map:
             dm_map[agent_id] = set()
         dm_map[agent_id].add(msg_id)
+
+    def add_to_chat_log(self, role: str, msg: str, is_message_id: bool = False) -> None:
+        """ Add the given message/message ID to the chat log """
+        msg_type = "message ID" if is_message_id else "message"
+        AppConfiguration.logger.log(f"Adding the following {msg_type} to chat-log for agent({self.id}): {msg}")
+        self.chat_logs.append((role, msg, is_message_id))
+
+    def get_chat_logs(self) -> list[tuple[str, str, bool]]:
+        return list(self.chat_logs)
 
     def get_message_ids(self, latest_first: bool = True) -> list[str]:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
@@ -64,33 +82,27 @@ class Agent:
 class AgentFactory:
     """ Factory class for producing agents """
     @staticmethod
-    def create(n_agents: int) -> list[Agent]:
+    def create(genre: str, n_agents: int) -> list[Agent]:
         """ Creates N agents and returns them """
         min_count = AppConfiguration.min_agent_count
         assert n_agents >= min_count, f"Expected no. of agents to be >= {min_count} but received {n_agents} instead"
 
         agents = []
-        persona_generator = PersonaGenerator()
+        persona_generator = PersonaGenerator(genre)
+        names_generator = NameGenerator()
 
-        agent_ids = [AgentFactory.create_agent_id(i) for i in range(1, n_agents+1)]
+        agent_ids = names_generator.generate(n=n_agents)
+        assert len(agent_ids) == len(set(agent_ids)), f"Got duplicates in agent IDs list: {agent_ids}. This should not happen"
 
-        for agent_id in agent_ids:
-            _ = persona_generator.generate()
-            persona = persona_generator.set_relationships(agent_id, agent_ids)
+        personas = persona_generator.generate(n=n_agents)
+
+        for agent_id, persona in zip(agent_ids, personas):
             agent = Agent(id=agent_id, persona=persona)
-
             agents.append(agent)
 
         return agents
 
     @staticmethod
-    def create_agent_id(i: int) -> str:
-        """ Given an integer, returns the current agent ID """
-        # Note: If you change this, make sure to change the comparator function below as well
-        prefix = "Agent-"
-        return f"{prefix}{i}"
-
-    @staticmethod
-    def agent_id_comparator(agent_id: str) -> int:
+    def agent_id_comparator(agent_id: str) -> str:
         """ Comparator for sorting agents to be used when sorting agent IDs """
-        return int(agent_id.split("-")[-1])
+        return agent_id

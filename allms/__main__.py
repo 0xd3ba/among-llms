@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 from argparse import ArgumentParser
 
 from allms.config import AppConfiguration, RunTimeConfiguration
@@ -34,14 +34,28 @@ def main():
     min_agent_count = AppConfiguration.min_agent_count
     default_agent_count = (min_agent_count + yml_parser.max_agent_count) // 2
     runtime_config = RunTimeConfiguration(ai_model=yml_parser.ai_model,
+                                          offline_model=yml_parser.offline_model,
                                           ai_reasoning_lvl=yml_parser.reasoning_level,
                                           max_agent_count=yml_parser.max_agent_count,
+                                          enable_rag=yml_parser.enable_rag,
+                                          show_thought_process=yml_parser.show_thought_process,
+                                          show_suspects=yml_parser.show_suspects,
                                           ui_dev_mode=yml_parser.ui_dev_mode,
                                           default_agent_count=default_agent_count,
                                           skip_intro=skip_intro)
 
+    # Preload the sentence transformer before starting the app to avoid performance issues in the UI
+    if yml_parser.enable_rag:
+        AppConfiguration.logger.log(f"RAG is currently not supported. Ignoring the setting.", level=logging.WARNING)
+        # TODO: Pre-load the sentence transformer
+
+    # Remove the handler that outputs the logs to the console as it may cause visual glitches in the UI
+    AppConfiguration.logger.remove_handler_of_console_stream()
+
     app = AmongLLMs(runtime_config)
     app.run()
+
+    AppConfiguration.logger.add_handler_of_console_stream()
 
 
 if __name__ == '__main__':

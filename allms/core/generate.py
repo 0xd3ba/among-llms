@@ -1,17 +1,19 @@
 import random
 from pathlib import Path
-from typing import Type
+from typing import Optional, Type
 
 from allms.config import AppConfiguration
-from allms.utils.parser import BaseYAMLParser, YAMLPersonaParser, YAMLScenarioParser
+from allms.utils.parser import BaseYAMLParser, YAMLNamesParser, YAMLPersonaParser, YAMLScenarioParser
 
 
 class BaseGenerator:
     """ Base class for a persona/scenario generator """
-    def __init__(self, file_path: str | Path, parser_cls: Type[BaseYAMLParser], random_seed: int = None):
-        self._file_path = file_path
+    def __init__(self, file_dir: str | Path, file: str, parser_cls: Type[BaseYAMLParser], random_seed: int = None):
+        self._file_path = Path(file_dir) / file
         self._parser = parser_cls(self._file_path)
         self._random_seed = random_seed
+
+        assert self._file_path.exists(), f"File {self._file_path.name} does not exist in {file_dir}/"
 
         self.data = self._parser.parse()
         self._parser.validate(self.data)
@@ -20,60 +22,37 @@ class BaseGenerator:
             assert isinstance(random_seed, int), f"Random seed must be a valid integer"
             random.seed(random_seed)
 
-    def generate(self) -> str:
-        """ Generate a random persona/scenario and return it """
+    def generate(self, *args, **kwargs) -> list[str]:
+        """ Generate random personas/scenarios and return them """
         raise NotImplementedError
 
     @staticmethod
-    def choose_from(choices: list[str], max_count: int = 1) -> str | list[str]:
+    def choose_from(choices: list[str], max_count: int = 1, is_random_count: bool = False) -> list[str]:
         """ Choose an item at random from the given list and return it """
-        if max_count > 1:
-            assert len(choices) >= max_count, f"Tried to sample {max_count} but list only has {len(choices)} items"
-            count = random.choice(range(1, max_count+1))
-            return random.sample(choices, count)
-
-        return random.choice(choices)
+        assert len(choices) >= max_count, f"Tried to sample {max_count} but list only has {len(choices)} items"
+        count = max_count
+        if is_random_count:
+            count = random.choice(range(2, max_count+1))
+        return random.sample(choices, count)
 
 
 class PersonaGenerator(BaseGenerator):
     """ Class for randomly generating a persona """
-    def __init__(self, max_choices: int = 4):
-        super().__init__(file_path=AppConfiguration.resource_persona_path, parser_cls=YAMLPersonaParser)
-        self._max_choices = max_choices
-        self._relationships: list[str] = []
-        self._age_range: list[str] = [str(i) for i in range(18, 101)]
-        self._persona: str = ""
+    def __init__(self, genre: str = None):
+        genre = genre if (genre is not None) else AppConfiguration.default_genre
+        file_dir = AppConfiguration.resource_scenario_dir / genre
+        super().__init__(file_dir=file_dir, file=AppConfiguration.resource_persona_yml, parser_cls=YAMLPersonaParser)
 
-    def generate(self) -> str:
-        """ Generate a random persona and returns it """
-        species = self.data[YAMLPersonaParser.key_species]
-        genders = self.data[YAMLPersonaParser.key_gender]
-        intelligence_levels = self.data[YAMLPersonaParser.key_intelligence]
-        likes = self.data[YAMLPersonaParser.key_likes]
-        dislikes = self.data[YAMLPersonaParser.key_dislikes]
-        jobs = self.data[YAMLPersonaParser.key_jobs]
-        traits = self.data[YAMLPersonaParser.key_traits]
-        personalities = self.data[YAMLPersonaParser.key_personality]
-        hobbies = self.data[YAMLPersonaParser.key_hobbies]
-        languages = self.data[YAMLPersonaParser.key_additional_languages]
-        relationships = self.data[YAMLPersonaParser.key_relationships]
+    def generate(self, n: int, max_choices: int = 4, *args, **kwargs) -> list[str]:
+        """ Generate N random personas and returns them """
 
-        agent_species = self.choose_from(species)
-        agent_gender = self.choose_from(genders)
-        agent_age = self.choose_from(self._age_range)
-        agent_intelligence = self.choose_from(intelligence_levels)
-        agent_job = self.choose_from(jobs)
+        backgrounds = self.data[YAMLPersonaParser.key_backgrounds]
+        voices = self.data[YAMLPersonaParser.key_voices]
+        characteristics = self.data[YAMLPersonaParser.key_characteristics]
 
-        # Following below can have >= 1 elements
-        agent_likes: list[str] = self.choose_from(likes, max_count=self._max_choices)
-        agent_dislikes: list[str] = self.choose_from(dislikes, max_count=self._max_choices)
-        agent_traits: list[str] = self.choose_from(traits, max_count=self._max_choices)
-        agent_personalities: list[str] = self.choose_from(personalities, max_count=self._max_choices)
-        agent_hobbies: list[str] = self.choose_from(hobbies, max_count=self._max_choices)
-        agent_languages: list[str] = ["English"] + self.choose_from(languages, max_count=self._max_choices)
-        agent_relationships: list[str] = self.choose_from(relationships, max_count=self._max_choices)
-
-        self._relationships = agent_relationships  # Save for later use
+        agent_backgrounds = self.choose_from(backgrounds, max_count=n)
+        agent_voices = self.choose_from(voices, max_count=n)
+        agent_personas = []
 
         def _join_items(_items: list[str]) -> str:
             """ Helper method to join the given items list """
@@ -81,55 +60,40 @@ class PersonaGenerator(BaseGenerator):
                 return ", ".join(_items[:-1]) + f" and {_items[-1]}"
             return _items[0]
 
-        # Create the persona -- might turn out to be extremely weird but there are people like that (>_>)
-        persona = f"A {agent_species} ({agent_age} years old) who identifies as {agent_gender} and is " + \
-                  f"{agent_intelligence}. Currently employed as {agent_job}. Likes {_join_items(agent_likes)}. " + \
-                  f"Dislikes {_join_items(agent_dislikes)}. Has the following traits -- " + \
-                  f"{_join_items(agent_traits)} and is {_join_items(agent_personalities)}. Hobbies are " + \
-                  f"{_join_items(agent_hobbies)}. Knows to read and write {_join_items(agent_languages)}."
+        for agent_bg, agent_voice in zip(agent_backgrounds, agent_voices):
+            agent_characteristics = self.choose_from(characteristics, max_choices, is_random_count=True)
+            agent_character = _join_items(agent_characteristics)
+            persona = f"{agent_bg} {agent_voice.capitalize()} {agent_character.capitalize()}."
 
-        self._persona = persona
-        return persona
+            agent_personas.append(persona)
 
-    def set_relationships(self, agent_id: str, agent_ids: list[str]) -> str:
-        """
-        Set the relationship between the agent and the rest of the agents
-        Returns the resulting persona string
-        """
-        set_agents = set(agent_ids)
-        if agent_id in set_agents:
-            set_agents.remove(agent_id)  # Ensure you don't pick yourself
-
-        agent_ids = list(set_agents)
-
-        n_relationships = len(self._relationships)
-        agent_ids_random = [self.choose_from(agent_ids) for _ in range(n_relationships)]
-
-        for rel, aid in zip(self._relationships, agent_ids_random):
-            self._persona += f" Is a {rel} of {aid}."
-
-        return self._persona
+        return agent_personas
 
 
 class ScenarioGenerator(BaseGenerator):
     """ Class for randomly generating a scenario """
-    def __init__(self):
-        super().__init__(file_path=AppConfiguration.resource_scenario_path, parser_cls=YAMLScenarioParser)
+    def __init__(self, genre: str = None):
+        genre = genre if (genre is not None) else AppConfiguration.default_genre
+        file_dir = AppConfiguration.resource_scenario_dir / genre
+        super().__init__(file_dir=file_dir, file=AppConfiguration.resource_scenario_yml, parser_cls=YAMLScenarioParser)
 
-    def generate(self) -> str:
+    def generate(self, *args, **kwargs) -> list[str]:
         """ Generate a random scenario and returns it """
-        base_settings = self.data[YAMLScenarioParser.key_base_setting]
-        backgrounds = self.data[YAMLScenarioParser.key_backgrounds]
-        actions = self.data[YAMLScenarioParser.key_actions]
-        twists = self.data[YAMLScenarioParser.key_twists]
-
-        base_setting = self.choose_from(base_settings)
-        background = self.choose_from(backgrounds)
-        action = self.choose_from(actions)
-        twist = self.choose_from(twists)
-
-        scenario_pt_1 = f"{base_setting}, {background}".capitalize()
-        scenario_pt_2 = f"{action}, {twist}".capitalize()
-        scenario = f"{scenario_pt_1}. {scenario_pt_2}."
+        scenarios: list[str] = self.data
+        scenario = self.choose_from(scenarios)
 
         return scenario
+
+
+class NameGenerator(BaseGenerator):
+    """ Class for randomly generating a name """
+    def __init__(self):
+        file_dir = AppConfiguration.resource_names_dir
+        super().__init__(file_dir=file_dir, file=AppConfiguration.resource_name_yml, parser_cls=YAMLNamesParser)
+
+    def generate(self, n: int, *args, **kwargs) -> list[str]:
+        """ Generate a list of random names and returns it """
+        names: list[str] = list(set(self.data))  # Need to ensure each name is unique
+        agent_names = self.choose_from(names, max_count=n)
+
+        return agent_names

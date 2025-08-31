@@ -14,8 +14,8 @@ class BaseYAMLParser:
 
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def parse(self, root_key: str = None) -> dict:
-        with open(self._file_path, "r") as f:
+    def parse(self, root_key: str = None) -> dict | list:
+        with open(self._file_path, "r", encoding="utf-8") as f:
             yml_data = yaml.safe_load(f)
             if root_key is not None:
                 assert root_key in yml_data, f"Provided root key({root_key}) is not valid"
@@ -41,22 +41,34 @@ class YAMLConfigFileParser(BaseYAMLParser):
     """ Parser for the user configuration file """
 
     key_ai_model: str = "model"
+    key_offline_model: str = "offlineModel"
     key_reasoning_level: str = "reasoningLevel"
     key_max_agent_count: str = "maximumAgentCount"
+    key_enable_rag: str = "enableRAG"
+    key_show_thought_process: str = "showThoughtProcess"
+    key_show_suspects: str = "showSuspects"
     key_ui_dev_mode: str = "uiDeveloperMode"
 
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         self.ai_model: str | None = None
+        self.offline_model: bool | None = None
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
+        self.enable_rag: bool | None = None
+        self.show_thought_process: bool | None = None
+        self.show_suspects: bool | None = None
         self.ui_dev_mode: bool | None = None
 
     def parse(self, root_key: str = None) -> dict:
         yml_data = super().parse()
         self.ai_model = yml_data[self.key_ai_model].lower()
+        self.offline_model = yml_data[self.key_offline_model]
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
+        self.enable_rag = yml_data[self.key_enable_rag]
+        self.show_thought_process = yml_data[self.key_show_thought_process]
+        self.show_suspects = yml_data[self.key_show_suspects]
         self.ui_dev_mode = yml_data[self.key_ui_dev_mode]
         return yml_data
 
@@ -66,6 +78,10 @@ class YAMLConfigFileParser(BaseYAMLParser):
         if self.ai_model not in AppConfiguration.ai_models:
             is_error = True
             logging.error(f"Given model({self.ai_model}) is not supported. Supported models: {AppConfiguration.ai_models}")
+
+        if not isinstance(self.offline_model, bool):
+            is_error = True
+            logging.error(f"Expected {self.key_offline_model} to be a boolean but got {self.offline_model} instead")
 
         if self.reasoning_level not in AppConfiguration.ai_reasoning_levels:
             is_error = True
@@ -85,6 +101,18 @@ class YAMLConfigFileParser(BaseYAMLParser):
             logging.error(f"Max. number of agents must be atleast >= {AppConfiguration.min_agent_count}" +
                           " but got {max_agent_count_int} instead")
 
+        if not isinstance(self.enable_rag, bool):
+            is_error = True
+            logging.error(f"enable RAG must be a boolean (True or False) but got {self.enable_rag} instead")
+
+        if not isinstance(self.show_thought_process, bool):
+            is_error = True
+            logging.error(f"show thought process must be a boolean (True or False) but got {self.show_thought_process} instead")
+
+        if not isinstance(self.show_suspects, bool):
+            is_error = True
+            logging.error(f"show suspects must be a boolean (True or False) but got {self.show_suspects} instead")
+
         if not isinstance(self.ui_dev_mode, bool):
             is_error = True
             logging.error(f"UI developer mode flag must be a boolean (True or False) but got {self.ui_dev_mode} instead")
@@ -96,18 +124,10 @@ class YAMLConfigFileParser(BaseYAMLParser):
 class YAMLPersonaParser(BaseYAMLParser):
     """ Parser for the agent persona file """
 
-    root: str = "persona"
-    key_species: str = "species"
-    key_gender: str = "gender"
-    key_intelligence: str = "intelligence-level"
-    key_likes: str = "likes"
-    key_dislikes: str = "dislikes"
-    key_jobs: str = "jobs"
-    key_traits: str = "traits"
-    key_personality: str = "personality"
-    key_hobbies: str = "hobbies"
-    key_additional_languages: str = "additional-languages"
-    key_relationships: str = "relationships"
+    root: str = "personas"
+    key_backgrounds: str = "backgrounds"
+    key_characteristics: str = "characteristics"
+    key_voices: str = "voices"
 
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
@@ -129,12 +149,18 @@ class YAMLPersonaParser(BaseYAMLParser):
 class YAMLScenarioParser(YAMLPersonaParser):
     """ Parser for the scenario file """
 
-    root: str = "scenario"
-    key_base_setting: str = "base-setting"
-    key_backgrounds: str = "backgrounds"
-    key_actions: str = "actions"
-    key_twists: str = "twists"
+    root: str = "scenarios"
 
     def __init__(self, file_path: str | Path):
         super().__init__(file_path)
         # Since it shares same functionality with Persona parser, just inherit it
+
+
+class YAMLNamesParser(YAMLScenarioParser):
+    """ Parser for the names file """
+
+    root: str = "names"
+
+    def __init__(self, file_path: str | Path):
+        super().__init__(file_path)
+        # Since it shares same functionality with Scenario parser, just inherit it

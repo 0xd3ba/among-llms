@@ -103,3 +103,38 @@ ModifyMessageScreen {
         align: center middle;
     }
 }
+
+
+/* Voting widget */
+VotingWidget {
+
+    /* The widget hosting the radio buttons */
+    & #voting-radio-container {
+        height: 1fr;
+        min-height: 10;
+
+        & _RadioSetComponent {
+            height: 100%;
+            padding: 1;
+            border: none;
+
+            &:focus {
+                border: none;
+            }
+        }
+    }
+
+    /* The informative text for voting */
+    & #voting-info-container {
+        align: center middle;
+
+        & Static {
+            content-align: center middle;
+        }
+    }
+
+    /* Container hosting the confirm/cancel buttons */
+    & #voting-buttons {
+        align: center middle;
+    }
+}

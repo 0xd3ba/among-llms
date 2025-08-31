@@ -3,9 +3,13 @@
 
 # The OpenAI model to use
 # Supported models:
-#   - gpt-oss-20b
-#   - gpt-oss-120b
-model: gpt-oss-20b
+#   - gpt-oss:20b
+#   - gpt-oss:120b
+model: gpt-oss:20b
+
+# Offline model or online ?
+# If online model (set the value to False), you will need to set the API key accordingly
+offlineModel: True
 
 # The reasoning level of the selected model
 # Supported values:
@@ -20,8 +24,26 @@ reasoningLevel: medium
 # **WARNING**: Setting this to a large value may cause severe performance issues. Adjust accordingly (only if needed)
 maximumAgentCount: 10
 
+# Enable/Disable Retrieval-Augmented Generation
+# Set to False if causing performance issues
+# Allowed values: True / False
+# Note: This value is currently ignored as this functionality has not been implemented yet
+enableRAG: False
+
+# Show thought process behind the messages or not
+# Set this to True if you want the agents to show their reasoning behind their messages
+# Set it to False if you want a challenge
+showThoughtProcess: True
+
+# Show current suspects of each agent
+# Set this to True if you want to know who each agent suspects and
+# by how much (on a scale of 0-100) they believe that agent is a human
+# Set it to False if you want a challenge
+showSuspects: True
+
+
 ################# DEVELOPERS ONLY #################
 # Set the below to True if you want to debug the UI
 # without starting the LLM, i.e. updating/testing
 # the UI layout. Otherwise, set to False
-uiDeveloperMode: True
+uiDeveloperMode: False

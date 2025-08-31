@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable, Optional, Type
 
 from textual import on
@@ -6,7 +7,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Label, TextArea, Select, Button, OptionList
 
-from allms.config import BindingConfiguration, RunTimeConfiguration
+from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfiguration
 from allms.core.agents import AgentFactory
 from allms.core.chat import ChatMessage
 from allms.core.state import GameStateManager
@@ -78,15 +79,22 @@ class ModifyMessageWidget(ModalScreenWidget):
         elif btn_pressed_id == self._id_btn_confirm:
             # Edit the widgets on the screen to reflect the edited messages
             # Note: First need to update the messages state before invoking the callback
+            async def _modify_message(state_callback: Type[Callable], ui_callback: Type[Callable], mid: str, *args, **kwargs):
+                """ Asynchronous helper method to modify the state and UI for edit/delete messages """
+                await state_callback(mid, *args, **kwargs)
+                await ui_callback(mid)
+
+            edit_coroutines = []
             for (msg_id, msg_contents) in self._edited_msgs_map.items():
                 assert msg_id not in self._delete_msgs_set, f"Trying to edit a message({msg_id} that has been " + \
                     f"marked for deletion -- This should not happen."
-                self._state_manager.edit_message(msg_id, msg_contents, edited_by_you=True)
-                self._chat_msg_edit_callback(msg_id)
+                edit_coroutines.append(_modify_message(self._state_manager.edit_message, self._chat_msg_edit_callback, msg_id, msg_contents, edited_by_you=True))
 
-            for msg_id in self._delete_msgs_set:
-                self._state_manager.delete_message(msg_id, deleted_by_you=True)
-                self._chat_msg_delete_callback(msg_id)
+            # Now delete the messages in the delete set
+            delete_coroutines = [_modify_message(self._state_manager.delete_message, self._chat_msg_delete_callback, mid, deleted_by_you=True)
+                                 for mid in self._delete_msgs_set]
+
+            asyncio.gather(*edit_coroutines, *delete_coroutines)
 
         else:
             # Should not arrive at this branch or else there is a bug
