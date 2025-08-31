@@ -46,8 +46,10 @@ class ChatroomWidget(Vertical):
         self._is_disabled = is_disabled
         self._your_agent_id = self._state_manager.get_user_assigned_agent_id()
 
+        self._prefix_send_to = "->"
+        self._prefix_send_as = ""
         self._id_send_to_all = "All"
-        self._id_send_as_you = "You"
+        self._id_send_as_you = f"{self._your_agent_id} (You)"
 
         self._contents_widget = ChatroomContentsWidget(self._config, self._state_manager, display_you_as=self._id_send_as_you)
         self._is_typing_widget = ChatroomIsTyping()
@@ -62,11 +64,10 @@ class ChatroomWidget(Vertical):
 
         # Populate the send-to and send-as selection lists
         # Note: We assume the first item to be the default, so ensure it is set to the correct value
-
         self._choices_send_to = []
         self._choices_send_as = []
-        self.__add_agents_to_selection_list(self._choices_send_to, first_item=self._id_send_to_all)
-        self.__add_agents_to_selection_list(self._choices_send_as, first_item=self._id_send_as_you)
+        self.__add_agents_to_selection_list(self._choices_send_to, first_item=self._id_send_to_all, prefix=self._prefix_send_to)
+        self.__add_agents_to_selection_list(self._choices_send_as, first_item=self._id_send_as_you, prefix=self._prefix_send_as)
 
         self._send_to_list = self.__create_choices(self._choices_send_to, widget_id=self._id_send_to_list, tooltip=choices_send_to_tooltip)
         self._send_as_list = self.__create_choices(self._choices_send_as, widget_id=self._id_send_as_list, tooltip=choices_send_as_tooltip)
@@ -106,15 +107,14 @@ class ChatroomWidget(Vertical):
         if not self._is_disabled:
             self._input_area.focus()
 
-    def __create_choices(self, choices: list[str], widget_id: str = "", tooltip: str = "") -> Select:
+    def __create_choices(self, choices: list[tuple[str, str]], widget_id: str = "", tooltip: str = "") -> Select:
         """ Helper method to create a choices list and return it """
         assert len(choices) > 0, f"Expected number of choices for widget-id({widget_id}) in {self.__class__} " + \
                                  "to be > 0 but received an empty list"
 
-        choices_fmt = [(c, c) for c in choices]
-        default_choice = choices[0]
+        default_choice = choices[0][1]
 
-        widget = Select(options=choices_fmt, allow_blank=False, value=default_choice, tooltip=tooltip)
+        widget = Select(options=choices, allow_blank=False, value=default_choice, tooltip=tooltip)
         if widget_id:
             widget.id = widget_id
 
@@ -126,17 +126,17 @@ class ChatroomWidget(Vertical):
         screen_title = f"You are {your_agent_id}"
         self.app.push_screen(YourAgentAssignmentScreen(screen_title, self._config, self._state_manager))
 
-    def __add_agents_to_selection_list(self, choices_list: list[str], first_item: str) -> None:
+    def __add_agents_to_selection_list(self, choices_list: list[tuple[str, str]], first_item: str, prefix: str) -> None:
         """ Helper method to add agent selection choices to the given list """
         choices_list.clear()  # Need to do this to ensure when an agent is kicked out, it is reflected in the choices
         agent_ids = self._state_manager.get_all_remaining_agents_ids()
         your_agent_id = self._state_manager.get_user_assigned_agent_id()
 
-        choices_list.append(first_item)
-        for aid in agent_ids:
+        for aid in [first_item] + agent_ids:
             if aid == your_agent_id:
                 continue
-            choices_list.append(aid)
+            item = (f"{prefix} {aid}", aid)
+            choices_list.append(item)
 
     def __generate_callbacks(self) -> dict:
         """ Generates the callback mapping and returns it """
@@ -144,7 +144,8 @@ class ChatroomWidget(Vertical):
             ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback,
             ChatCallbackType.VOTE_HAS_STARTED: self._contents_widget.inform_vote_has_started,
             ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended,
-            ChatCallbackType.TERMINATE: self.__cancel_all_bg_tasks
+            ChatCallbackType.UPDATE_AGENTS_LIST: self.__update_agents_list,
+            ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks
         }
 
         return callback_map
@@ -164,6 +165,14 @@ class ChatroomWidget(Vertical):
         self._input_area.disabled = True
         self._send_as_list.disabled = True
         self._btn_send.disabled = True
+
+    def __update_agents_list(self) -> None:
+        """ Callback method to update the remaining agents from the lists """
+        self.__add_agents_to_selection_list(self._choices_send_to, first_item=self._id_send_to_all, prefix=self._prefix_send_to)
+        self.__add_agents_to_selection_list(self._choices_send_as, first_item=self._id_send_as_you, prefix=self._prefix_send_as)
+
+        self._send_to_list.set_options(self._choices_send_to)
+        self._send_as_list.set_options(self._choices_send_as)
 
     @on(Input.Changed)
     def handler_user_text_message_changed(self, event: Input.Changed) -> None:

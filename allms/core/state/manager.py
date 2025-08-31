@@ -332,7 +332,8 @@ class GameStateManager:
             self._logger.log(f"Announcing the following to all the LLMs: {inform_msg}")
             self.announce_to_agents(inform_msg=inform_msg)
 
-            # TODO: Update the selection list in the UI to not include this agent
+            # Update the selection list in the UI to not include this agent
+            self.__invoke_chat_callback(ChatCallbackType.UPDATE_AGENTS_LIST)
 
         # You got caught, or you won -- either ways, the game has ended
         else:
@@ -343,7 +344,7 @@ class GameStateManager:
         """ Method that stops the game """
         # TODO: Show game ended screen on the UI
         self._game_state.end_game(won)
-        self.__invoke_chat_callback(ChatCallbackType.TERMINATE)
+        self.__invoke_chat_callback(ChatCallbackType.TERMINATE_ALL_TASKS)
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """

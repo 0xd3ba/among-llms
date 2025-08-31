@@ -9,7 +9,8 @@ class ChatCallbackType(BaseCallbackType):
     NEW_MESSAGE_RECEIVED: str = "new_message_received"
     VOTE_HAS_STARTED: str = "vote_has_started"
     VOTE_HAS_ENDED: str = "vote_has_ended"
-    TERMINATE: str = "terminate"
+    UPDATE_AGENTS_LIST: str = "update_agents_list"
+    TERMINATE_ALL_TASKS: str = "terminate_all_tasks"
 
 
 class ChatCallbacks(BaseCallbacks):
