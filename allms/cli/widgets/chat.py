@@ -166,6 +166,8 @@ class ChatroomWidget(Vertical):
         self._send_as_list.disabled = True
         self._btn_send.disabled = True
 
+        self._contents_widget.focus()
+
     def __update_agents_list(self) -> None:
         """ Callback method to update the remaining agents from the lists """
         self.__add_agents_to_selection_list(self._choices_send_to, first_item=self._id_send_to_all, prefix=self._prefix_send_to)
