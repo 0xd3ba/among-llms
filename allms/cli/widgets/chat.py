@@ -12,6 +12,7 @@ from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
 from allms.cli.screens.ended import GameEndedScreen
+from allms.cli.screens.exit import ChatExitScreen
 from allms.cli.screens.modify import ModifyMessageScreen
 from allms.cli.screens.scenario import ChatScenarioScreen
 from allms.cli.screens.vote import VotingScreen
@@ -149,6 +150,7 @@ class ChatroomWidget(Vertical):
             ChatCallbackType.UPDATE_AGENTS_LIST: self.__update_agents_list,
             ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks,
             ChatCallbackType.GAME_HAS_ENDED: self.__game_has_officially_ended,
+            ChatCallbackType.CLOSE_CHATROOM: self.__close_chatroom
         }
 
         return callback_map
@@ -187,6 +189,11 @@ class ChatroomWidget(Vertical):
 
         self._send_to_list.set_options(self._choices_send_to)
         self._send_as_list.set_options(self._choices_send_as)
+
+    def __close_chatroom(self) -> None:
+        """ Callback method to close the chatroom """
+        self.__cancel_all_bg_tasks()
+        self.app.pop_screen()
 
     @on(Input.Changed)
     def handler_user_text_message_changed(self, event: Input.Changed) -> None:
@@ -277,10 +284,10 @@ class ChatroomWidget(Vertical):
 
     async def action_chatroom_quit(self) -> None:
         """ Invoked when key binding for quitting the chatroom is pressed """
-        self._state_manager.stop_llms()
-        self.__cancel_all_bg_tasks()
-        # TODO: Show confirmation screen to export chats etc.
-        await self.app.pop_screen()
+        title = "Exit Chatroom ?"
+        screen = ChatExitScreen(title=title, config=self._config, state_manager=self._state_manager,
+                                widget_params=dict(callbacks=self._self_callbacks))
+        await self.app.push_screen(screen)
 
     def action_start_a_vote(self) -> None:
         """ Invoked when key binding for starting a vote is pressed """
