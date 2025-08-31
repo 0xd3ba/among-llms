@@ -266,6 +266,7 @@ class ChatroomWidget(Vertical):
     def action_modify_msgs(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
         if self._game_ended:
+            # TODO: Display a toast that messages can't be modified since the game has ended
             return
 
         screen_title = "Modify Messages"
@@ -284,6 +285,7 @@ class ChatroomWidget(Vertical):
     def action_start_a_vote(self) -> None:
         """ Invoked when key binding for starting a vote is pressed """
         if self._game_ended:
+            # TODO: Display a toast that vote cannot be started since the game has ended
             return
 
         voting_in_progress, _ = self._state_manager.voting_has_started()
