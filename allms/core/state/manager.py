@@ -102,6 +102,10 @@ class GameStateManager:
         """ Returns the current scenario """
         return self._scenario
 
+    def get_game_won(self) -> bool:
+        """ Returns if the game has been won """
+        return self._game_state.get_game_won()
+
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
         genre = self.get_genre()
@@ -272,13 +276,14 @@ class GameStateManager:
 
         kick_agent_id, vote_conclusion = self.__process_vote_results(results, vote_list)
         self._logger.log(f"Result: {vote_conclusion}")
-        if kick_agent_id is not None:
-            self.terminate_agent(kick_agent_id)
 
         # Inform agents in their chat-logs that voting has ended, who got how many votes, who got kicked out etc.
         self.announce_to_agents(inform_msg=vote_conclusion)
         # Update the UI with a message that the vote has concluded
         self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_ENDED, conclusion=vote_conclusion)
+
+        if kick_agent_id is not None:
+            self.terminate_agent(kick_agent_id)
 
         # Reset the timestamps to None
         self._vote_started_timestamp = None
@@ -345,6 +350,7 @@ class GameStateManager:
         # TODO: Show game ended screen on the UI
         self._game_state.end_game(won)
         self.__invoke_chat_callback(ChatCallbackType.TERMINATE_ALL_TASKS)
+        self.__invoke_chat_callback(ChatCallbackType.GAME_HAS_ENDED, won)
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """

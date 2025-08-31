@@ -18,7 +18,8 @@ class AmongLLMs(App):
         ROOT_CSS_PATH / "main.scss",
         ROOT_CSS_PATH / "new.scss",
         ROOT_CSS_PATH / "chat.scss",
-        ROOT_CSS_PATH / "contents.scss"
+        ROOT_CSS_PATH / "contents.scss",
+        ROOT_CSS_PATH / "ended.scss"
     ]
 
     BINDINGS = [

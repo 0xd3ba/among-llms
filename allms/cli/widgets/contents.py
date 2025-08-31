@@ -173,6 +173,12 @@ class ChatroomContentsWidget(VerticalScroll):
         widget = self.__create_announcement_widget(conclusion)
         self.__add_widget_to_screen(widget)
 
+    def inform_game_has_ended(self, conclusion: str) -> None:
+        """ Method that adds a widget to the screen informing that the game has ended """
+        msg = f"-- The game has ended. {conclusion.capitalize()} --"
+        widget = self.__create_announcement_widget(msg)
+        self.__add_widget_to_screen(widget)
+
     def __create_announcement_widget(self, msg: str) -> Container:
         """ Helper method to create a widget for the voting status """
         widget = Static(msg, classes=self._css_class_announcement_widget)
