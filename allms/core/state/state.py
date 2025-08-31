@@ -51,6 +51,10 @@ class GameState:
         """ Returns the currently set genre """
         return self.genre
 
+    def get_game_won(self) -> bool:
+        """ Returns True if the game was won, False otherwise """
+        return self.game_won
+
     def update_genre(self, genre: str) -> None:
         """ Updates the currently set genre with new genre """
         self.genre = genre

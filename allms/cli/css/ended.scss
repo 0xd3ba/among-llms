@@ -1,0 +1,27 @@
+/* Screen hosting the game ended widget */
+/* Override the defaults */
+GameEndedScreen {
+    & .modal-container {
+        max-height: 30%;
+        border-title-color: $primary;
+        border: round $primary;
+        border-title-style: bold;
+    }
+}
+
+
+/* Main widget of the game ended screen */
+GameEndedWidget {
+
+    /* The container of the game ended text */
+    & #game-ended-container {
+        align: center middle;
+        height: 100%;
+
+        & Static {
+            padding: 1;
+            content-align: center middle;
+            text-align: center;
+        }
+    }
+}

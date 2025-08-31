@@ -11,6 +11,7 @@ from textual.worker import Worker
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.cli.screens.assignment import YourAgentAssignmentScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
+from allms.cli.screens.ended import GameEndedScreen
 from allms.cli.screens.modify import ModifyMessageScreen
 from allms.cli.screens.scenario import ChatScenarioScreen
 from allms.cli.screens.vote import VotingScreen
@@ -45,6 +46,7 @@ class ChatroomWidget(Vertical):
         self._state_manager = state_manager
         self._is_disabled = is_disabled
         self._your_agent_id = self._state_manager.get_user_assigned_agent_id()
+        self._game_ended = False
 
         self._prefix_send_to = "->"
         self._prefix_send_as = ""
@@ -145,7 +147,8 @@ class ChatroomWidget(Vertical):
             ChatCallbackType.VOTE_HAS_STARTED: self._contents_widget.inform_vote_has_started,
             ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended,
             ChatCallbackType.UPDATE_AGENTS_LIST: self.__update_agents_list,
-            ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks
+            ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks,
+            ChatCallbackType.GAME_HAS_ENDED: self.__game_has_officially_ended,
         }
 
         return callback_map
@@ -159,6 +162,7 @@ class ChatroomWidget(Vertical):
         """ Callback method to cancel all the background tasks and disable the inputs """
         self._chat_worker.cancel()
         self._background_worker.cancel()
+        self._game_ended = True
 
         # Disable all the inputs since this is only called on game termination
         self._send_to_list.disabled = True
@@ -167,6 +171,14 @@ class ChatroomWidget(Vertical):
         self._btn_send.disabled = True
 
         self._contents_widget.focus()
+
+    def __game_has_officially_ended(self, won: bool) -> None:
+        """ Callback method to display the game ended screen """
+        self._game_ended = True
+        conclusion = "You have Won!" if won else "You Have Been Terminated!"
+        screen = GameEndedScreen(title=conclusion, config=self._config, state_manager=self._state_manager)
+        self.app.push_screen(screen)
+        self._contents_widget.inform_game_has_ended(conclusion=conclusion)
 
     def __update_agents_list(self) -> None:
         """ Callback method to update the remaining agents from the lists """
@@ -205,7 +217,7 @@ class ChatroomWidget(Vertical):
             raise RuntimeError(f"What button with id={btn_id} did you click in the screen")
 
     def action_view_scenario(self) -> None:
-        """ """
+        """ Invoked when key binding for viewing the scenario is pressed """
         screen_title = "Scenario"
         screen = ChatScenarioScreen(screen_title, self._config, self._state_manager)
         self.app.push_screen(screen)
@@ -253,6 +265,9 @@ class ChatroomWidget(Vertical):
 
     def action_modify_msgs(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
+        if self._game_ended:
+            return
+
         screen_title = "Modify Messages"
         screen = ModifyMessageScreen(screen_title, self._config, self._state_manager,
                                      widget_params=dict(chat_msg_edit_callback=self._contents_widget.edit_message,
@@ -260,7 +275,7 @@ class ChatroomWidget(Vertical):
         self.app.push_screen(screen)
 
     async def action_chatroom_quit(self) -> None:
-        """ Invoked when key binding for modifying messages is pressed """
+        """ Invoked when key binding for quitting the chatroom is pressed """
         self._state_manager.stop_llms()
         self.__cancel_all_bg_tasks()
         # TODO: Show confirmation screen to export chats etc.
@@ -268,6 +283,9 @@ class ChatroomWidget(Vertical):
 
     def action_start_a_vote(self) -> None:
         """ Invoked when key binding for starting a vote is pressed """
+        if self._game_ended:
+            return
+
         voting_in_progress, _ = self._state_manager.voting_has_started()
         screen_title = "Voting in Progress" if voting_in_progress else "Start a Vote"
         screen = VotingScreen(screen_title, self._config, self._state_manager)
