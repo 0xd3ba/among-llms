@@ -33,3 +33,17 @@ ChatExitWidget {
         align: center middle;
     }
 }
+
+
+/* Chat widget for loading/saving the game state */
+SaveGameStateWidget {
+
+    & #load-save-directory-tree {
+        height: 1fr;
+    }
+
+    /* Container hosting the buttons */
+    & #load-save-buttons-container{
+        align: center middle;
+    }
+}

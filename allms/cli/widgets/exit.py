@@ -10,6 +10,7 @@ from textual.widgets import Button, Label, Static
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.config import BindingConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
+from allms.cli.screens.save import SaveGameStateScreen
 from .modal import ModalScreenWidget
 
 
@@ -33,7 +34,7 @@ class ChatExitWidget(ModalScreenWidget):
             "You’re about to logout ... don’t let the bots CTRL your fate!",
             "Quick! Save before the AI does a hard reset on your progress!",
             "Exit without saving? The bots will have a field day!",
-            "Save or vanish… choose wisely, agent human!",
+            "Save or vanish ... choose wisely, agent human!",
             "Don’t let the AI byte your unsaved progress!",
             "Save & escape or leave it for the bots to parse?"
         ]
@@ -52,19 +53,27 @@ class ChatExitWidget(ModalScreenWidget):
             yield self._wrap_inside_container(end_widget, Horizontal, cid="exit-chat-container")
         yield self._wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="exit-chat-buttons-container")
 
-        confirm_btn.focus()
+        cancel_btn.focus()
 
     @on(Button.Pressed)
     def button_pressed(self, event: Button.Pressed) -> None:
         btn_id = event.button.id
         if btn_id == self._id_btn_exit_no_save:
-            pass  # Nothing
+            self.__close_chat()
+
+        # Push the save game state screen
         elif btn_id == self._id_btn_save_and_exit:
-            pass  # TODO: Launch the export screen
+            screen = SaveGameStateScreen(title="Save", config=self._config, state_manager=self._state_manager,
+                                         widget_params=dict(on_confirm_callback=self.__close_chat))
+            self.app.push_screen(screen)
+
         else:
             # Should not come to this branch or else there is a bug
             raise RuntimeError(f"What button with id={btn_id} did you click in the exit screen")
 
         # In either case, we need to pop the screen, then invoke the callback
+
+    def __close_chat(self) -> None:
+        """ Callback invoked to close the chat """
         self.app.pop_screen()
         asyncio.gather(self._callbacks.invoke(ChatCallbackType.CLOSE_CHATROOM))

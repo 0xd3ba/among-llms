@@ -23,10 +23,6 @@ class AppConfiguration:
     timezone: str = tzlocal.get_localzone_name()
     clock: Time = Time(timezone)
 
-    # Logging configuration
-    log_dir = "./logs"
-    logger = AppLogger(clock=clock, log_dir=log_dir)
-
     # List of AI models supported
     ai_models: list[str] = [
         "gpt-oss:20b",
@@ -38,6 +34,8 @@ class AppConfiguration:
         "medium",
         "high"
     ]
+
+    default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
 
     # Max. number of retries allowed by an agent for an invalid response
     max_model_retries: int = 3
@@ -59,15 +57,24 @@ class AppConfiguration:
     # Maximum duration of an active vote (in minutes)
     max_vote_duration_min: int = 10
 
-    # Path of the resource files
-    __resource_dir_root = Path(__file__).parent / "res"
+    # Path of the resource directories and other files
+    __parent_dir: Path = Path(__file__).parent
+    __resource_dir_root: Path = __parent_dir / "res"
+    __data_dir_root: Path = __parent_dir.parent / "data"
+
+    # Resource configuration
     resource_scenario_dir = __resource_dir_root / "scenarios"
     resource_names_dir = __resource_dir_root / "names"
     resource_persona_yml = "persona.yml"
     resource_scenario_yml = "scenario.yml"
     resource_name_yml = "names.yml"
 
-    default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
+    # Logging configuration
+    log_dir = __data_dir_root / "logs"
+    logger = AppLogger(clock=clock, log_dir=log_dir)
+
+    # Save configuration
+    save_dir: Path = __data_dir_root / "saves"
 
 
 class StyleConfiguration:

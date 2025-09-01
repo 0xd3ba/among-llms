@@ -282,12 +282,12 @@ class ChatroomWidget(Vertical):
                                                         chat_msg_delete_callback=self._contents_widget.delete_message))
         self.app.push_screen(screen)
 
-    async def action_chatroom_quit(self) -> None:
+    def action_chatroom_quit(self) -> None:
         """ Invoked when key binding for quitting the chatroom is pressed """
         title = "Exit Chatroom ?"
         screen = ChatExitScreen(title=title, config=self._config, state_manager=self._state_manager,
                                 widget_params=dict(callbacks=self._self_callbacks))
-        await self.app.push_screen(screen)
+        self.app.push_screen(screen)
 
     def action_start_a_vote(self) -> None:
         """ Invoked when key binding for starting a vote is pressed """
