@@ -31,6 +31,18 @@ TextArea {
     }
 }
 
+/* Global configuration for Input area */
+Input {
+    border: none;
+    padding: 1 2 1 2;
+    margin: 0 1 0 1;
+    background: $foreground 5%;
+
+    &:focus-within {
+        background: $foreground 10%;
+    }
+}
+
 /* Global configuration for modal screens */
 ModalScreen {
 

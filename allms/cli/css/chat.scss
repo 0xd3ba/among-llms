@@ -34,14 +34,6 @@ ChatroomWidget {
         /* Text-area */
         & Input {
             width: 1fr;
-            border: none;
-            padding: 1 2 1 2;
-            margin: 0 1 0 1;
-            background: $foreground 5%;
-
-            &:focus-within {
-                background: $foreground 10%;
-            }
         }
 
         /* Message send button */
