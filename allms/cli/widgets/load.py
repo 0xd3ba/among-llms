@@ -11,41 +11,36 @@ from allms.core.state import GameStateManager
 from .modal import ModalScreenWidget
 
 
-class SaveGameStateWidget(ModalScreenWidget):
-    """ Class for saving/loading a game state """
+class LoadGameStateWidget(ModalScreenWidget):
+    """ Class for loading a game state """
 
     def __init__(self,
                  title: str,
                  config: RunTimeConfiguration,
                  state_manager: GameStateManager,
-                 is_save: bool = True,
                  *args, on_confirm_callback: Callable, **kwargs):
         super().__init__(title, config, state_manager, *args, **kwargs)
         self._path = Path(config.save_directory)
-        self._is_save = is_save  # is_save = False assumes we are re-using this for loading a game state
         self._on_confirm_callback = on_confirm_callback
         self._input = Input(disabled=True)
         self._dir_explorer = DirectoryTree(path=self._path)
 
         self._id_btn_load = "load-game-state-btn"
-        self._id_btn_save = "save-game-state-btn"
-        self._id_btn_cancel = "cancel-game-state-load-save-btn"
+        self._id_btn_cancel = "cancel-game-state-load-btn"
 
     def compose(self) -> ComposeResult:
-        input_title = "Directory Path" if self._is_save else "File Path"
+        input_title = "Game-State Path"
         with VerticalScroll():
-            yield self._wrap_inside_container(self._input, Horizontal, border_title=input_title, cid="load-save-input-container")
-            yield self._wrap_inside_container(self._dir_explorer, Horizontal, use_border=True, cid="load-save-directory-tree")
+            yield self._wrap_inside_container(self._input, Horizontal, border_title=input_title, cid="load-input-container")
+            yield self._wrap_inside_container(self._dir_explorer, Horizontal, use_border=True, cid="load-directory-tree")
 
-        btn_confirm_name = "Save" if self._is_save else "Load"
-        btn_confirm_id = self._id_btn_save if self._is_save else self._id_btn_load
         confirm_btn, cancel_btn = self._create_confirm_cancel_buttons(
-            confirm_btn_id=btn_confirm_id,
+            confirm_btn_id=self._id_btn_load,
             cancel_btn_id=self._id_btn_cancel,
-            confirm_btn_text=btn_confirm_name
+            confirm_btn_text="Load"
         )
 
-        yield self._wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="load-save-buttons-container")
+        yield self._wrap_inside_container([cancel_btn, Label(" "), confirm_btn], Horizontal, cid="load-buttons-container")
         self._dir_explorer.focus()
 
     def watch_path(self, path: str | None) -> None:

@@ -1,5 +1,5 @@
 from allms.config import RunTimeConfiguration
-from allms.cli.widgets.save import SaveGameStateWidget
+from allms.cli.widgets.load import SaveGameStateWidget
 from allms.core.state import GameStateManager
 from .modal import BaseModalScreen
 

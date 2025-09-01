@@ -139,3 +139,17 @@ VotingWidget {
         align: center middle;
     }
 }
+
+
+/* Chat widget for loading the game state */
+LoadGameStateWidget {
+
+    & #load-directory-tree {
+        height: 1fr;
+    }
+
+    /* Container hosting the buttons */
+    & #load-buttons-container{
+        align: center middle;
+    }
+}
