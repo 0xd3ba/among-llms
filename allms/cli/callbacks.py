@@ -11,6 +11,7 @@ class ChatCallbackType(BaseCallbackType):
     VOTE_HAS_ENDED: str = "vote_has_ended"
     UPDATE_AGENTS_LIST: str = "update_agents_list"
     TERMINATE_ALL_TASKS: str = "terminate_all_tasks"
+    CLOSE_CHATROOM: str = "close_chat"
     GAME_HAS_ENDED: str = "game_has_ended"
 
 

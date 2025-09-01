@@ -24,10 +24,21 @@ class ModalScreenWidget(Vertical):
         self.add_class(StyleConfiguration.class_modal_container)
 
     @staticmethod
-    def _create_confirm_cancel_buttons(confirm_btn_id: str, cancel_btn_id: str) -> tuple[Button, Button]:
+    def _create_confirm_cancel_buttons(confirm_btn_id: str,
+                                       cancel_btn_id: str,
+                                       confirm_btn_text: str = "Confirm",
+                                       cancel_btn_text: str = "Cancel"
+                                       ) -> tuple[Button, Button]:
         """ Helper method to create confirm and cancel buttons """
-        confirm_btn = Button("Confirm", variant="success", id=confirm_btn_id, compact=True)
-        cancel_btn = Button("Cancel", variant="error", id=cancel_btn_id, compact=True)
+        confirm_btn = Button(confirm_btn_text, variant="success", id=confirm_btn_id, compact=True)
+        cancel_btn = Button(cancel_btn_text, variant="error", id=cancel_btn_id, compact=True)
+
+        # Set the width to be the same
+        max_len = max(len(t) for t in [confirm_btn_text, cancel_btn_text])
+        padding = 4
+        confirm_btn.styles.width = max_len + padding
+        cancel_btn.styles.width = max_len + padding
+
         return confirm_btn, cancel_btn
 
     @staticmethod

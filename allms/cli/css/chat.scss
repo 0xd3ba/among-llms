@@ -1,3 +1,12 @@
+/* Scenario and your persona screen configuration */
+ChatScenarioScreen, YourAgentAssignmentScreen {
+    & .modal-container {
+        max-height: 40%;
+        height: 20;
+    }
+}
+
+/* Main chatroom widget */
 ChatroomWidget {
 
     padding: 1 2 1 2;
@@ -25,14 +34,6 @@ ChatroomWidget {
         /* Text-area */
         & Input {
             width: 1fr;
-            border: none;
-            padding: 1 2 1 2;
-            margin: 0 1 0 1;
-            background: $foreground 5%;
-
-            &:focus-within {
-                background: $foreground 10%;
-            }
         }
 
         /* Message send button */
@@ -135,6 +136,20 @@ VotingWidget {
 
     /* Container hosting the confirm/cancel buttons */
     & #voting-buttons {
+        align: center middle;
+    }
+}
+
+
+/* Chat widget for loading the game state */
+LoadGameStateWidget {
+
+    & #load-directory-tree {
+        height: 1fr;
+    }
+
+    /* Container hosting the buttons */
+    & #load-buttons-container{
         align: center middle;
     }
 }
