@@ -5,6 +5,41 @@ class ChatMessageFormatter:
     """ Class to format a given message into human-readable strings """
 
     @staticmethod
+    def format_for_export(msg: ChatMessage, your_id: str) -> str:
+        """ Formats the message for export """
+        # Format:
+        # [sender] [to [receiver]]
+        # <message contents>
+        # (intent)
+        # <suspect info>
+        sender = msg.sent_by.upper()
+        receiver = msg.sent_to
+        contents = msg.msg.strip()
+        intent = msg.thought_process
+        sent_by_you = msg.sent_by_you
+        suspect_id = msg.suspect
+        suspect_confidence = msg.suspect_confidence
+        suspect_reason = msg.suspect_reason
+
+        your_msg = (msg.sent_by == your_id)
+        sender_fmt = f"{sender}/hacked" if (sent_by_you and not your_msg) else sender
+        intent_fmt = f"({intent})" if intent else ""
+        suspect_fmt = "" if suspect_id is None else (
+            f"Suspect:    {suspect_id.upper()}\n"
+            f"Confidence: {suspect_confidence}\n"
+            f"Reason:     {suspect_reason}\n"
+        )
+
+        fmt_msg = (
+            f"[{sender_fmt}]" + ("" if (receiver is None) else f" (to {receiver.upper()})"),
+            f"{contents}",
+            f"{intent_fmt}",
+            f"{suspect_fmt}",
+        )
+
+        return "\n".join(fmt_msg)
+
+    @staticmethod
     def format_to_string(msg: ChatMessage) -> str:
         """ Format a normal chat message """
         # Format:

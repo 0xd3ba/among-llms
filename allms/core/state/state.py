@@ -179,6 +179,10 @@ class GameState:
 
         return all_msgs
 
+    def get_all_messages(self) -> list[ChatMessage]:
+        """ Fetches all the chat messages stored in the history and returns them """
+        return self.messages.get_all()
+
     async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
         await self.messages.edit(msg_id, msg_contents, edited_by_you)

@@ -11,7 +11,7 @@ from typing import Any, Callable, Optional
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator
+from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator, ChatMessageFormatter
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
 from allms.core.llm.loop import ChatLoop
@@ -61,6 +61,7 @@ class GameStateManager:
         """ Saves the game state to persistent storage and returns the path of stored location """
         # Will be saved inside root_dir/timestamp/*
         save_file_game_state = "game_state.json"
+        save_file_chat_msgs = "chat.txt"
         clock = AppConfiguration.clock
         logger = AppConfiguration.logger
 
@@ -83,7 +84,16 @@ class GameStateManager:
             f.write(json_string)
 
         # TODO: Need to save the message ID generator class
-        # TODO: Export the chat logs in human-readable format
+
+        # Export the chat logs in human-readable format
+        messages = self.__export_chat()
+        n_messages = len(messages)
+
+        with open(save_dir/save_file_chat_msgs, "w", encoding="utf-8") as f:
+            for i, msg in enumerate(messages):
+                f.write(msg)
+                f.write("\n" if (i != n_messages-1) else "")
+
         return save_dir
 
     def start_llms(self) -> None:
@@ -500,6 +510,17 @@ class GameStateManager:
     def __invoke_chat_callback(self, callback_type: ChatCallbackType, *args, **kwargs) -> None:
         """ Helper method to invoke the callback for the updating the UI of the chat """
         asyncio.gather(self._chat_callbacks.invoke(callback_type, *args, **kwargs))
+
+    def __export_chat(self) -> list[str]:
+        """ Returns a list of formatted message strings of the chat log """
+        messages: list[ChatMessage] = self._game_state.get_all_messages()
+        your_id = self.get_user_assigned_agent_id()
+        fmt_msgs = [ChatMessageFormatter.format_for_export(msg, your_id=your_id) for msg in messages]
+
+        scenario = f"[SCENARIO]\n{self.get_scenario()}\n"
+        you = f"You are [{your_id.upper()}]\n"
+
+        return [scenario, you] + fmt_msgs
 
     def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """
