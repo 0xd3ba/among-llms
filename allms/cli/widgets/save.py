@@ -21,11 +21,11 @@ class SaveGameStateWidget(ModalScreenWidget):
                  is_save: bool = True,
                  *args, on_confirm_callback: Callable, **kwargs):
         super().__init__(title, config, state_manager, *args, **kwargs)
-        self._path = AppConfiguration.save_dir.resolve()
+        self._path = Path(config.save_directory)
         self._is_save = is_save  # is_save = False assumes we are re-using this for loading a game state
         self._on_confirm_callback = on_confirm_callback
         self._input = Input(disabled=True)
-        self._dir_explorer = DirectoryTree(path="./")  # TODO: Show from root but select the current path
+        self._dir_explorer = DirectoryTree(path=self._path)
 
         self._id_btn_load = "load-game-state-btn"
         self._id_btn_save = "save-game-state-btn"

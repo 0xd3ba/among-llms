@@ -16,6 +16,7 @@ offlineModel: True
 #   - low
 #   - medium
 #   - high
+# Note: Currently this value is not used (ignored)
 reasoningLevel: medium
 
 # Maximum number of agents (including you)
@@ -40,6 +41,13 @@ showThoughtProcess: True
 # by how much (on a scale of 0-100) they believe that agent is a human
 # Set it to False if you want a challenge
 showSuspects: True
+
+# Save directory
+# Set this to the directory where you would want to save/export the game-state/messages
+# The app will export to this directory for saves and will give you the option to load
+# game states from this directory dynamically
+# Note: The directories will be created if they don't exist
+saveDirectory: "./data/saves"
 
 
 ################# DEVELOPERS ONLY #################

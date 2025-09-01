@@ -47,6 +47,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
     key_enable_rag: str = "enableRAG"
     key_show_thought_process: str = "showThoughtProcess"
     key_show_suspects: str = "showSuspects"
+    key_save_directory: str = "saveDirectory"
     key_ui_dev_mode: str = "uiDeveloperMode"
 
     def __init__(self, file_path: str | Path):
@@ -58,6 +59,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
         self.enable_rag: bool | None = None
         self.show_thought_process: bool | None = None
         self.show_suspects: bool | None = None
+        self.save_directory: str | None = None
         self.ui_dev_mode: bool | None = None
 
     def parse(self, root_key: str = None) -> dict:
@@ -69,6 +71,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
         self.enable_rag = yml_data[self.key_enable_rag]
         self.show_thought_process = yml_data[self.key_show_thought_process]
         self.show_suspects = yml_data[self.key_show_suspects]
+        self.save_directory = yml_data[self.key_save_directory]
         self.ui_dev_mode = yml_data[self.key_ui_dev_mode]
         return yml_data
 
@@ -116,6 +119,20 @@ class YAMLConfigFileParser(BaseYAMLParser):
         if not isinstance(self.ui_dev_mode, bool):
             is_error = True
             logging.error(f"UI developer mode flag must be a boolean (True or False) but got {self.ui_dev_mode} instead")
+
+        # Validate the paths
+        paths = [self.save_directory]
+        for path_x in paths:
+            path = Path(path_x)
+            try:
+                if not path.exists():
+                    path.mkdir(parents=True, exist_ok=True)
+                elif not path.is_dir():
+                    is_error = True
+                    logging.error(f"Expecting path={path_x} to be a directory")
+            except Exception as e:
+                is_error = True
+                logging.error(f"There was an exception while validating path={path_x}: {e}")
 
         if is_error:
             raise RuntimeError(f"Invalid configuration received")

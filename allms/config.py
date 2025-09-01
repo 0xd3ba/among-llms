@@ -73,9 +73,6 @@ class AppConfiguration:
     log_dir = __data_dir_root / "logs"
     logger = AppLogger(clock=clock, log_dir=log_dir)
 
-    # Save configuration
-    save_dir: Path = __data_dir_root / "saves"
-
 
 class StyleConfiguration:
     """ Class holding constants for styling purposes """
@@ -119,5 +116,6 @@ class RunTimeConfiguration:
     enable_rag: bool
     show_thought_process: bool
     show_suspects: bool
+    save_directory: str
     ui_dev_mode: bool
     skip_intro: bool

@@ -41,6 +41,7 @@ def main():
                                           show_thought_process=yml_parser.show_thought_process,
                                           show_suspects=yml_parser.show_suspects,
                                           ui_dev_mode=yml_parser.ui_dev_mode,
+                                          save_directory=yml_parser.save_directory,
                                           default_agent_count=default_agent_count,
                                           skip_intro=skip_intro)
 
