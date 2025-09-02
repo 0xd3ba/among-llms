@@ -53,10 +53,17 @@ class GameStateManager:
 
         await self._game_state.messages.initialize()
 
-    def load(self, file_path: str | Path) -> None:
+    def load(self, file_path: str | Path, reset: bool = False) -> None:
         """ Loads the game state from the given path """
-        # TODO: Implement the loading logic
-        raise NotImplementedError
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        try:
+            game_state = self.__load_and_validate_game_state(file_path, reset)
+            self._game_state = game_state
+            # TODO: Invoke the callback to load the chatroom
+        except (json.JSONDecodeError, Exception) as err:
+            raise err
 
     def save(self) -> Optional[Path]:
         """ Saves the game state to persistent storage and returns the path of stored location """
@@ -521,6 +528,19 @@ class GameStateManager:
         you = f"You are [{your_id.upper()}]\n"
 
         return [scenario, you] + fmt_msgs
+
+    @staticmethod
+    def __load_and_validate_game_state(file_path: Path, reset: bool) -> GameState:
+        """ Helper method to load and validate the game state """
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                state = json.load(f)
+                game_state: GameState = SavingUtils.properly_deserialize_json(cls=GameState, data=state)
+                if reset:
+                    game_state.reset()
+                return game_state
+            except (json.JSONDecodeError, Exception) as err:
+                raise err  # Invalid JSON file or invalid params to the game state
 
     def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """

@@ -1,5 +1,4 @@
-import asyncio
-from collections import deque, OrderedDict
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
 from allms.config import AppConfiguration
@@ -59,6 +58,10 @@ class ChatMessageHistory:
     def exists(self, msg_id: str) -> bool:
         """ Returns True if the message exists in the history, else False """
         return self.__has_message(msg_id)
+
+    def reset(self) -> None:
+        """ Clears the history log """
+        self._history_all.clear()
 
     def __has_message(self, msg_id: str) -> bool:
         """ Helper method to check if a message exists in the history. Return True if exists """

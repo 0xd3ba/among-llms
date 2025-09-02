@@ -1,7 +1,8 @@
+from __future__ import annotations
 import logging
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 from allms.config import AppConfiguration
 from allms.core.agents import Agent, AgentFactory
@@ -46,6 +47,24 @@ class GameState:
             assert agent_id not in self._all_agents, f"Agent ID({agent_id}) already exists in the map"
 
             self._all_agents[agent_id] = agent
+            self._remaining_agent_ids.add(agent_id)
+
+    def reset(self) -> None:
+        """ Resets the game state to the beginning (everything except the scenario and agent IDs and personas) """
+        self.start_time = 0
+        self.elapsed_duration = 0
+        self.game_paused = True
+        self.game_ended = False
+        self.game_won = False
+        self.messages.reset()
+        self.events.reset()
+        self._remaining_agent_ids.clear()
+        self._voting.reset()
+        self._id_generator = ChatMessageIDGenerator()
+
+        for agent_id in self._all_agents:
+            agent = self._all_agents[agent_id]
+            agent.reset()
             self._remaining_agent_ids.add(agent_id)
 
     def get_genre(self) -> str:
