@@ -4,6 +4,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Footer, Static
 
 from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.cli.screens.load import LoadGameStateScreen
 from allms.cli.screens.new import NewChatScreen
 from allms.cli.widgets.banner import BannerWidget
 from allms.cli.widgets.home import MainMenuOptionListWidget
@@ -37,7 +38,16 @@ class MainScreen(Screen):
         await self.app.push_screen(NewChatScreen(option_item, self._config, self._state_manager))
 
     async def handler_load_chatroom(self, option_item: str) -> None:
-        raise NotImplementedError
+        await self.app.push_screen(
+            LoadGameStateScreen(
+                option_item, self._config, self._state_manager,
+                widget_params=dict(on_confirm_callback=self.__load_chatroom)
+            )
+        )
 
     async def handler_quit(self, option_item: str) -> None:
         self.app.exit()
+
+    def __load_chatroom(self) -> None:
+        """ Callback method invoked when load is successful """
+        raise RuntimeError("Not Implemented yet!")
