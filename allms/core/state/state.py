@@ -5,7 +5,7 @@ from typing import Optional
 
 from allms.config import AppConfiguration
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat import ChatMessage, ChatMessageFormatter, ChatMessageHistory
+from allms.core.chat import ChatMessage, ChatMessageFormatter, ChatMessageHistory, ChatMessageIDGenerator
 from allms.core.llm.roles import LLMRoles
 from allms.core.log import GameEventLogs
 from allms.core.vote import AgentVoting
@@ -29,6 +29,7 @@ class GameState:
     _all_agents: dict[str, Agent] = field(default_factory=dict)               # Mapping between agent ID and agent object
     _remaining_agent_ids: set[str] = field(default_factory=set)               # Set of all the remaining agent IDs in the game
     _voting: AgentVoting = field(default_factory=AgentVoting)                 # For handling voting
+    _id_generator: ChatMessageIDGenerator = field(default_factory=ChatMessageIDGenerator)
 
     def initialize_scenario(self, scenario: str) -> None:
         """ Initializes the game scenario """
@@ -120,6 +121,9 @@ class GameState:
         assert isinstance(curr_timestamp_ms, int) and curr_timestamp_ms > 0, f"Expecting timestamp to be a positive integer"
         assert curr_timestamp_ms >= self.start_time, f"Current timestamp ({curr_timestamp_ms}) < start timestamp ({self.start_time})"
         self.elapsed_duration = curr_timestamp_ms - self.start_time
+
+    def generate_message_id(self) -> str:
+        return self._id_generator.next()
 
     async def add_message(self, message: ChatMessage) -> None:
         """ Adds the given message to the message history log """

@@ -6,12 +6,13 @@ import random
 from collections import Counter
 from dataclasses import asdict
 from pathlib import Path
+from threading import Lock
 from typing import Any, Callable, Optional
 
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
 from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
-from allms.core.chat import ChatMessage, ChatMessageHistory, ChatMessageIDGenerator, ChatMessageFormatter
+from allms.core.chat import ChatMessage, ChatMessageFormatter
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
 from allms.core.log import GameEventLogs
 from allms.core.llm.loop import ChatLoop
@@ -26,14 +27,14 @@ class GameStateManager:
     def __init__(self, config: RunTimeConfiguration):
         self._config = config
         self._logger = AppConfiguration.logger
-        self._msg_id_generator = ChatMessageIDGenerator()
         self._valid_genres = self.get_available_genres()
         self._scenario_generator = ScenarioGenerator()
         self._persona_generator = PersonaGenerator()
 
         self._scenario: str = ""
         self._game_state: Optional[GameState] = None
-        self._on_new_message_lock: asyncio.Lock = asyncio.Lock()  # To ensure one update at a time
+        self._on_new_message_lock: asyncio.Lock = asyncio.Lock()    # To ensure one update at a time
+        self._msg_id_generator_lock: Lock = Lock()
         self._on_new_message_callback: Optional[Callable] = None
 
         self._vote_started_timestamp: Optional[int] = None
@@ -82,8 +83,6 @@ class GameStateManager:
             game_state = SavingUtils.properly_serialize_json(game_state)
             json_string = json.dumps(game_state, indent=4)
             f.write(json_string)
-
-        # TODO: Need to save the message ID generator class
 
         # Export the chat logs in human-readable format
         messages = self.__export_chat()
@@ -430,7 +429,8 @@ class GameStateManager:
                              is_announcement: bool = False
                              ) -> ChatMessage:
         """ Helper method to create a message and return it """
-        msg_id = self._msg_id_generator.next()
+        with self._msg_id_generator_lock:
+            msg_id = self._game_state.generate_message_id()
         timestamp = AppConfiguration.clock.current_timestamp_in_iso_format()
 
         # If the message is an announcement message, overwrite the sent_by parameter
