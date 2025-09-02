@@ -91,7 +91,7 @@ class GameStateManager:
         with open(save_dir/save_file_chat_msgs, "w", encoding="utf-8") as f:
             for i, msg in enumerate(messages):
                 f.write(msg)
-                f.write("\n" if (i != n_messages-1) else "")
+                f.write("\n\n" if (i != n_messages-1) else "\n")
 
         return save_dir
 

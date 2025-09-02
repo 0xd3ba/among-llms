@@ -30,12 +30,15 @@ class ChatMessageFormatter:
             f"Reason:     {suspect_reason}\n"
         )
 
-        fmt_msg = (
-            f"[{sender_fmt}]" + ("" if (receiver is None) else f" (to {receiver.upper()})"),
+        fmt_msg = [
+            f"[{sender_fmt}]" + ("" if (receiver is None) else f" -> [{receiver.upper()}]"),
             f"{contents}",
-            f"{intent_fmt}",
-            f"{suspect_fmt}",
-        )
+        ]
+
+        if intent_fmt:
+            fmt_msg.append(intent_fmt)
+        if suspect_fmt:
+            fmt_msg.append(suspect_fmt)
 
         return "\n".join(fmt_msg)
 
