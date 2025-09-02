@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Callable, Iterable
 
@@ -7,15 +8,26 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.widgets import Button, Label, DirectoryTree, Static
 
-from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.config import AppConfiguration, RunTimeConfiguration, ToastConfiguration
 from allms.core.state import GameStateManager
 from .modal import ModalScreenWidget
 
 
-class _JSONDirectoryTree(DirectoryTree):
+class _FilterDirectoryTree(DirectoryTree):
     """ Directory tree to only show JSON files """
+
+    def __init__(self, path: str | Path, allow_file_types: list[str] = None):
+        super().__init__(path)
+        self._allow_file_types = allow_file_types
+
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
-        return [path for path in paths if path.is_dir() or path.suffix == ".json"]
+        def _filter_condition(path: Path) -> bool:
+            """ Helper method for filtering files """
+            if self._allow_file_types:
+                return path.suffix.strip(".").lower() in self._allow_file_types
+            return True
+
+        return [path for path in paths if path.is_dir() or _filter_condition(path)]
 
 
 class LoadGameStateWidget(ModalScreenWidget):
@@ -30,7 +42,9 @@ class LoadGameStateWidget(ModalScreenWidget):
         self._path = Path(config.save_directory).resolve()
         self._on_confirm_callback = on_confirm_callback
         self._path_widget = Static()
-        self._dir_explorer = _JSONDirectoryTree(path=self._path)
+
+        self._game_state_file_types = ["json"]  # Ensure every type is in lower-case
+        self._dir_explorer = _FilterDirectoryTree(path=self._path, allow_file_types=self._game_state_file_types)
 
         self._id_btn_load = "load-game-state-btn"
         self._id_btn_cancel = "cancel-game-state-load-btn"
@@ -76,9 +90,32 @@ class LoadGameStateWidget(ModalScreenWidget):
         if btn_id == self._id_btn_cancel:
             self.app.pop_screen()
 
-        elif btn_id in [self._id_btn_load, self._id_btn_load]:
-            self.app.pop_screen()
-            self._on_confirm_callback()
+        elif btn_id == self._id_btn_load:
+            if self._path.is_dir():
+                self.notify(
+                    title="Invalid File Selected",
+                    message=f"A directory is not a valid save file",
+                    severity=ToastConfiguration.type_error, timeout=ToastConfiguration.timeout
+                )
+
+            else:
+                # Check if the game state is valid by deserializing it
+                file_name = self._path.name
+                try:
+                    self._on_confirm_callback(self._path)
+                    self.app.pop_screen()
+                except Exception as err:
+                    AppConfiguration.logger.log(
+                        f"Error occurred while trying to parse the save file '{str(self._path)}: {err}'",
+                        level=logging.ERROR
+                    )
+
+                    self.notify(
+                        title="Something Went Wrong",
+                        message=f"Either [b]{file_name}[/] is not a valid game state file or something went wrong."
+                                f"Please check the logs for the exact error",
+                        severity=ToastConfiguration.type_error, timeout=ToastConfiguration.timeout
+                    )
 
         else:
             raise RuntimeError(f"Invalid button press with id={btn_id} detected on save/load game-state screen")

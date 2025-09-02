@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.containers import Vertical, VerticalScroll
@@ -48,6 +50,8 @@ class MainScreen(Screen):
     async def handler_quit(self, option_item: str) -> None:
         self.app.exit()
 
-    def __load_chatroom(self) -> None:
+    def __load_chatroom(self, state_path: Path) -> None:
         """ Callback method invoked when load is successful """
-        raise RuntimeError("Not Implemented yet!")
+        self._state_manager.load(file_path=state_path)
+        # TODO: If no error, we can start the chatroom screen
+

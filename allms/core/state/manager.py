@@ -14,7 +14,6 @@ from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageFormatter
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
-from allms.core.log import GameEventLogs
 from allms.core.llm.loop import ChatLoop
 from allms.utils.save import SavingUtils
 from .callbacks import StateManagerCallbackType, StateManagerCallbacks
