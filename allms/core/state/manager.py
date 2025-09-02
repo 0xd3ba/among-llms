@@ -257,6 +257,10 @@ class GameStateManager:
         self.__check_game_state_validity()
         return self._game_state.get_message(msg_id)
 
+    def get_all_messages(self, ids_only: bool = False) -> list[ChatMessage] | list[str]:
+        """ Returns a list of chat messages or list of chat message IDs """
+        return self._game_state.get_all_messages(ids_only=ids_only)
+
     def get_messages_sent_by(self, agent_id: str) -> list[ChatMessage]:
         """ Returns the list of messages sent by the specified agent id """
         self.__check_game_state_validity()

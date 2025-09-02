@@ -137,12 +137,33 @@ class ChatroomContentsWidget(VerticalScroll):
         # Mapping between a message ID, and it's corresponding chat-bubble widget
         self._msg_map: dict[str, ChatBubbleWidget] = {}
 
-    def compose(self) -> ComposeResult:
-        return []  # TODO: Implement this to include initial widgets to the screen
+    def on_mount(self) -> None:
+        # Add the messages and announcements if there are any (in the case of load chatroom)
+        msgs: list[ChatMessage] = self._state_manager.get_all_messages()
+        for msg in msgs:
+            if not msg.is_announcement:
+                self.add_new_message(msg)
+            else:
+                # TODO: Add announcement messages to history for seamless addition
+                pass
 
-    def add_new_message(self, msg_id: str) -> None:
+    def compose(self) -> ComposeResult:
+        widgets = []
+        agents = self._state_manager.get_all_agents()
+        for agent in agents:
+            if agent == self._your_agent_id:
+                agent = self._display_you_as
+            widget = self.__create_announcement_widget(msg=f"{agent} has been added to the chat")
+            widgets.append(widget)
+
+        return widgets
+
+    def add_new_message(self, msg: str | ChatMessage) -> None:
         """ Method to add a new chat message to the widget """
-        msg = self._state_manager.get_message(msg_id)
+        if isinstance(msg, str):
+            msg = self._state_manager.get_message(msg)
+
+        msg_id = msg.id
         your_msg = (msg.sent_by == self._your_agent_id)
         sent_by = msg.sent_by
         if your_msg:  # If sending as yourself, update the display name to reflect it

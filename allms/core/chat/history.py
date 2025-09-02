@@ -50,9 +50,9 @@ class ChatMessageHistory:
         assert self.__has_message(msg_id), f"Can't fetch as ID({msg_id}) doesn't exist in the history"
         return self._history_all[msg_id]
 
-    def get_all(self) -> list[ChatMessage]:
+    def get_all(self, ids_only: bool = False) -> list[ChatMessage] | list[str]:
         """ Returns all the chat messages from the history """
-        messages = [self._history_all[msg_id] for msg_id in self._history_all]
+        messages = [msg_id if ids_only else self._history_all[msg_id] for msg_id in self._history_all]
         return messages
 
     def exists(self, msg_id: str) -> bool:
