@@ -47,7 +47,7 @@ class ChatroomWidget(Vertical):
         self._state_manager = state_manager
         self._is_disabled = is_disabled
         self._your_agent_id = self._state_manager.get_user_assigned_agent_id()
-        self._game_ended = False
+        self._game_ended = self._state_manager.get_game_ended()
 
         self._prefix_send_to = "->"
         self._prefix_send_as = ""
@@ -109,6 +109,8 @@ class ChatroomWidget(Vertical):
 
         if not self._is_disabled:
             self._input_area.focus()
+        else:
+            self._contents_widget.focus()
 
     def __create_choices(self, choices: list[tuple[str, str]], widget_id: str = "", tooltip: str = "") -> Select:
         """ Helper method to create a choices list and return it """

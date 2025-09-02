@@ -30,7 +30,6 @@ class GameStateManager:
         self._scenario_generator = ScenarioGenerator()
         self._persona_generator = PersonaGenerator()
 
-        self._scenario: str = ""
         self._game_state: Optional[GameState] = None
         self._on_new_message_lock: asyncio.Lock = asyncio.Lock()    # To ensure one update at a time
         self._msg_id_generator_lock: Lock = Lock()
@@ -142,11 +141,15 @@ class GameStateManager:
 
     def get_scenario(self) -> str:
         """ Returns the current scenario """
-        return self._scenario
+        return self._game_state.get_scenario()
 
     def get_game_won(self) -> bool:
         """ Returns if the game has been won """
         return self._game_state.get_game_won()
+
+    def get_game_ended(self) -> bool:
+        """ Returns True if the game has ended """
+        return self._game_state.get_game_ended()
 
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
@@ -227,7 +230,6 @@ class GameStateManager:
     def update_scenario(self, scenario: str) -> None:
         """ Updates the scenario with the given scenario """
         self.__check_game_state_validity()
-        self._scenario = scenario
         self._logger.log(f"Updating scenario to '{scenario}' ...")
         self._game_state.initialize_scenario(scenario)
 

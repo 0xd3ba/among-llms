@@ -103,7 +103,6 @@ class LoadGameStateWidget(ModalScreenWidget):
                 file_name = self._path.name
                 try:
                     self._on_confirm_callback(self._path)
-                    self.app.pop_screen()
                 except Exception as err:
                     AppConfiguration.logger.log(
                         f"Error occurred while trying to parse the save file '{str(self._path)}: {err}'",

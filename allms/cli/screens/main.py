@@ -6,6 +6,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Footer, Static
 
 from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.cli.screens.chat import ChatroomScreen
 from allms.cli.screens.load import LoadGameStateScreen
 from allms.cli.screens.new import NewChatScreen
 from allms.cli.widgets.banner import BannerWidget
@@ -53,5 +54,10 @@ class MainScreen(Screen):
     def __load_chatroom(self, state_path: Path) -> None:
         """ Callback method invoked when load is successful """
         self._state_manager.load(file_path=state_path)
-        # TODO: If no error, we can start the chatroom screen
+        # If no error, we can start the chatroom screen
+        self.app.pop_screen()  # Close the loading screen
 
+        AppConfiguration.logger.log(f"Parsing game-state successful. Loading chatroom ...")
+        is_disabled = self._state_manager.get_game_ended()
+        screen = ChatroomScreen(config=self._config, state_manager=self._state_manager, is_disabled=is_disabled)
+        self.app.push_screen(screen)
