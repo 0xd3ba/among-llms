@@ -147,9 +147,8 @@ class ChatroomWidget(Vertical):
         """ Generates the callback mapping and returns it """
         callback_map = {
             ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback,
-            ChatCallbackType.VOTE_HAS_STARTED: self._contents_widget.inform_vote_has_started,
-            ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended,
             ChatCallbackType.UPDATE_AGENTS_LIST: self.__update_agents_list,
+            ChatCallbackType.ANNOUNCE_EVENT: self.__event_occurred,
             ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks,
             ChatCallbackType.GAME_HAS_ENDED: self.__game_has_officially_ended,
             ChatCallbackType.CLOSE_CHATROOM: self.__close_chatroom
@@ -161,6 +160,10 @@ class ChatroomWidget(Vertical):
         """ Callback method to display the message with the given ID to the widget """
         # Note: Do not call this method directly, instead use the state manager to invoke this callback
         self._contents_widget.add_new_message(msg_id)
+
+    def __event_occurred(self, event: str) -> None:
+        """ Callback method to display the event on the screen """
+        self._contents_widget.announce_event(event)
 
     def __cancel_all_bg_tasks(self) -> None:
         """ Callback method to cancel all the background tasks and disable the inputs """
@@ -176,13 +179,11 @@ class ChatroomWidget(Vertical):
 
         self._contents_widget.focus()
 
-    def __game_has_officially_ended(self, won: bool) -> None:
+    def __game_has_officially_ended(self, conclusion: str) -> None:
         """ Callback method to display the game ended screen """
         self._game_ended = True
-        conclusion = "You have Won!" if won else "You Have Been Terminated!"
         screen = GameEndedScreen(title=conclusion, config=self._config, state_manager=self._state_manager)
         self.app.push_screen(screen)
-        self._contents_widget.inform_game_has_ended(conclusion=conclusion)
 
     def __update_agents_list(self) -> None:
         """ Callback method to update the remaining agents from the lists """

@@ -144,19 +144,7 @@ class ChatroomContentsWidget(VerticalScroll):
             if not msg.is_announcement:
                 self.add_new_message(msg)
             else:
-                # TODO: Add announcement messages to history for seamless addition
-                pass
-
-    def compose(self) -> ComposeResult:
-        widgets = []
-        agents = self._state_manager.get_all_agents()
-        for agent in agents:
-            if agent == self._your_agent_id:
-                agent = self._display_you_as
-            widget = self.__create_announcement_widget(msg=f"{agent} has been added to the chat")
-            widgets.append(widget)
-
-        return widgets
+                self.announce_event(msg.msg)
 
     def add_new_message(self, msg: str | ChatMessage) -> None:
         """ Method to add a new chat message to the widget """
@@ -183,21 +171,9 @@ class ChatroomContentsWidget(VerticalScroll):
         msg_widget = self._msg_map[msg_id]
         msg_widget.delete_contents()
 
-    def inform_vote_has_started(self, started_by: str) -> None:
-        """ Method that adds a widget to the screen informing that vote has started """
-        msg = f"Vote has been started by {started_by}"
-        widget = self.__create_announcement_widget(msg)
-        self.__add_widget_to_screen(widget)
-
-    def inform_vote_has_ended(self, conclusion: str) -> None:
-        """ Method that adds a widget to the screen informing that vote has ended """
-        widget = self.__create_announcement_widget(conclusion)
-        self.__add_widget_to_screen(widget)
-
-    def inform_game_has_ended(self, conclusion: str) -> None:
-        """ Method that adds a widget to the screen informing that the game has ended """
-        msg = f"-- The game has ended. {conclusion.capitalize()} --"
-        widget = self.__create_announcement_widget(msg)
+    def announce_event(self, event: str) -> None:
+        """ Callback method that adds the event to the chat screen """
+        widget = self.__create_announcement_widget(event)
         self.__add_widget_to_screen(widget)
 
     def __create_announcement_widget(self, msg: str) -> Container:
