@@ -152,6 +152,10 @@ class GameState:
     def generate_message_id(self) -> str:
         return self._id_generator.next()
 
+    async def add_event(self, msg: ChatMessage) -> None:
+        """ Adds the announcement message """
+        await self.messages.add(msg)
+
     async def add_message(self, message: ChatMessage) -> None:
         """ Adds the given message to the message history log """
         # Check if the message is a reply to a previous message ID -- if yes, then the message must exist

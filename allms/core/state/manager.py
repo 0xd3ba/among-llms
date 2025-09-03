@@ -297,6 +297,9 @@ class GameStateManager:
             inform_msg = "The human has started the vote as you"
             self.announce_to_agents(inform_msg, announce_to=started_by)
 
+        event_msg = f"Vote has been started by {started_by}"
+        event = self.__add_event(event_msg)
+
         # New voting has been started -- track the timestamp
         # Need this to ensure vote ends after pre-specified amount of time
         curr_ts = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
@@ -304,6 +307,8 @@ class GameStateManager:
         end_ts = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
 
         # Update the UI that a vote has started
+        # TODO: Replace the callback with a single announcement callback that takes msg as argument
+        # TODO: Invoke a toast that the vote has started
         self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_STARTED, started_by=started_by)
 
         self._vote_started_timestamp = curr_ts
@@ -325,8 +330,12 @@ class GameStateManager:
         self._logger.log(f"Result: {vote_conclusion}")
 
         # Inform agents in their chat-logs that voting has ended, who got how many votes, who got kicked out etc.
+        event = self.__add_event(vote_conclusion)
         self.announce_to_agents(inform_msg=vote_conclusion)
+
         # Update the UI with a message that the vote has concluded
+        # TODO: Replace the callback with a single announcement callback that takes msg as argument
+        # TODO: Invoke a toast that the vote has ended
         self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_ENDED, conclusion=vote_conclusion)
 
         if kick_agent_id is not None:
@@ -350,6 +359,10 @@ class GameStateManager:
             self._logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
             inform_msg = f"The human has voted for <{for_agent}> as you"
             self.announce_to_agents(inform_msg=inform_msg, announce_to=by_agent)
+
+        suffix = f" (You)" if need_to_inform else ""
+        event_msg = f"{by_agent}{suffix} voted for {for_agent}"
+        event = self.__add_event(event_msg)
 
         # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
         total_voters_so_far = self._game_state.get_total_voters()
@@ -375,6 +388,10 @@ class GameStateManager:
         self._game_state.remove_agent(agent_id)
         self._logger.log(f"{agent_id} terminated", level=logging.CRITICAL)
 
+        suffix = " (You)" if (agent_id == your_id) else ""
+        event_msg = f"{agent_id}{suffix} was removed from the chat"
+        event = self.__add_event(event_msg)
+
         # Stop the LLM associated with this agent
         if (agent_id != your_id) and (not won):
             self.stop_llms(agent_id)
@@ -394,9 +411,14 @@ class GameStateManager:
 
     def end_game(self, won: bool) -> None:
         """ Method that stops the game """
-        # TODO: Show game ended screen on the UI
+        conclusion = "You have Won!" if won else "You Have Been Terminated!"
+        event_msg = f"-- The game has ended. {conclusion.capitalize()} --"
+        event = self.__add_event(event_msg)
+
         self._game_state.end_game(won)
         self.__invoke_chat_callback(ChatCallbackType.TERMINATE_ALL_TASKS)
+        # TODO: Replace the callback with a single announcement callback that takes msg as argument
+        # TODO: Invoke a toast that the vote has started
         self.__invoke_chat_callback(ChatCallbackType.GAME_HAS_ENDED, won)
 
     async def background_worker(self) -> None:
@@ -517,6 +539,12 @@ class GameStateManager:
         """ Method to update the message on the UI by using the callback registered """
         async with self._on_new_message_lock:
             self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
+
+    def __add_event(self, event: str) -> ChatMessage:
+        """ Helper method to add a game event """
+        msg = self.__create_new_message(event, is_announcement=True)
+        asyncio.gather(self._game_state.add_event(msg))
+        return msg
 
     def __invoke_chat_callback(self, callback_type: ChatCallbackType, *args, **kwargs) -> None:
         """ Helper method to invoke the callback for the updating the UI of the chat """
