@@ -434,6 +434,11 @@ class GameStateManager:
         self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title="Game has Ended", message=conclusion)
         self.__invoke_chat_callback(ChatCallbackType.GAME_HAS_ENDED, conclusion)
 
+    async def on_new_message_received(self, msg_id: str) -> None:
+        """ Method to update the message on the UI by using the callback registered """
+        async with self._on_new_message_lock:
+            self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
+
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """
         clock = AppConfiguration.clock
@@ -548,11 +553,6 @@ class GameStateManager:
             )
             return agent_to_kick, conclusion
 
-    async def on_new_message_received(self, msg_id: str) -> None:
-        """ Method to update the message on the UI by using the callback registered """
-        async with self._on_new_message_lock:
-            self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
-
     def __add_event(self, event: str) -> None:
         """ Helper method to add a game event """
         msg = self.__create_new_message(event, is_announcement=True)
@@ -593,12 +593,17 @@ class GameStateManager:
             agent_id += " (You)"
         return agent_id
 
+    def __agent_is_typing(self, agent_id: str, is_typing: bool) -> None:
+        """ Callback to update the agent typing in the chat screen """
+        self.__invoke_chat_callback(ChatCallbackType.IS_TYPING, agent_id=agent_id, is_typing=is_typing)
+
     def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """
         self_callbacks = {
             StateManagerCallbackType.SEND_MESSAGE: self.send_message,
             StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE: self.on_new_message_received,
             StateManagerCallbackType.GET_MESSAGE_WITH_ID: self.get_message,
+            StateManagerCallbackType.IS_TYPING: self.__agent_is_typing,
             StateManagerCallbackType.VOTE_HAS_STARTED: self.voting_has_started,
             StateManagerCallbackType.START_A_VOTE: self.start_vote,
             StateManagerCallbackType.VOTE_FOR: self.vote,

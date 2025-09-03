@@ -9,6 +9,7 @@ class ChatCallbackType(BaseCallbackType):
     NEW_MESSAGE_RECEIVED: str = "new_message_received"
     ANNOUNCE_EVENT: str = "announce_event"
     UPDATE_AGENTS_LIST: str = "update_agents_list"
+    IS_TYPING: str = "is_typing"
     TERMINATE_ALL_TASKS: str = "terminate_all_tasks"
     NOTIFY_TOAST: str = "notify_toast"
     CLOSE_CHATROOM: str = "close_chat"
