@@ -59,7 +59,6 @@ class GameStateManager:
         try:
             game_state = self.__load_and_validate_game_state(file_path, reset)
             self._game_state = game_state
-            # TODO: Invoke the callback to load the chatroom
         except (json.JSONDecodeError, Exception) as err:
             raise err
 
