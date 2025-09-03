@@ -18,15 +18,9 @@ from allms.cli.screens.scenario import ChatScenarioScreen
 from allms.cli.screens.vote import VotingScreen
 from allms.cli.widgets.input import MessageBox
 from allms.cli.widgets.contents import ChatroomContentsWidget
+from allms.cli.widgets.type import ChatroomIsTyping
 from allms.config import BindingConfiguration, RunTimeConfiguration, ToastConfiguration
 from allms.core.state import GameStateManager
-
-
-class ChatroomIsTyping(Horizontal):
-    """ Class for displaying typing status of agents """
-    def compose(self) -> ComposeResult:
-        # TODO: Implement this later on
-        yield Label("Someone is typing ...")
 
 
 class ChatroomWidget(Vertical):
@@ -154,6 +148,7 @@ class ChatroomWidget(Vertical):
         callback_map = {
             ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_new_chat_message,
             ChatCallbackType.UPDATE_AGENTS_LIST: self.__update_agents_list,
+            ChatCallbackType.IS_TYPING: self.__is_typing,
             ChatCallbackType.ANNOUNCE_EVENT: self.__event_occurred,
             ChatCallbackType.NOTIFY_TOAST: self.__send_notification,
             ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks,
@@ -167,6 +162,13 @@ class ChatroomWidget(Vertical):
         """ Callback method to display the message with the given ID to the widget """
         # Note: Do not call this method directly, instead use the state manager to invoke this callback
         self._contents_widget.add_new_message(msg_id)
+
+    def __is_typing(self, agent_id: str, is_typing: bool) -> None:
+        """ Callback method to update the current agents typing """
+        if is_typing:
+            self._is_typing_widget.add_typing(agent_id)
+        else:
+            self._is_typing_widget.remove_typing(agent_id)
 
     def __event_occurred(self, event: str) -> None:
         """ Callback method to display the event on the screen """

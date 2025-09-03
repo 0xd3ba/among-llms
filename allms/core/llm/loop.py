@@ -100,6 +100,7 @@ class ChatLoop:
 
                 AppConfiguration.logger.log(f"Requesting response from agent ({agent_id}) ... ")
                 input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
+                await self._callbacks.invoke(StateManagerCallbackType.IS_TYPING, agent_id, is_typing=True)
                 model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id,
                                                                                                 input_prompt=input_prompt,
                                                                                                 terminated_agents=self._terminated_agent_ids)
@@ -126,6 +127,7 @@ class ChatLoop:
                                                       suspect_reason=suspect_reason, suspect_confidence=suspect_confidence)
 
                 # 2. Update the GUI
+                await self._callbacks.invoke(StateManagerCallbackType.IS_TYPING, agent_id, is_typing=False)
                 await self._callbacks.invoke(StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE, msg_id=msg_id)
                 await asyncio.sleep(0.1)  # Give up control for ~100ms to allow textual to render the message
 

@@ -22,8 +22,20 @@ ChatroomWidget {
     & ChatroomIsTyping {
         width: 100%;
         height: 3;
-        align: right middle;
+        padding: 0 1 0 1;
         color: $foreground 50%;
+        align: right middle;
+
+        /* Container hosting both the labels and the loading indicator */
+        & #typing-indicator-container {
+            align: right middle;
+            max-width: 50%;
+        }
+
+        & LoadingIndicator {
+            width: auto;
+            height: auto;
+        }
     }
 
     /* Container hosting the input and buttons for typing and sending messages */
