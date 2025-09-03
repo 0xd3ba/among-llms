@@ -7,10 +7,10 @@ class ChatCallbackType(BaseCallbackType):
     """ Class for storing the callback types for the chat """
 
     NEW_MESSAGE_RECEIVED: str = "new_message_received"
-    VOTE_HAS_STARTED: str = "vote_has_started"
-    VOTE_HAS_ENDED: str = "vote_has_ended"
+    ANNOUNCE_EVENT: str = "announce_event"
     UPDATE_AGENTS_LIST: str = "update_agents_list"
     TERMINATE_ALL_TASKS: str = "terminate_all_tasks"
+    NOTIFY_TOAST: str = "notify_toast"
     CLOSE_CHATROOM: str = "close_chat"
     GAME_HAS_ENDED: str = "game_has_ended"
 

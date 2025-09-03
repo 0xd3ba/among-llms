@@ -91,3 +91,9 @@ class AgentVoting:
             AppConfiguration.logger.log(f"Voting has not started yet (or ended) and {by_agent} is trying to vote")
 
         return self._vote_has_started
+
+    def reset(self) -> None:
+        """ Clears all the voting information recorded """
+        self._vote_map.clear()
+        self._vote_has_started = False
+        self._started_by = None

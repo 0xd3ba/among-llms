@@ -1,7 +1,8 @@
+from __future__ import annotations
 import logging
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 from allms.config import AppConfiguration
 from allms.core.agents import Agent, AgentFactory
@@ -48,13 +49,39 @@ class GameState:
             self._all_agents[agent_id] = agent
             self._remaining_agent_ids.add(agent_id)
 
+    def reset(self) -> None:
+        """ Resets the game state to the beginning (everything except the scenario and agent IDs and personas) """
+        self.start_time = 0
+        self.elapsed_duration = 0
+        self.game_paused = True
+        self.game_ended = False
+        self.game_won = False
+        self.messages.reset()
+        self.events.reset()
+        self._remaining_agent_ids.clear()
+        self._voting.reset()
+        self._id_generator = ChatMessageIDGenerator()
+
+        for agent_id in self._all_agents:
+            agent = self._all_agents[agent_id]
+            agent.reset()
+            self._remaining_agent_ids.add(agent_id)
+
     def get_genre(self) -> str:
         """ Returns the currently set genre """
         return self.genre
 
+    def get_scenario(self) -> str:
+        """ Returns the scenario """
+        return self.scenario
+
     def get_game_won(self) -> bool:
         """ Returns True if the game was won, False otherwise """
         return self.game_won
+
+    def get_game_ended(self) -> bool:
+        """ Returns True if the game has ended, False otherwise """
+        return self.game_ended
 
     def update_genre(self, genre: str) -> None:
         """ Updates the currently set genre with new genre """
@@ -125,6 +152,10 @@ class GameState:
     def generate_message_id(self) -> str:
         return self._id_generator.next()
 
+    async def add_event(self, msg: ChatMessage) -> None:
+        """ Adds the announcement message """
+        await self.messages.add(msg)
+
     async def add_message(self, message: ChatMessage) -> None:
         """ Adds the given message to the message history log """
         # Check if the message is a reply to a previous message ID -- if yes, then the message must exist
@@ -183,21 +214,19 @@ class GameState:
 
         return all_msgs
 
-    def get_all_messages(self) -> list[ChatMessage]:
-        """ Fetches all the chat messages stored in the history and returns them """
-        return self.messages.get_all()
+    def get_all_messages(self, ids_only: bool = False) -> list[ChatMessage] | list[str]:
+        """ Fetches all the chat messages or message IDs stored in the history and returns them """
+        return self.messages.get_all(ids_only)
 
     async def edit_message(self, msg_id: str, msg_contents: str, edited_by_you: bool) -> None:
         """ Edits the message with the given message ID """
         await self.messages.edit(msg_id, msg_contents, edited_by_you)
-        # TODO: Update the agent's chat-log
         if edited_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=True)
 
     async def delete_message(self, msg_id, deleted_by_you) -> None:
         """ Deletes the message with the given message ID """
         await self.messages.delete(msg_id, deleted_by_you)
-        # TODO: Update the agent's chat-log
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 

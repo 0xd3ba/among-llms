@@ -1,5 +1,4 @@
-import asyncio
-from collections import deque, OrderedDict
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
 from allms.config import AppConfiguration
@@ -51,14 +50,18 @@ class ChatMessageHistory:
         assert self.__has_message(msg_id), f"Can't fetch as ID({msg_id}) doesn't exist in the history"
         return self._history_all[msg_id]
 
-    def get_all(self) -> list[ChatMessage]:
+    def get_all(self, ids_only: bool = False) -> list[ChatMessage] | list[str]:
         """ Returns all the chat messages from the history """
-        messages = [self._history_all[msg_id] for msg_id in self._history_all]
+        messages = [msg_id if ids_only else self._history_all[msg_id] for msg_id in self._history_all]
         return messages
 
     def exists(self, msg_id: str) -> bool:
         """ Returns True if the message exists in the history, else False """
         return self.__has_message(msg_id)
+
+    def reset(self) -> None:
+        """ Clears the history log """
+        self._history_all.clear()
 
     def __has_message(self, msg_id: str) -> bool:
         """ Helper method to check if a message exists in the history. Return True if exists """

@@ -14,7 +14,6 @@ from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.core.agents import Agent, AgentFactory
 from allms.core.chat import ChatMessage, ChatMessageFormatter
 from allms.core.generate import PersonaGenerator, ScenarioGenerator
-from allms.core.log import GameEventLogs
 from allms.core.llm.loop import ChatLoop
 from allms.utils.save import SavingUtils
 from .callbacks import StateManagerCallbackType, StateManagerCallbacks
@@ -31,7 +30,6 @@ class GameStateManager:
         self._scenario_generator = ScenarioGenerator()
         self._persona_generator = PersonaGenerator()
 
-        self._scenario: str = ""
         self._game_state: Optional[GameState] = None
         self._on_new_message_lock: asyncio.Lock = asyncio.Lock()    # To ensure one update at a time
         self._msg_id_generator_lock: Lock = Lock()
@@ -53,10 +51,24 @@ class GameStateManager:
 
         await self._game_state.messages.initialize()
 
-    def load(self, file_path: str | Path) -> None:
+    def load(self, file_path: str | Path, reset: bool = False) -> None:
         """ Loads the game state from the given path """
-        # TODO: Implement the loading logic
-        raise NotImplementedError
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        try:
+            game_state = self.__load_and_validate_game_state(file_path, reset)
+            self._game_state = game_state
+        except (json.JSONDecodeError, Exception) as err:
+            raise err
+
+    def initialize_events(self) -> None:
+        """ Initializes events before starting the chat-screen """
+        agents = self.get_all_agents()
+        for agent_id in agents:
+            fmt_agent_id = self.__preprocess_agent_id(agent_id)
+            event_msg = f"{fmt_agent_id} has been added to the chat"
+            self.__add_event(event_msg)
 
     def save(self) -> Optional[Path]:
         """ Saves the game state to persistent storage and returns the path of stored location """
@@ -97,18 +109,18 @@ class GameStateManager:
 
     def start_llms(self) -> None:
         """ Method to start the chatroom """
-        if self._config.ui_dev_mode:
+        your_id = self.get_user_assigned_agent_id()
+        self._logger.log(f"You have been assigned as {your_id}")
+
+        if self._config.ui_dev_mode or self._game_state.get_game_ended():
             return
 
-        your_id = self.get_user_assigned_agent_id()
-        self._logger.log(f"You have been assigned as  {your_id}")
         self._chat_loop = ChatLoop(config=self._config,
                                    your_agent_id=your_id,
                                    agents=self.get_all_agents(),
                                    scenario=self.get_scenario(),
                                    callbacks=self._self_callbacks
                                    )
-        # TODO: Handle any pre-processing steps, if any, that might need to be done before loop starts
         self._chat_loop.start()
 
     def pause_llms(self) -> None:
@@ -124,7 +136,6 @@ class GameStateManager:
             return
 
         if agent_id is None:
-            # TODO: Ensure all agents are stopped before resetting everything
             self._chat_loop.stop()
             self._chat_loop = None
         else:
@@ -136,11 +147,15 @@ class GameStateManager:
 
     def get_scenario(self) -> str:
         """ Returns the current scenario """
-        return self._scenario
+        return self._game_state.get_scenario()
 
     def get_game_won(self) -> bool:
         """ Returns if the game has been won """
         return self._game_state.get_game_won()
+
+    def get_game_ended(self) -> bool:
+        """ Returns True if the game has ended """
+        return self._game_state.get_game_ended()
 
     def create_agents(self, n_agents: int) -> None:
         """ Creates the agents and assigns them to the state """
@@ -221,7 +236,6 @@ class GameStateManager:
     def update_scenario(self, scenario: str) -> None:
         """ Updates the scenario with the given scenario """
         self.__check_game_state_validity()
-        self._scenario = scenario
         self._logger.log(f"Updating scenario to '{scenario}' ...")
         self._game_state.initialize_scenario(scenario)
 
@@ -248,6 +262,10 @@ class GameStateManager:
         """ Returns the message associated with the given message ID """
         self.__check_game_state_validity()
         return self._game_state.get_message(msg_id)
+
+    def get_all_messages(self, ids_only: bool = False) -> list[ChatMessage] | list[str]:
+        """ Returns a list of chat messages or list of chat message IDs """
+        return self._game_state.get_all_messages(ids_only=ids_only)
 
     def get_messages_sent_by(self, agent_id: str) -> list[ChatMessage]:
         """ Returns the list of messages sent by the specified agent id """
@@ -288,17 +306,26 @@ class GameStateManager:
 
         # New voting has been started -- track the timestamp
         # Need this to ensure vote ends after pre-specified amount of time
-        curr_ts = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
+        clock = AppConfiguration.clock
         vote_duration_min = AppConfiguration.max_vote_duration_min
-        end_ts = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
+        curr_ts = clock.current_timestamp_in_milliseconds_utc()
+        end_ts = clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
+        end_ts_iso = clock.milliseconds_to_iso_format(end_ts)
 
         # Update the UI that a vote has started
-        self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_STARTED, started_by=started_by)
+        fmt_agent_id = self.__preprocess_agent_id(started_by)
+        event_msg = f"Vote has been started by {fmt_agent_id}"
+        self.__add_event(event_msg)
+        self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
+        self.__invoke_chat_callback(
+            ChatCallbackType.NOTIFY_TOAST,
+            title="Vote Started",
+            message=f"{event_msg}. Voting will automatically end on [b]{end_ts_iso}[/]. Cast your vote before then."
+        )
 
         self._vote_started_timestamp = curr_ts
         self._vote_will_end_on_timestamp = end_ts
-        self._logger.log(f"Voting will end on {AppConfiguration.clock.milliseconds_to_iso_format(end_ts)}")
-        # TODO: Update the UI with a message / toast
+        self._logger.log(f"Voting will end on {end_ts_iso}")
 
     def can_vote(self, agent_id: str) -> bool:
         """ Returns True if the given agent is allowed to vote, else False"""
@@ -315,8 +342,11 @@ class GameStateManager:
 
         # Inform agents in their chat-logs that voting has ended, who got how many votes, who got kicked out etc.
         self.announce_to_agents(inform_msg=vote_conclusion)
+
         # Update the UI with a message that the vote has concluded
-        self.__invoke_chat_callback(ChatCallbackType.VOTE_HAS_ENDED, conclusion=vote_conclusion)
+        self.__add_event(vote_conclusion)
+        self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, vote_conclusion)
+        self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title="Vote has Ended", message="Voting process has been completed")
 
         if kick_agent_id is not None:
             self.terminate_agent(kick_agent_id)
@@ -339,6 +369,11 @@ class GameStateManager:
             self._logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
             inform_msg = f"The human has voted for <{for_agent}> as you"
             self.announce_to_agents(inform_msg=inform_msg, announce_to=by_agent)
+
+        fmt_agent_id = self.__preprocess_agent_id(by_agent)
+        event_msg = f"{fmt_agent_id} voted for {for_agent}"
+        self.__add_event(event_msg)
+        self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
 
         # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
         total_voters_so_far = self._game_state.get_total_voters()
@@ -364,6 +399,11 @@ class GameStateManager:
         self._game_state.remove_agent(agent_id)
         self._logger.log(f"{agent_id} terminated", level=logging.CRITICAL)
 
+        fmt_agent_id = self.__preprocess_agent_id(agent_id)
+        event_msg = f"{fmt_agent_id} was removed from the chat"
+        self.__add_event(event_msg)
+        self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
+
         # Stop the LLM associated with this agent
         if (agent_id != your_id) and (not won):
             self.stop_llms(agent_id)
@@ -375,6 +415,7 @@ class GameStateManager:
 
             # Update the selection list in the UI to not include this agent
             self.__invoke_chat_callback(ChatCallbackType.UPDATE_AGENTS_LIST)
+            self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title=f"{agent_id} terminated", message=f"{n_remaining-2} agents left to terminate ...")
 
         # You got caught, or you won -- either ways, the game has ended
         else:
@@ -383,10 +424,15 @@ class GameStateManager:
 
     def end_game(self, won: bool) -> None:
         """ Method that stops the game """
-        # TODO: Show game ended screen on the UI
+        conclusion = "You have Won!" if won else "You Have Been Terminated!"
+        event_msg = f"-- The game has ended. {conclusion} --"
+        self.__add_event(event_msg)
+
         self._game_state.end_game(won)
         self.__invoke_chat_callback(ChatCallbackType.TERMINATE_ALL_TASKS)
-        self.__invoke_chat_callback(ChatCallbackType.GAME_HAS_ENDED, won)
+        self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
+        self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title="Game has Ended", message=conclusion)
+        self.__invoke_chat_callback(ChatCallbackType.GAME_HAS_ENDED, conclusion)
 
     async def background_worker(self) -> None:
         """ Worker that runs in background checking for voting status, tracking duration etc. """
@@ -507,6 +553,11 @@ class GameStateManager:
         async with self._on_new_message_lock:
             self.__invoke_chat_callback(ChatCallbackType.NEW_MESSAGE_RECEIVED, msg_id)
 
+    def __add_event(self, event: str) -> None:
+        """ Helper method to add a game event """
+        msg = self.__create_new_message(event, is_announcement=True)
+        asyncio.gather(self._game_state.add_event(msg))
+
     def __invoke_chat_callback(self, callback_type: ChatCallbackType, *args, **kwargs) -> None:
         """ Helper method to invoke the callback for the updating the UI of the chat """
         asyncio.gather(self._chat_callbacks.invoke(callback_type, *args, **kwargs))
@@ -521,6 +572,26 @@ class GameStateManager:
         you = f"You are [{your_id.upper()}]\n"
 
         return [scenario, you] + fmt_msgs
+
+    @staticmethod
+    def __load_and_validate_game_state(file_path: Path, reset: bool) -> GameState:
+        """ Helper method to load and validate the game state """
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                state = json.load(f)
+                game_state: GameState = SavingUtils.properly_deserialize_json(cls=GameState, data=state)
+                if reset:
+                    game_state.reset()
+                return game_state
+            except (json.JSONDecodeError, Exception) as err:
+                raise err  # Invalid JSON file or invalid params to the game state
+
+    def __preprocess_agent_id(self, agent_id: str) -> str:
+        """ Preprocesses the agent ID and returns the result """
+        your_id = self.get_user_assigned_agent_id()
+        if agent_id == your_id:
+            agent_id += " (You)"
+        return agent_id
 
     def __generate_callbacks(self) -> dict[StateManagerCallbackType, Callable[..., Any]]:
         """ Helper method to generate the callbacks required by the chat-loop class """

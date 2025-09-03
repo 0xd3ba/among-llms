@@ -78,6 +78,13 @@ class Agent:
         """ Updates the persona of the agent with the provided one """
         self.persona = persona
 
+    def reset(self) -> None:
+        """ Clears the chat messages and history logs """
+        self.msg_ids.clear()
+        self.dm_msg_ids_recv.clear()
+        self.dm_msg_ids_sent.clear()
+        self.chat_logs.clear()
+
 
 class AgentFactory:
     """ Factory class for producing agents """

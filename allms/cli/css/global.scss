@@ -12,6 +12,16 @@
     border-title-style: bold;
 }
 
+/* Toast configuration */
+Toast {
+    width: 40;
+    max-width: 40%;
+}
+
+ToastRack {
+    dock: top;
+}
+
 /* Global configuration for select widget */
 Select {
     SelectCurrent {
@@ -41,6 +51,11 @@ Input {
     &:focus-within {
         background: $foreground 10%;
     }
+}
+
+/* Global configuration for directory tree */
+DirectoryTree {
+    padding: 1;
 }
 
 /* Global configuration for modal screens */

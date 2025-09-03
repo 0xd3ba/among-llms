@@ -137,12 +137,21 @@ class ChatroomContentsWidget(VerticalScroll):
         # Mapping between a message ID, and it's corresponding chat-bubble widget
         self._msg_map: dict[str, ChatBubbleWidget] = {}
 
-    def compose(self) -> ComposeResult:
-        return []  # TODO: Implement this to include initial widgets to the screen
+    def on_mount(self) -> None:
+        # Add the messages and announcements if there are any (in the case of load chatroom)
+        msgs: list[ChatMessage] = self._state_manager.get_all_messages()
+        for msg in msgs:
+            if not msg.is_announcement:
+                self.add_new_message(msg)
+            else:
+                self.announce_event(msg.msg)
 
-    def add_new_message(self, msg_id: str) -> None:
+    def add_new_message(self, msg: str | ChatMessage) -> None:
         """ Method to add a new chat message to the widget """
-        msg = self._state_manager.get_message(msg_id)
+        if isinstance(msg, str):
+            msg = self._state_manager.get_message(msg)
+
+        msg_id = msg.id
         your_msg = (msg.sent_by == self._your_agent_id)
         sent_by = msg.sent_by
         if your_msg:  # If sending as yourself, update the display name to reflect it
@@ -162,21 +171,9 @@ class ChatroomContentsWidget(VerticalScroll):
         msg_widget = self._msg_map[msg_id]
         msg_widget.delete_contents()
 
-    def inform_vote_has_started(self, started_by: str) -> None:
-        """ Method that adds a widget to the screen informing that vote has started """
-        msg = f"Vote has been started by {started_by}"
-        widget = self.__create_announcement_widget(msg)
-        self.__add_widget_to_screen(widget)
-
-    def inform_vote_has_ended(self, conclusion: str) -> None:
-        """ Method that adds a widget to the screen informing that vote has ended """
-        widget = self.__create_announcement_widget(conclusion)
-        self.__add_widget_to_screen(widget)
-
-    def inform_game_has_ended(self, conclusion: str) -> None:
-        """ Method that adds a widget to the screen informing that the game has ended """
-        msg = f"-- The game has ended. {conclusion.capitalize()} --"
-        widget = self.__create_announcement_widget(msg)
+    def announce_event(self, event: str) -> None:
+        """ Callback method that adds the event to the chat screen """
+        widget = self.__create_announcement_widget(event)
         self.__add_widget_to_screen(widget)
 
     def __create_announcement_widget(self, msg: str) -> Container:

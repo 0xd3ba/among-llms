@@ -18,7 +18,7 @@ from allms.cli.screens.scenario import ChatScenarioScreen
 from allms.cli.screens.vote import VotingScreen
 from allms.cli.widgets.input import MessageBox
 from allms.cli.widgets.contents import ChatroomContentsWidget
-from allms.config import BindingConfiguration, RunTimeConfiguration
+from allms.config import BindingConfiguration, RunTimeConfiguration, ToastConfiguration
 from allms.core.state import GameStateManager
 
 
@@ -47,7 +47,7 @@ class ChatroomWidget(Vertical):
         self._state_manager = state_manager
         self._is_disabled = is_disabled
         self._your_agent_id = self._state_manager.get_user_assigned_agent_id()
-        self._game_ended = False
+        self._game_ended = self._state_manager.get_game_ended()
 
         self._prefix_send_to = "->"
         self._prefix_send_as = ""
@@ -93,10 +93,16 @@ class ChatroomWidget(Vertical):
 
     def on_show(self) -> None:
         # Show what the agent the user has been assigned
-        self.__show_assignment_screen()
-        worker_group = "chat-loop"
-        self._chat_worker = self.run_worker(self._state_manager.start_llms(), group=worker_group, exclusive=True)
-        self._background_worker = self.run_worker(self._state_manager.background_worker(), group=worker_group, exclusive=True)
+        if not self._is_disabled:
+            self.__show_assignment_screen()
+            worker_group = "chat-loop"
+            self._chat_worker = self.run_worker(self._state_manager.start_llms(), group=worker_group, exclusive=True)
+            self._background_worker = self.run_worker(self._state_manager.background_worker(), group=worker_group, exclusive=True)
+        else:
+            self.__send_notification(
+                title="Game has Already Ended",
+                message="The game has already ended. You can browse through the chats or export them"
+            )
 
     def compose(self) -> ComposeResult:
         yield self._contents_widget
@@ -109,6 +115,8 @@ class ChatroomWidget(Vertical):
 
         if not self._is_disabled:
             self._input_area.focus()
+        else:
+            self._contents_widget.focus()
 
     def __create_choices(self, choices: list[tuple[str, str]], widget_id: str = "", tooltip: str = "") -> Select:
         """ Helper method to create a choices list and return it """
@@ -144,10 +152,10 @@ class ChatroomWidget(Vertical):
     def __generate_callbacks(self) -> dict:
         """ Generates the callback mapping and returns it """
         callback_map = {
-            ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_chat_message_callback,
-            ChatCallbackType.VOTE_HAS_STARTED: self._contents_widget.inform_vote_has_started,
-            ChatCallbackType.VOTE_HAS_ENDED: self._contents_widget.inform_vote_has_ended,
+            ChatCallbackType.NEW_MESSAGE_RECEIVED: self.__update_new_chat_message,
             ChatCallbackType.UPDATE_AGENTS_LIST: self.__update_agents_list,
+            ChatCallbackType.ANNOUNCE_EVENT: self.__event_occurred,
+            ChatCallbackType.NOTIFY_TOAST: self.__send_notification,
             ChatCallbackType.TERMINATE_ALL_TASKS: self.__cancel_all_bg_tasks,
             ChatCallbackType.GAME_HAS_ENDED: self.__game_has_officially_ended,
             ChatCallbackType.CLOSE_CHATROOM: self.__close_chatroom
@@ -155,15 +163,23 @@ class ChatroomWidget(Vertical):
 
         return callback_map
 
-    def __update_chat_message_callback(self, msg_id: str) -> None:
+    def __update_new_chat_message(self, msg_id: str) -> None:
         """ Callback method to display the message with the given ID to the widget """
         # Note: Do not call this method directly, instead use the state manager to invoke this callback
         self._contents_widget.add_new_message(msg_id)
 
+    def __event_occurred(self, event: str) -> None:
+        """ Callback method to display the event on the screen """
+        self._contents_widget.announce_event(event)
+
+    def __send_notification(self, title: str, message: str, severity: str = ToastConfiguration.type_information) -> None:
+        """ Callback method to send a notification toast """
+        self.notify(title=title, message=message, severity=severity)
+
     def __cancel_all_bg_tasks(self) -> None:
         """ Callback method to cancel all the background tasks and disable the inputs """
-        self._chat_worker.cancel()
-        self._background_worker.cancel()
+        self._chat_worker and self._chat_worker.cancel()
+        self._background_worker and self._background_worker.cancel()
         self._game_ended = True
 
         # Disable all the inputs since this is only called on game termination
@@ -174,13 +190,11 @@ class ChatroomWidget(Vertical):
 
         self._contents_widget.focus()
 
-    def __game_has_officially_ended(self, won: bool) -> None:
+    def __game_has_officially_ended(self, conclusion: str) -> None:
         """ Callback method to display the game ended screen """
         self._game_ended = True
-        conclusion = "You have Won!" if won else "You Have Been Terminated!"
         screen = GameEndedScreen(title=conclusion, config=self._config, state_manager=self._state_manager)
         self.app.push_screen(screen)
-        self._contents_widget.inform_game_has_ended(conclusion=conclusion)
 
     def __update_agents_list(self) -> None:
         """ Callback method to update the remaining agents from the lists """
@@ -273,7 +287,7 @@ class ChatroomWidget(Vertical):
     def action_modify_msgs(self) -> None:
         """ Invoked when key binding for modifying messages is pressed """
         if self._game_ended:
-            # TODO: Display a toast that messages can't be modified since the game has ended
+            self.__send_notification(title="Can't Modify Messages", message="The game has already ended", severity=ToastConfiguration.type_error)
             return
 
         screen_title = "Modify Messages"
@@ -292,7 +306,7 @@ class ChatroomWidget(Vertical):
     def action_start_a_vote(self) -> None:
         """ Invoked when key binding for starting a vote is pressed """
         if self._game_ended:
-            # TODO: Display a toast that vote cannot be started since the game has ended
+            self.__send_notification(title="Can't Vote", message="The game has already ended", severity=ToastConfiguration.type_error)
             return
 
         voting_in_progress, _ = self._state_manager.voting_has_started()

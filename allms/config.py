@@ -81,6 +81,15 @@ class StyleConfiguration:
     class_modal_container: str = "modal-container"
 
 
+class ToastConfiguration:
+    """ Class holding constants for toasts """
+    type_information: str = "information"
+    type_warning: str = "warning"
+    type_error: str = "error"
+
+    timeout: float = 2.0  # How long (in seconds) a toast is displayed on the screen
+
+
 class BindingConfiguration:
     """ Class holding the global hotkey bindings """
     # Bindings for modal screens

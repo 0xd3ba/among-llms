@@ -21,4 +21,8 @@ class GameEventLogs:
         """ Returns the current state of the game logs """
         return self._logs.copy()
 
+    def reset(self) -> None:
+        """ Clears the logs """
+        self._logs.clear()
+
     # TODO: Register a signal or something to update the logs in the UI later on -- Think about the design later

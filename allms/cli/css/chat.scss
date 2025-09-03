@@ -144,8 +144,15 @@ VotingWidget {
 /* Chat widget for loading the game state */
 LoadGameStateWidget {
 
+    /* Container hosting the currently selected path */
+    & #load-path-container {
+        padding: 1;
+    }
+
+    /* Container hosting the explorer */
     & #load-directory-tree {
         height: 1fr;
+        padding: 0 1 0 1;
     }
 
     /* Container hosting the buttons */
