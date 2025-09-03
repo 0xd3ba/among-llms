@@ -112,7 +112,7 @@ class GameStateManager:
         your_id = self.get_user_assigned_agent_id()
         self._logger.log(f"You have been assigned as {your_id}")
 
-        if self._config.ui_dev_mode:
+        if self._config.ui_dev_mode or self._game_state.get_game_ended():
             return
 
         self._chat_loop = ChatLoop(config=self._config,
@@ -306,20 +306,26 @@ class GameStateManager:
 
         # New voting has been started -- track the timestamp
         # Need this to ensure vote ends after pre-specified amount of time
-        curr_ts = AppConfiguration.clock.current_timestamp_in_milliseconds_utc()
+        clock = AppConfiguration.clock
         vote_duration_min = AppConfiguration.max_vote_duration_min
-        end_ts = AppConfiguration.clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
+        curr_ts = clock.current_timestamp_in_milliseconds_utc()
+        end_ts = clock.add_n_minutes(curr_ts, n_minutes=vote_duration_min)
+        end_ts_iso = clock.milliseconds_to_iso_format(end_ts)
 
         # Update the UI that a vote has started
-        # TODO: Invoke a toast that the vote has started
         fmt_agent_id = self.__preprocess_agent_id(started_by)
         event_msg = f"Vote has been started by {fmt_agent_id}"
         self.__add_event(event_msg)
         self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
+        self.__invoke_chat_callback(
+            ChatCallbackType.NOTIFY_TOAST,
+            title="Vote Started",
+            message=f"{event_msg}. Voting will automatically end on [b]{end_ts_iso}[/]. Cast your vote before then."
+        )
 
         self._vote_started_timestamp = curr_ts
         self._vote_will_end_on_timestamp = end_ts
-        self._logger.log(f"Voting will end on {AppConfiguration.clock.milliseconds_to_iso_format(end_ts)}")
+        self._logger.log(f"Voting will end on {end_ts_iso}")
 
     def can_vote(self, agent_id: str) -> bool:
         """ Returns True if the given agent is allowed to vote, else False"""
@@ -338,9 +344,9 @@ class GameStateManager:
         self.announce_to_agents(inform_msg=vote_conclusion)
 
         # Update the UI with a message that the vote has concluded
-        # TODO: Invoke a toast that the vote has ended
         self.__add_event(vote_conclusion)
         self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, vote_conclusion)
+        self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title="Vote has Ended", message="Voting process has been completed")
 
         if kick_agent_id is not None:
             self.terminate_agent(kick_agent_id)
@@ -409,6 +415,7 @@ class GameStateManager:
 
             # Update the selection list in the UI to not include this agent
             self.__invoke_chat_callback(ChatCallbackType.UPDATE_AGENTS_LIST)
+            self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title=f"{agent_id} terminated", message=f"{n_remaining-2} agents left to terminate ...")
 
         # You got caught, or you won -- either ways, the game has ended
         else:
@@ -422,9 +429,9 @@ class GameStateManager:
         self.__add_event(event_msg)
 
         self._game_state.end_game(won)
-        # TODO: Invoke a toast that the game has ended
         self.__invoke_chat_callback(ChatCallbackType.TERMINATE_ALL_TASKS)
         self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
+        self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title="Game has Ended", message=conclusion)
         self.__invoke_chat_callback(ChatCallbackType.GAME_HAS_ENDED, conclusion)
 
     async def background_worker(self) -> None:

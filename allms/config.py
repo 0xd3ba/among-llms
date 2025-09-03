@@ -87,7 +87,7 @@ class ToastConfiguration:
     type_warning: str = "warning"
     type_error: str = "error"
 
-    timeout: float = 3.0  # How long (in seconds) a toast is displayed on the screen
+    timeout: float = 2.0  # How long (in seconds) a toast is displayed on the screen
 
 
 class BindingConfiguration:

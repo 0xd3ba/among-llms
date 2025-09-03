@@ -12,6 +12,16 @@
     border-title-style: bold;
 }
 
+/* Toast configuration */
+Toast {
+    width: 40;
+    max-width: 40%;
+}
+
+ToastRack {
+    dock: top;
+}
+
 /* Global configuration for select widget */
 Select {
     SelectCurrent {

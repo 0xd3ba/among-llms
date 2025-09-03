@@ -10,6 +10,7 @@ class ChatCallbackType(BaseCallbackType):
     ANNOUNCE_EVENT: str = "announce_event"
     UPDATE_AGENTS_LIST: str = "update_agents_list"
     TERMINATE_ALL_TASKS: str = "terminate_all_tasks"
+    NOTIFY_TOAST: str = "notify_toast"
     CLOSE_CHATROOM: str = "close_chat"
     GAME_HAS_ENDED: str = "game_has_ended"
 
