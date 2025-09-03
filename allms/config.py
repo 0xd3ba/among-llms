@@ -99,6 +99,7 @@ class BindingConfiguration:
     new_chat_randomize_scenario: str = "ctrl+r"
     new_chat_randomize_agent_persona: str = "ctrl+r"
     new_chat_customize_agents: str = "ctrl+s"
+    new_chat_load_from_saved: str = "ctrl+l"
 
     # Bindings for chat screen
     chatroom_show_scenario: str = "f1"

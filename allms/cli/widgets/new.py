@@ -1,3 +1,5 @@
+import asyncio
+from pathlib import Path
 from typing import Type, Optional
 
 from textual import on
@@ -8,6 +10,7 @@ from textual.widgets import Label, TextArea, Select, Button
 
 from allms.cli.screens.chat import ChatroomScreen
 from allms.cli.screens.customize import CustomizeAgentsScreen
+from allms.cli.screens.load import LoadGameStateScreen
 from allms.cli.widgets.modal import ModalScreenWidget
 from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfiguration, StyleConfiguration
 from allms.core.state import GameStateManager
@@ -17,7 +20,8 @@ class NewChatroomWidget(ModalScreenWidget):
 
     BINDINGS = [
         Binding(BindingConfiguration.new_chat_randomize_scenario, "randomize_scenario", "Randomize Scenario", priority=True),
-        Binding(BindingConfiguration.new_chat_customize_agents, "customize_agents", "Customize Agents")
+        Binding(BindingConfiguration.new_chat_customize_agents, "customize_agents", "Customize Agents"),
+        Binding(BindingConfiguration.new_chat_load_from_saved, "load_from_save", "Load from Previous")
     ]
 
     def __init__(self, title, config: RunTimeConfiguration, state_manager: GameStateManager, *args, **kwargs):
@@ -92,6 +96,28 @@ class NewChatroomWidget(ModalScreenWidget):
             # Should not arrive at this branch or else there is a bug
             raise RuntimeError(f"Received a button pressed event from button-id({btn_pressed_id}) on {self.__class__.__name__}")
 
+    def __on_confirm_load(self, state_path: Path) -> None:
+        self._state_manager.load(state_path, reset=True)
+        # No error -- pop the loading screen
+        self.app.pop_screen()
+
+        # Now update the elements on the creation screen
+        # Note: No need to update agents -- since that is a new modal screen
+        genre = self._state_manager.get_genre()
+        scenario = self._state_manager.get_scenario()
+        n_agents = len(self._state_manager.get_all_agents())
+
+        AppConfiguration.logger.log(f"Loading the game-state values into the fields ...")
+
+        self._scenario_textbox.text = scenario
+
+        # Temporarily guard against event handlers getting triggered
+        with self._genres_list.prevent(Select.Changed):
+            self._genres_list.value = genre
+
+        with self._n_agents_list.prevent(Select.Changed):
+            self._n_agents_list.value = n_agents
+
     @on(Select.Changed)
     async def handler_select_item_changed(self, event: Select.Changed) -> None:
         """ Handler for handling events when number of agents is changed """
@@ -121,3 +147,12 @@ class NewChatroomWidget(ModalScreenWidget):
         """ Invoked when key binding for customizing agents is pressed """
         customize_screen = CustomizeAgentsScreen("Customize Agents", self._config, self._state_manager)
         self.app.push_screen(customize_screen)
+
+    async def action_load_from_save(self) -> None:
+        """ Invoked when key binding for loading game state is pressed """
+        await self.app.push_screen(
+            LoadGameStateScreen(
+                "Load from Saved State", self._config, self._state_manager,
+                widget_params=dict(on_confirm_callback=self.__on_confirm_load)
+            )
+        )
