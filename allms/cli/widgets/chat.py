@@ -180,6 +180,7 @@ class ChatroomWidget(Vertical):
 
     def __cancel_all_bg_tasks(self) -> None:
         """ Callback method to cancel all the background tasks and disable the inputs """
+        self._state_manager.stop_llms()
         self._chat_worker and self._chat_worker.cancel()
         self._background_worker and self._background_worker.cancel()
         self._game_ended = True
