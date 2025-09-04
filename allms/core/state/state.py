@@ -234,10 +234,9 @@ class GameState:
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
-    async def announce_to_agents(self, msg: ChatMessage) -> None:
+    def announce_to_agents(self, msg: ChatMessage) -> None:
         """
-        Broadcasts the given message to the intended recipients (if None, broadcasts to all remaining agents)
-        Note: Use this method to only announce those messages that you want to be visible in the exported chat
+        Broadcasts the given message to the intended recipient's chat logs (if None, broadcasts to all remaining agents)
         """
         agent_ids = msg.sent_to
 
@@ -245,8 +244,6 @@ class GameState:
             agent_ids = self.get_all_remaining_agents_ids()
         elif isinstance(agent_ids, str):
             agent_ids = [agent_ids]
-
-        await self.messages.add(msg)  # Also store it in the history, so that exported chats include this announcement
 
         AppConfiguration.logger.log(f"Announcing to {agent_ids} ... ")
 

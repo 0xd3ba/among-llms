@@ -502,6 +502,7 @@ class GameStateManager:
                                sent_to=sent_to, thought_process=thought_process, reply_to_id=reply_to_id,
                                suspect=suspect_id, suspect_reason=suspect_reason, suspect_confidence=suspect_confidence,
                                is_announcement=is_announcement)
+        AppConfiguration.logger.log(f"Created a new message: {chat_msg}")
         return chat_msg
 
     def __check_game_state_validity(self) -> None:
