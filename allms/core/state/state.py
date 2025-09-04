@@ -109,6 +109,10 @@ class GameState:
         assert len(self._all_agents) > 0, f"Trying to get all the agents but there are no agents created yet"
         return self._all_agents
 
+    def get_terminated_agent_ids(self) -> set[str]:
+        """ Returns the set of all terminated agent IDs """
+        return {agent_id for agent_id in self._all_agents if (agent_id not in self._remaining_agent_ids)}
+
     def get_all_remaining_agents_ids(self) -> list[str]:
         """ Returns the list of all agent IDs """
         assert len(self._remaining_agent_ids) >= 2, f"There must be 2 agents left (you and a LLM) before the game " + \

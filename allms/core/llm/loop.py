@@ -17,6 +17,7 @@ class ChatLoop:
                  config: RunTimeConfiguration,
                  your_agent_id: str,
                  agents: dict[str, Agent],
+                 terminated_agent_ids: set[str],
                  scenario: str,
                  callbacks: StateManagerCallbacks,
                  ):
@@ -26,8 +27,11 @@ class ChatLoop:
         self._scenario = scenario
         self._callbacks = callbacks
 
-        self._llm_agent_ids = {agent_id for agent_id in self._agents.keys() if (agent_id != self._your_id)}  # All except you
-        self._terminated_agent_ids = set()
+        self._terminated_agent_ids = terminated_agent_ids
+        self._llm_agent_ids = {
+            agent_id for agent_id in self._agents.keys()
+            if (agent_id != self._your_id) and (agent_id not in self._terminated_agent_ids)
+        }  # All except you and the terminated agents
         self._stop_loop: dict[str, bool] = {aid: False for aid in self._llm_agent_ids}
         self._agent_tasks: dict[str, asyncio.Task] = {}
         self._pause_loop: bool = False

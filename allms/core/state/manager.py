@@ -118,6 +118,7 @@ class GameStateManager:
         self._chat_loop = ChatLoop(config=self._config,
                                    your_agent_id=your_id,
                                    agents=self.get_all_agents(),
+                                   terminated_agent_ids=self.get_terminated_agent_ids(),
                                    scenario=self.get_scenario(),
                                    callbacks=self._self_callbacks
                                    )
@@ -175,6 +176,11 @@ class GameStateManager:
         """ Returns the agents as a mapping between agent-ID and the agent object """
         self.__check_game_state_validity()
         return self._game_state.get_all_agents()
+
+    def get_terminated_agent_ids(self) -> set[str]:
+        """ Returns the set of all agent IDs that have been terminated """
+        self.__check_game_state_validity()
+        return self._game_state.get_terminated_agent_ids()
 
     def get_all_remaining_agents_ids(self) -> list[str]:
         """ Returns all the IDs of the agents that are remaining """
