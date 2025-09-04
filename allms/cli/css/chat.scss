@@ -11,6 +11,24 @@ ChatroomWidget {
 
     padding: 1 2 1 2;
 
+    /* Container hosting the remaining agents count and chat clock */
+    & #chat-header-container {
+        height: 1;
+        min-width: 60;
+        padding: 0;
+        background: $surface;
+        color: $foreground 50%;
+
+        & #chat-remaining-agents-widget {
+            width: auto;
+        }
+
+        & ChatClock {
+            content-align: right middle;
+            width: 1fr;
+        }
+    }
+
     /* Container hosting the chats */
     & ChatroomContents {
         height: 1fr;

@@ -5,7 +5,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Input, Label, Select
+from textual.widgets import Button, Input, Select, Static
 from textual.worker import Worker
 
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
@@ -17,6 +17,7 @@ from allms.cli.screens.modify import ModifyMessageScreen
 from allms.cli.screens.scenario import ChatScenarioScreen
 from allms.cli.screens.vote import VotingScreen
 from allms.cli.widgets.input import MessageBox
+from allms.cli.widgets.clock import ChatClock
 from allms.cli.widgets.contents import ChatroomContentsWidget
 from allms.cli.widgets.type import ChatroomIsTyping
 from allms.config import BindingConfiguration, RunTimeConfiguration, ToastConfiguration
@@ -47,6 +48,8 @@ class ChatroomWidget(Vertical):
         self._prefix_send_as = ""
         self._id_send_to_all = "All"
         self._id_send_as_you = f"{self._your_agent_id} (You)"
+
+        self._remaining_agents_widget = Static(id="chat-remaining-agents-widget")
 
         self._contents_widget = ChatroomContentsWidget(self._config, self._state_manager, display_you_as=self._id_send_as_you)
         self._is_typing_widget = ChatroomIsTyping()
@@ -99,8 +102,14 @@ class ChatroomWidget(Vertical):
             )
 
     def compose(self) -> ComposeResult:
+        self.__update_remaining_agent_counts()
+        with Horizontal(id="chat-header-container"):
+            yield self._remaining_agents_widget
+            yield ChatClock()
+
         yield self._contents_widget
         yield self._is_typing_widget
+
         with Horizontal(id="chat-type-send-container"):
             yield self._send_to_list
             yield self._input_area
@@ -142,6 +151,14 @@ class ChatroomWidget(Vertical):
                 continue
             item = (f"{prefix} {aid}", aid)
             choices_list.append(item)
+
+    def __update_remaining_agent_counts(self) -> None:
+        """ Helper method to update the remaining agents text widget """
+        n_remaining = len(self._state_manager.get_all_remaining_agents_ids()) - 1  # Ignore yourself
+        n_terminated = len(self._state_manager.get_all_agents()) - n_remaining - 1
+
+        text = f"Remaining: [b]{n_remaining}[/]; Terminated: [b]{n_terminated}[/]"
+        self._remaining_agents_widget.update(text)
 
     def __generate_callbacks(self) -> dict:
         """ Generates the callback mapping and returns it """
@@ -206,6 +223,8 @@ class ChatroomWidget(Vertical):
 
         self._send_to_list.set_options(self._choices_send_to)
         self._send_as_list.set_options(self._choices_send_as)
+
+        self.__update_remaining_agent_counts()
 
     def __close_chatroom(self) -> None:
         """ Callback method to close the chatroom """
