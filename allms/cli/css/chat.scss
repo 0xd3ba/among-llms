@@ -15,7 +15,7 @@ ChatroomWidget {
     & #chat-header-container {
         height: 1;
         min-width: 60;
-        padding: 0;
+        padding: 0 1 0 1;
         background: $surface;
         color: $foreground 50%;
 
