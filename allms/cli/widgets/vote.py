@@ -111,7 +111,7 @@ class VotingWidget(ModalScreenWidget):
     @on(RadioSet.Changed)
     def __update_voting_for_agent(self, event: RadioSet.Changed) -> None:
         """ Handler invoked when a different agent ID is selected """
-        self._voting_for = event.pressed.label
+        self._voting_for = str(event.pressed.label)
 
     @on(Select.Changed)
     async def __update_voting_as(self, event: Select.Changed) -> None:

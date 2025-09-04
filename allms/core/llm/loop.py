@@ -112,7 +112,7 @@ class ChatLoop:
                 if model_response is None:
                     continue
 
-                AppConfiguration.logger.log(f"Received valid response from agent ({agent_id}) ... ")
+                AppConfiguration.logger.log(f"Received valid response from agent ({agent_id}): {model_response}")
 
                 # Valid response received from the model
                 # Send the message and update the game state
@@ -143,11 +143,10 @@ class ChatLoop:
                     await self._callbacks.invoke(StateManagerCallbackType.START_A_VOTE, started_by=agent_id)
                     vote_started = True
 
-                if vote_started:
+                if vote_started and (voting_for is not None):
                     await self._callbacks.invoke(StateManagerCallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
 
         except asyncio.CancelledError:
-            # TODO: Handle when the task is cancelled
             AppConfiguration.logger.log(f"Agent ({agent_id}) has been stopped")
 
     def __update_response_model_allowed_ids(self) -> None:
