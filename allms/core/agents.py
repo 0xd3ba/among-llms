@@ -25,6 +25,7 @@ class Agent:
     # and keep the notifications etc. as normal formatted messages. On every iteration, the LLM will fetch the latest
     # contents (even if edited/deleted) instead of stale version (if stored as formatted messages instead of IDs)
     chat_logs: deque[tuple[str, str, bool]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
+    __latest_msg: str = ""  # Use as Producer/Consumer flags
 
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
@@ -43,6 +44,11 @@ class Agent:
         msg_type = "message ID" if is_message_id else "message"
         AppConfiguration.logger.log(f"Adding the following {msg_type} to chat-log for agent({self.id}): {msg}")
         self.chat_logs.append((role, msg, is_message_id))
+        self.__latest_msg = msg  # Doesn't matter if it is an ID or a raw message
+
+    def can_reply(self, latest_msg_id: str | None) -> bool:
+        """ Returns True if the agent (LLM) is allowed to reply """
+        return (latest_msg_id is None) or (self.__latest_msg != latest_msg_id)
 
     def get_chat_logs(self) -> list[tuple[str, str, bool]]:
         return list(self.chat_logs)

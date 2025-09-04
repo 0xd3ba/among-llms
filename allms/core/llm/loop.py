@@ -83,11 +83,13 @@ class ChatLoop:
 
         self.__update_response_model_allowed_ids()
 
-    async def agent_loop(self, agent: Agent) -> None:
+    async def agent_loop(self, agent: Agent, max_turn_skips: int = 5) -> None:
         """ Main loop of the LLM agent """
         agent_id = agent.id
         voting_not_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=False)
         voting_started_prompt = ""
+        msg_id = None
+        turns_skipped = 0
 
         try:
             while not self._stop_loop[agent.id]:
@@ -98,6 +100,13 @@ class ChatLoop:
                 if self._pause_loop:  # If paused, prevent agents from interacting with the model
                     continue
 
+                # Prevent the agent from spamming same messages over and over again when no other messages have
+                # arrived in the chat yet. Maximum delay between responses = max_turn_skips * max(delay_seconds)
+                if not agent.can_reply(msg_id) and (turns_skipped < max_turn_skips):
+                    turns_skipped += 1
+                    continue
+
+                turns_skipped = 0
                 vote_started, vote_started_by = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
                 if vote_started:
                     voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True, started_by=vote_started_by)
