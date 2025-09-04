@@ -31,6 +31,8 @@ class GameState:
     _all_agents: dict[str, Agent] = field(default_factory=dict)               # Mapping between agent ID and agent object
     _remaining_agent_ids: set[str] = field(default_factory=set)               # Set of all the remaining agent IDs in the game
     _voting: AgentVoting = field(default_factory=AgentVoting)                 # For handling voting
+    _last_update_time: int = 0                                                # The last update timestamp (ms)
+    _vote_duration_timer: int = 0                                             # Amount of time (ms) left before vote is ended
     _id_generator: ChatMessageIDGenerator = field(default_factory=ChatMessageIDGenerator)
 
     def initialize_scenario(self, scenario: str) -> None:
@@ -138,6 +140,7 @@ class GameState:
         """ Sets the start time (in UNIX milliseconds) """
         assert isinstance(start_timestamp_ms, int) and start_timestamp_ms > 0, f"Expecting start time to be a positive integer"
         self.start_time = start_timestamp_ms
+        self._last_update_time = 0  # Reset the last update time
 
     def get_duration(self) -> int:
         """ Returns the elapsed duration (in UNIX milliseconds) """
@@ -152,7 +155,16 @@ class GameState:
         """ Updates the duration (in milliseconds) since the start. Expects timestamp to be a UNIX millisecond """
         assert isinstance(curr_timestamp_ms, int) and curr_timestamp_ms > 0, f"Expecting timestamp to be a positive integer"
         assert curr_timestamp_ms >= self.start_time, f"Current timestamp ({curr_timestamp_ms}) < start timestamp ({self.start_time})"
-        self.elapsed_duration = curr_timestamp_ms - self.start_time
+
+        if not self._last_update_time:
+            self._last_update_time = self.start_time
+
+        elapsed_ms = (curr_timestamp_ms - self._last_update_time)
+        self.elapsed_duration += elapsed_ms
+
+        if self._vote_duration_timer:
+            self._vote_duration_timer -= elapsed_ms
+        self._last_update_time = curr_timestamp_ms
 
     def generate_message_id(self) -> str:
         return self._id_generator.next()
@@ -260,6 +272,10 @@ class GameState:
         """ Returns the total number of voters who voted so far """
         return self._voting.total_voters()
 
+    def vote_duration_timer_has_expired(self) -> bool:
+        """ Returns True if the vote duration timer has expired """
+        return self._vote_duration_timer <= 0
+
     def can_end_vote(self) -> bool:
         """ Returns True if an ongoing vote can be ended, else False """
         if not self._voting.voting_has_started():  # Just in case
@@ -288,7 +304,13 @@ class GameState:
         if self.voting_has_started()[0]:
             AppConfiguration.logger.log(f"Trying to start a vote by {started_by} when it's already started. Ignoring.")
             return False
+
+        clock = AppConfiguration.clock
+        curr_ms = clock.current_timestamp_in_milliseconds_utc()
+        end_ms = clock.add_n_minutes(curr_ms, n_minutes=AppConfiguration.max_vote_duration_min)
+        self._vote_duration_timer = end_ms - curr_ms
         self._voting.start_vote(started_by=started_by)
+
         return True
 
     def vote(self, by_agent: str, for_agent: str) -> bool:
@@ -313,6 +335,7 @@ class GameState:
     def end_voting(self) -> tuple[Optional[Counter], Optional[list[tuple[str, str]]]]:
         """ Stops the voting process and returns the results """
         if self.voting_has_started()[0]:
+            self._vote_duration_timer = 0
             vote_list = self._voting.get_who_voted_and_for_whom()
             return self._voting.end_vote(), vote_list
 

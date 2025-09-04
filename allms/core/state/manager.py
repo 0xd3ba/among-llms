@@ -453,10 +453,9 @@ class GameStateManager:
                 self._game_state.update_duration(curr_ts)
 
                 # Check the voting status
-                if self._vote_started_timestamp is not None:
-                    if curr_ts >= self._vote_will_end_on_timestamp:
-                        self._logger.log(f"Ending vote due to duration timeout ...")
-                        self.end_vote()
+                if self.voting_has_started()[0] and self._game_state.vote_duration_timer_has_expired():
+                    self._logger.log(f"Ending vote due to duration timeout ...")
+                    self.end_vote()
 
         except (asyncio.CancelledError, Exception) as e:
             self._logger.log(f"Received termination signal for background worker", level=logging.CRITICAL)
