@@ -35,9 +35,6 @@ class GameStateManager:
         self._msg_id_generator_lock: Lock = Lock()
         self._on_new_message_callback: Optional[Callable] = None
 
-        self._vote_started_timestamp: Optional[int] = None
-        self._vote_will_end_on_timestamp: Optional[int] = None
-
         self._chat_callbacks: Optional[ChatCallbacks] = None
         self._self_callbacks: StateManagerCallbacks = StateManagerCallbacks(self.__generate_callbacks())
         self._chat_loop: Optional[ChatLoop] = None
@@ -329,8 +326,6 @@ class GameStateManager:
             message=f"{event_msg}. Voting will automatically end on [b]{end_ts_iso}[/]. Cast your vote before then."
         )
 
-        self._vote_started_timestamp = curr_ts
-        self._vote_will_end_on_timestamp = end_ts
         self._logger.log(f"Voting will end on {end_ts_iso}")
 
     def can_vote(self, agent_id: str) -> bool:
@@ -356,10 +351,6 @@ class GameStateManager:
 
         if kick_agent_id is not None:
             self.terminate_agent(kick_agent_id)
-
-        # Reset the timestamps to None
-        self._vote_started_timestamp = None
-        self._vote_will_end_on_timestamp = None
 
     def vote(self, by_agent: str, for_agent: str, voting_by_you: bool = False) -> None:
         """ Method to participate in the vote """
