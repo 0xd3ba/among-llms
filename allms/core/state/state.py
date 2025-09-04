@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+import math
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Optional
@@ -258,6 +259,29 @@ class GameState:
     def get_total_voters(self) -> int:
         """ Returns the total number of voters who voted so far """
         return self._voting.total_voters()
+
+    def can_end_vote(self) -> bool:
+        """ Returns True if an ongoing vote can be ended, else False """
+        if not self._voting.voting_has_started():  # Just in case
+            AppConfiguration.logger.log(f"Checking if vote can be ended but voting has not started yet", level=logging.WARNING)
+            return False
+
+        n_voters = self._voting.total_voters()
+        n_agents = len(self._remaining_agent_ids)
+        assert n_voters <= n_agents, (
+            f"Total voters ({n_voters}) > number of agents remaining ({n_agents}). " +
+            f"This should not happen."
+        )
+
+        if n_voters == n_agents:  # Everyone has voted
+            return True
+
+        # Check if a single person got atleast ceil(N/2) votes (N = # of remaining agents)
+        max_votes_received = self._voting.get_max_votes_received()
+        if max_votes_received > math.floor(n_agents / 2):
+            return True
+
+        return False
 
     def start_voting(self, started_by: str) -> bool:
         """ Starts the voting process. Returns True if started. False otherwise """

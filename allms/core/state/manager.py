@@ -381,15 +381,8 @@ class GameStateManager:
         self.__add_event(event_msg)
         self.__invoke_chat_callback(ChatCallbackType.ANNOUNCE_EVENT, event_msg)
 
-        # Check if this was the last agent to vote -- if yes, we can end the vote and arrive at a conclusion
-        total_voters_so_far = self._game_state.get_total_voters()
-        n_agents_remaining = self._game_state.get_number_of_remaining_agents()
-        assert total_voters_so_far <= n_agents_remaining, (
-            f"Total voters ({total_voters_so_far}) > number of agents remaining ({n_agents_remaining}). " +
-            f"This should not happen."
-        )
-
-        if total_voters_so_far == n_agents_remaining:
+        # Check if we can end the vote -- if yes, we can arrive at a conclusion
+        if self._game_state.can_end_vote():
             self.end_vote()
 
     def get_voted_for_who(self, by_agent: str) -> Optional[str]:
@@ -520,8 +513,7 @@ class GameStateManager:
 
         Note: agent_to_kick can be None if vote was not concluded
         """
-        min_thresh = AppConfiguration.min_vote_valid_threshold
-        assert (0 < min_thresh <= 1), f"Expected voting threshold to be in range (0, 1] but got {min_thresh} instead"
+        min_thresh = 0.5
 
         remaining_agents = self.get_all_remaining_agents_ids()
         n_remaining = len(remaining_agents)
@@ -554,6 +546,7 @@ class GameStateManager:
 
             # It means someone needs to get kicked out. Is that you (hehe) ? Who knows ...
             agent_to_kick = kick_agents[0]
+            total_votes = max(total_votes, n_remaining)
             conclusion = (
                 f"Vote Concluded. {agent_to_kick} received {max_votes} out of {total_votes} votes and hence, "
                 f"will be terminated. {did_not_vote_str}"
