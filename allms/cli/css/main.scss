@@ -37,5 +37,13 @@ MainScreen {
             border: none;
         }
     }
+}
 
+
+/* Configuration for the about screen */
+AboutAppScreen {
+    & .modal-container {
+        max-height: 60;
+        height: 20;
+    }
 }

@@ -1,11 +1,13 @@
 from pathlib import Path
 
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.screen import Screen
 from textual.containers import Vertical, VerticalScroll
-from textual.widgets import Footer, Static
+from textual.widgets import Footer
 
-from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.config import AppConfiguration, BindingConfiguration, RunTimeConfiguration
+from allms.cli.screens.about import AboutAppScreen
 from allms.cli.screens.chat import ChatroomScreen
 from allms.cli.screens.load import LoadGameStateScreen
 from allms.cli.screens.new import NewChatScreen
@@ -17,6 +19,12 @@ from allms.core.state import GameStateManager
 
 class MainScreen(Screen):
     """ Home-screen of the application """
+
+    BINDINGS = [
+        Binding(BindingConfiguration.main_show_about, "show_about_screen", "About"),
+        Binding(BindingConfiguration.chatroom_quit, "quit", "Quit")
+    ]
+
     def __init__(self, config: RunTimeConfiguration, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._config = config
@@ -55,6 +63,16 @@ class MainScreen(Screen):
 
     async def handler_quit(self, option_item: str) -> None:
         self.app.exit()
+
+    async def action_quit(self) -> None:
+        """ Invoked when binding for exit is pressed """
+        await self.handler_quit("")
+
+    def action_show_about_screen(self) -> None:
+        """ Invoked when binding for showing about screen is pressed """
+        title = "About"
+        screen = AboutAppScreen(title=title, config=self._config, state_manager=self._state_manager)
+        self.app.push_screen(screen)
 
     def __load_chatroom(self, state_path: Path) -> None:
         """ Callback method invoked when load is successful """
