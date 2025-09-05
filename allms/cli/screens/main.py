@@ -9,6 +9,7 @@ from allms.config import AppConfiguration, RunTimeConfiguration
 from allms.cli.screens.chat import ChatroomScreen
 from allms.cli.screens.load import LoadGameStateScreen
 from allms.cli.screens.new import NewChatScreen
+from allms.cli.screens.splash import MainSplashScreen
 from allms.cli.widgets.banner import BannerWidget
 from allms.cli.widgets.home import MainMenuOptionListWidget
 from allms.core.state import GameStateManager
@@ -21,13 +22,17 @@ class MainScreen(Screen):
         self._config = config
         self._options = {
             # Main-menu option: Widget that is instantiated when option is clicked
-            # TODO: Map the handlers to their respective item
             "New Chatroom":  self.handler_new_chatroom,
             "Load Chatroom": self.handler_load_chatroom,
             "Quit": self.handler_quit
         }
 
         self._state_manager = GameStateManager(self._config)
+
+    def on_mount(self) -> None:
+        if self._config.skip_intro:
+            return
+        self.app.push_screen(MainSplashScreen())
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="main-screen-container"):
