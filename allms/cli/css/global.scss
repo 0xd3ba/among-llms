@@ -58,6 +58,20 @@ DirectoryTree {
     padding: 1;
 }
 
+/* Global configuration for markdown */
+Markdown {
+    & MarkdownHeader {
+        margin: 1 0 1 0;
+    }
+
+    & MarkdownBlockQuote {
+        & > MarkdownHeader {
+            margin: 0;
+        }
+        padding: 1;
+    }
+}
+
 /* Global configuration for modal screens */
 ModalScreen {
 

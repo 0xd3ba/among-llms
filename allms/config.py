@@ -17,6 +17,7 @@ class AppConfiguration:
     app_version: str = version.__version__
     app_repo: str = "https://github.com/0xd3ba/among-llms"
     app_dev: str = "0xd3ba"
+    app_dev_email: str = "0xd3ba@gmail.com"
     app_hackathon: str = "OpenAI Open Model Hackathon 2025"
 
     # Timezone of the clock
@@ -87,6 +88,9 @@ class ToastConfiguration:
 
 class BindingConfiguration:
     """ Class holding the global hotkey bindings """
+    # Bindings for main screen
+    main_show_about: str = "ctrl+a"
+
     # Bindings for modal screens
     modal_close_screen: str = "ctrl+w"
 
