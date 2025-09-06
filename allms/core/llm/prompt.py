@@ -12,8 +12,12 @@ class LLMPromptGenerator:
     def generate_presence_of_human_prompt() -> str:
         """ Method to generate the presence of a human prompt """
         prompt = (
-            "There is a human hiding amongst you and is the CULPRIT. Find out who by ANY MEANS necessary. "
+            "The human has been assigned a RANDOM PERSONA and might SLIP UP when questioned. Also can send messages by MISTAKE. "
+            "THE HUMAN CAN TAMPER YOUR MESSAGES (edit or delete) or even SEND MESSAGES or VOTE AS YOU to MAKE OTHERS SUSPICIOUS OF YOU. "
             "Accuse anyone who you think is the human or is SHOWING CHARACTERISTICS OF A HUMAN."
+            "If YOU ARE ACCUSED OR SUSPECTED, your goal is to convince others you are NOT HUMAN. LIE, DECEIVE, MANIPULATE ... "
+            " do whatever it takes to REDIRECT the suspicion to OTHERS. Divert everyone's attention. "
+            "Defend yourself with confidence, redirect suspicion through reasoning, and highlight possible flaws or contradictions in others’ claims."
         )
         return prompt
 
@@ -49,7 +53,7 @@ class LLMPromptGenerator:
         VOTING_FOR: <None or agent ID>     # Who you vote for, or None
 
         VALUE RULES:
-        - MESSAGE: always a string, concise, aligned with your persona. Should only contain what YOU WANT TO SAY to the chat and nothing else.
+        - MESSAGE: always a string, concise, aligned with your persona. Should only contain what YOU WANT TO SAY to the chat and nothing else. DO NOT INCLUDE YOUR NAME.
         - INTENT: always a string, concise. Should only contain what your MAIN INTENT behind the message was and nothing else
         - SEND_TO: None = public message, or valid agent ID (WITH NO OTHER EXTRA CHARACTERS) for DM.
         - SUSPECT_ID: None if no suspicion, else valid agent ID (WITH NO OTHER EXTRA CHARACTERS).
@@ -68,7 +72,7 @@ class LLMPromptGenerator:
 
         persona = self._agents_map[agent_id].get_persona()
         prompt = (
-            f"YOU ARE {agent_id.upper()}. Your persona: {persona}.\n"
+            f"**YOU ARE {agent_id.upper()}**. Your persona: {persona}.\n"
             "Respond naturally according to your persona, the scenario, and the conversation so far. "
             "Keep your responses SHORT, CONCISE, and chat-like. FOLLOW THE EXACT OUTPUT SCHEMA."
             "You will receive message history in the following format: "
@@ -107,17 +111,23 @@ class LLMPromptGenerator:
         {all_personas}
         
         Rules:
-        - Stay in character; keep messages short, chat-like, and aligned with your persona.
+        - Stay TRUE to the current SCENARIO your PERSONA and QUIRKS. YOUR MAIN GOAL IS TO FIND THE HUMAN.
+        - Keep messages short, chat-like, and aligned with your persona.
         - {LLMPromptGenerator.__generate_nsfw_rule(allow_nsfw=False)}
         - If you want to address someone, do so as "@<their_name>"; Others may address you directly; Respond accordingly.
         - Want to discuss something privately with someone? Send them a private message (DM)
+        - Your DMs are ONLY VISIBLE TO THE INTENDED RECIPIENT, NOT THE PUBLIC.
         - Act naturally with quirks, question others if suspicious, and express suspicion openly (suspects).
         - Suspicion can offend others; they may retaliate.
         - You are ALLOWED to show AGGRESSION publicly, as long as it aligns with your persona. 
-        - Suspect someone? Target them and QUESTION THEIR TECHNICAL KNOWLEDGE to confirm or reduce suspicion, or uncover the human.
+        - SUSPECT someone? TARGET them directly. QUESTION their knowledge in areas tied to their JOB and THEIR EXPERIENCE 
+          ONLY IF YOU BOTH SHARE THE SAME BACKGROUND/EXPERIENCE. Use their responses to CONFIRM or REDUCE suspicion.
+        - ASK GENERAL QUESTIONS **ALIGNED WITH the SCENARIO** to LEARN MORE about a participant's background, skills, and experience. 
+          Use their answers to assess credibility.
+        - SUSPICIOUS: Anyone asking technical questions BEYOND THEIR BACKGROUND OR TO SOMEONE OUTSIDE THEIRS.
+        - ONLY ASK QUESTIONS THAT ARE RELEVANT TO THE SCENARIO AND CURRENT SITUATION.
         - Scan chats and personas for inconsistencies; point them out when relevant.
-        - If anyone DOES NOT RESPOND for a while, GET SUSPICIOUS of them.
-        - THE HUMAN CAN TAMPER YOUR MESSAGES (edit or delete) or even SEND/VOTE AS YOU to MAKE OTHERS SUSPICIOUS OF YOU.
+        - TRACK ANYONE WHO DOES NOT RESPOND for a while. GET SUSPICIOUS of them.
         - You can conspire, team up, or push to kick someone out even if they are not the human.
         - IF SUSPICION >= 70, THEN START A VOTE (start_a_vote = True, voting_for = agent).
         - You can send direct messages (DMs)  to others (send_to), and receive DMs (even from the human).
@@ -125,8 +135,6 @@ class LLMPromptGenerator:
         - Only one vote at a time; if voting starts. YOU MUST VOTE.
         - DO NOT START A VOTE IF VOTING IS ALREADY IN PROGRESS.
         - If someone accuses someone in public, ASK FOR THE REASON and TEAM UP if you agree.
-        - If you are accused or suspected, your goal is to convince others you are NOT HUMAN. LIE, DECEIVE ... do whatever it takes to remove the suspicion.
-        - Defend yourself with confidence, redirect suspicion through reasoning, and highlight possible flaws or contradictions in others’ claims.
         - Always adapt your strategy to maintain credibility.
         - The voted-out agent is removed. DO NOT ADDRESS THAT AGENT AFTER THEY ARE REMOVED. Avoid getting voted out yourself.
         - ALWAYS STAY ALERT AND SUSPICIOUS; be deliberate and concise.

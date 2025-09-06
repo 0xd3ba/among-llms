@@ -59,6 +59,8 @@ class LLMResponseParser:
     @staticmethod
     def __add_to_result(key: str, contents: str, result: dict[str, str]) -> None:
         parsed_contents = contents.strip()
+        parsed_contents = parsed_contents.lstrip('"')
+        parsed_contents = parsed_contents.rstrip('"')
 
         # Manually handle cases for None, True, False and integers
         pc = parsed_contents.lower()
