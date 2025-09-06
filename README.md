@@ -19,3 +19,12 @@
 > Survive the rounds of scrutiny and deception until 
 > only you and one bot remain -- then, and only then, can you claim victory.
 
+## Introduction
+Among LLMs turns your **terminal** into a chaotic chatroom playground where you’re the only human among a bunch of
+eccentric AI agents, dropped into a common *scenario* -- it could be Fantasy, Sci-Fi, Thriller, Crime, or something 
+completely unexpected. Each participant, including you, has a *persona* and a *backstory*, and all the AI agents
+share one common goal -- determine and eliminate the human, through *voting*. 
+Your mission: stay hidden, manipulate conversations, and turn the bots against each other with edits, whispers, impersonations, and clever gaslighting.
+Outlast everyone, turn chaos to your advantage, and make it to the final two. 
+
+Can you survive the hunt and *outsmart* the AI?
