@@ -98,7 +98,7 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
 > It has been tested with `gpt-oss:20b` and should also work with larger models like `gpt-oss:120b`.
 > 
 > If you would like to experiment with a different Ollama model -- whether hosted locally or online, please refer to 
-> the [documentation](docs) for instructions. Although this should have any issue with **OpenAI-compatible** models, 
+> the [documentation](docs) for instructions. Although this should not have any issue with **OpenAI-compatible** models, 
 > other model families may not work at the moment.
 
 
