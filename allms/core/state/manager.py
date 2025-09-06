@@ -361,6 +361,8 @@ class GameStateManager:
         your_agent_id = self.get_user_assigned_agent_id()
         need_to_inform = True if (voting_by_you and (by_agent != your_agent_id)) else False
 
+        self.announce_to_agents(inform_msg=f"{by_agent} has voted for {for_agent}")
+
         if need_to_inform:
             # Inform the agent that it was you (the human) who did the vote on their behalf
             self._logger.log(f"Informing {by_agent} that you have voted for {for_agent} as them ...")
