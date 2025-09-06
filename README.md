@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="allms/res/assets/among_llms.png" width="600px" alt="Among-LLMs Banner">
+    <img src="assets/among_llms.png" width="600px" alt="Among-LLMs Banner">
 </p>
 
 <p align="center">
