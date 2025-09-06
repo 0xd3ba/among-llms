@@ -73,40 +73,46 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
 
 
 ## Installation
-
 1. Ensure you have atleast Python `v3.11` installed. 
 2. Ensure you have [`ollama`](https://github.com/ollama/ollama) installed and have pulled the model you require; For example,
     ```bash
     ollama pull gpt-oss:20b 
     ```
 
-3. Clone this repository
+3. Clone this repository and navigate to the project's root directory:
     ```bash
     git clone https://github.com/0xd3ba/among-llms
     cd among-llms
     ```
-> [!TIP]
-> It’s highly recommended to use a virtual environment before proceeding to next step.
 
-4. Install the required dependencies using `pip` or `pip3`
+4. Install the required dependencies using `pip` or `pip3`:
     ```bash
     pip3 install -r requirements.txt
     ```
 
-5. Ensure you are inside the project root directory. Then run the following command to start the application.
-    ```bash
-    python3 -m allms
-    ```
+> [!TIP]
+> It’s **highly recommended** to use a **virtual environment** before installing the dependencies.
 
-> [!NOTE]
-> Currently, this project only supports local Ollama models (specifically OpenAI-compatible ones)
+> [!IMPORTANT]
+> Currently, this project only supports **local** Ollama models (specifically **OpenAI-compatible** ones).
 > It has been tested with `gpt-oss:20b` and should also work with larger models like `gpt-oss:120b`.
 > Other model families may not work at the moment.
 
 
+### Configuration and Usage
+Among LLMs is configured through a [`config.yml`](config.yml) file.  
+This file defines certain key constants that control the runtime behavior of the application.
+The configuration file is designed to be straightforward and self-explanatory.  
+Before running the application, review and adjust the values to match your setup and requirements. Once everything is
+set, launch the application by running the following command:
+```bash
+python3 -m allms
+```
+
+
 ## Contributions
-Contributions are welcome! 
-Before contributing, please review `CONTRIBUTING.md` for guidelines first.
+Contributions are welcome -- whether it is a bug fix, a new feature, an enhancement to an existing feature, reporting 
+an issue, or even suggesting/adding new scenarios or personas. However, before contributing, please review [`CONTRIBUTING.md`](CONTRIBUTING.md) for contribution guidelines first.
 
 
 ## License
