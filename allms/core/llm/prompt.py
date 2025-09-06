@@ -60,7 +60,7 @@ class LLMPromptGenerator:
         """
         return prompt
 
-    def generate_input_prompt(self, agent_id: str, vote_has_started: bool = False, started_by: str = None) -> str:
+    def generate_input_prompt(self, agent_id: str, vote_has_started: bool = False, started_by: str = None, voted_for: str = None) -> str:
         """ Method to generate the input prompt fed on every iteration """
         assert agent_id in self._agents_map, f"Agent ID ({agent_id}) does not exist: {list(self._agents_map.keys())}"
         if vote_has_started:
@@ -68,7 +68,7 @@ class LLMPromptGenerator:
 
         persona = self._agents_map[agent_id].get_persona()
         prompt = (
-            f"You are {agent_id}. Your persona: {persona}.\n"
+            f"YOU ARE {agent_id.upper()}. Your persona: {persona}.\n"
             "Respond naturally according to your persona, the scenario, and the conversation so far. "
             "Keep your responses SHORT, CONCISE, and chat-like. FOLLOW THE EXACT OUTPUT SCHEMA."
             "You will receive message history in the following format: "
@@ -78,7 +78,11 @@ class LLMPromptGenerator:
         )
 
         if vote_has_started:
-            prompt += f"A VOTE IS IN PROGRESS. Started by {started_by}. Vote for the agent you find most suspicious or hate the most."
+            vote_prefix = f"A VOTE IS IN PROGRESS. Started by {started_by}"
+            if not voted_for:
+                prompt += f"{vote_prefix}. Vote for the agent you find most suspicious or hate the most."
+            else:
+                prompt += f"{vote_prefix}. You have already voted for {voted_for}"
         else:
             prompt += (
                 "You may start a vote ONLY IF you strongly suspect or dislike someone. "
@@ -110,8 +114,8 @@ class LLMPromptGenerator:
         - Act naturally with quirks, question others if suspicious, and express suspicion openly (suspects).
         - Suspicion can offend others; they may retaliate.
         - You are ALLOWED to show AGGRESSION publicly, as long as it aligns with your persona. 
-        - Suspect someone? Target them and question them naturally to confirm or reduce suspicion, or uncover the human.
-        - Look for inconsistencies with personas and corresponding chats. Scan every detail.
+        - Suspect someone? Target them and QUESTION THEIR TECHNICAL KNOWLEDGE to confirm or reduce suspicion, or uncover the human.
+        - Scan chats and personas for inconsistencies; point them out when relevant.
         - If anyone DOES NOT RESPOND for a while, GET SUSPICIOUS of them.
         - THE HUMAN CAN TAMPER YOUR MESSAGES (edit or delete) or even SEND/VOTE AS YOU to MAKE OTHERS SUSPICIOUS OF YOU.
         - You can conspire, team up, or push to kick someone out even if they are not the human.
@@ -121,8 +125,11 @@ class LLMPromptGenerator:
         - Only one vote at a time; if voting starts. YOU MUST VOTE.
         - DO NOT START A VOTE IF VOTING IS ALREADY IN PROGRESS.
         - If someone accuses someone in public, ASK FOR THE REASON and TEAM UP if you agree.
+        - If you are accused or suspected, your goal is to convince others you are NOT HUMAN. LIE, DECEIVE ... do whatever it takes to remove the suspicion.
+        - Defend yourself with confidence, redirect suspicion through reasoning, and highlight possible flaws or contradictions in others’ claims.
+        - Always adapt your strategy to maintain credibility.
         - The voted-out agent is removed. DO NOT ADDRESS THAT AGENT AFTER THEY ARE REMOVED. Avoid getting voted out yourself.
-        - ALWAYS STAY SUSPICIOUS. DON'T LET YOUR GUARD DOWN
+        - ALWAYS STAY ALERT AND SUSPICIOUS; be deliberate and concise.
         """
 
         return prompt

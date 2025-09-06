@@ -88,6 +88,7 @@ class ChatLoop:
         agent_id = agent.id
         voting_not_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=False)
         voting_started_prompt = ""
+        voted_for: Optional[str] = None
         msg_id = None
         turns_skipped = 0
 
@@ -95,7 +96,7 @@ class ChatLoop:
             while not self._stop_loop[agent.id]:
 
                 # Sleep for N random seconds to simulate delays, like in a group-chat and to prevent spamming
-                delay = random.randint(3, 7)
+                delay = random.randint(2, 4)
                 await asyncio.sleep(delay)
                 if self._pause_loop:  # If paused, prevent agents from interacting with the model
                     continue
@@ -109,7 +110,11 @@ class ChatLoop:
                 turns_skipped = 0
                 vote_started, vote_started_by = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
                 if vote_started:
-                    voting_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=True, started_by=vote_started_by)
+                    voting_started_prompt = self._llm_agents_mgr.get_input_prompt(
+                        agent_id, voting_has_started=True,
+                        started_by=vote_started_by,
+                        voted_for=voted_for
+                    )
 
                 AppConfiguration.logger.log(f"Requesting response from agent ({agent_id}) ... ")
                 input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
