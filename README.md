@@ -57,7 +57,7 @@ private, they have no idea that you can read them too.
 - **Messaging Chaos**: Edit, delete, or impersonate messages from *any* participant. Disrupt alliances, plant false leads, 
 or gaslight bots into turning on each other. No one but you (and the impersonated bot) knows the truth.
 
-- **Voting Mechanism**: Start or join votes to eliminate the suspected human. One slip-up and you’ll be gone instantly. 
+- **Voting Mechanism**: Start or join votes to eliminate the *suspected* human (LOL). One slip-up and you’ll be gone instantly. 
 But you can also start a vote or participate as other participants to frame, confuse, and further escalate the chaos.
 
 - **Infinite Replayability**: Thanks to the unpredictable nature of LLM-driven responses and the freedom 
@@ -108,6 +108,21 @@ set, launch the application by running the following command:
 ```bash
 python3 -m allms
 ```
+
+> [!NOTE]
+> Each time the application is launched, a new log file is created in the default log directory (`./data/logs/`) with 
+> the format `YYYYMMDD_HHMMSS.log`. 
+> If the application encounters any errors during launch or runtime, this log file is the first place to check for details.
+
+
+### Using the Terminal Interface
+Among LLMs is built using [Textual](https://github.com/textualize/textual/), a Python library for creating terminal-based UIs.
+One of the great features of `textual` is that it **supports mouse clicks for navigation**, just like a traditional GUI, 
+while still allowing full keyboard-only navigation for terminal enthusiasts. 
+
+If you are interested in keyboard-only navigation, check out the [documentation](docs) for a quick guide on navigating the 
+interface and customizing hotkeys. Whether you’re a seasoned `vim` warrior or a terminal newbie, you can get comfortable 
+with the Among LLMs interface in roughly two-three minutes.  
 
 
 ## Contributions
