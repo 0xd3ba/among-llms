@@ -73,9 +73,9 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
 
 
 ## Installation
-### Pre-Requisites
+
 1. Ensure you have atleast Python `v3.11` installed. 
-2. Ensure you have [`ollama`](https://github.com/ollama/ollama) installed and pull the model you require; For example,
+2. Ensure you have [`ollama`](https://github.com/ollama/ollama) installed and have pulled the model you require; For example,
     ```bash
     ollama pull gpt-oss:20b 
     ```
@@ -86,11 +86,17 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
     cd among-llms
     ```
 > [!TIP]
-> **Recommended**: Create and activate a virtual environment. For example:
->  ``` bash
->  python3 -m venv allms-venv
->  source allms-venv/bin/activate
->  ```
+> It’s highly recommended to use a virtual environment before proceeding to next step.
+
+4. Install the required dependencies using `pip` or `pip3`
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+5. Ensure you are inside the project root directory. Then run the following command to start the application.
+    ```bash
+    python3 -m allms
+    ```
 
 > [!NOTE]
 > Currently, this project only supports local Ollama models (specifically OpenAI-compatible ones)
