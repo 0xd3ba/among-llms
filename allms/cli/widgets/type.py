@@ -38,6 +38,11 @@ class ChatroomIsTyping(Container):
         self._are_typing.remove(agent_id)
         self.__update_indicator()
 
+    def remove_all(self) -> None:
+        """ Removes all the agents from the typing set """
+        self._are_typing.clear()
+        self.__update_indicator()
+
     def __update_indicator(self) -> None:
         """ Helper method to update the loading indicator """
         typing_str = self.__create_is_typing_text()

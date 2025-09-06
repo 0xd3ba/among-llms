@@ -212,6 +212,7 @@ class ChatroomWidget(Vertical):
 
     def __game_has_officially_ended(self, conclusion: str) -> None:
         """ Callback method to display the game ended screen """
+        self._is_typing_widget.remove_all()
         self._game_ended = True
         screen = GameEndedScreen(title=conclusion, config=self._config, state_manager=self._state_manager)
         self.app.push_screen(screen)

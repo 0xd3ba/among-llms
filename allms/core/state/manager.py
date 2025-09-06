@@ -406,6 +406,7 @@ class GameStateManager:
             # Update the selection list in the UI to not include this agent
             self.__invoke_chat_callback(ChatCallbackType.UPDATE_AGENTS_LIST)
             self.__invoke_chat_callback(ChatCallbackType.NOTIFY_TOAST, title=f"{agent_id} terminated", message=f"{n_remaining-2} agents left to terminate ...")
+            self.__invoke_chat_callback(ChatCallbackType.IS_TYPING, agent_id=agent_id, is_typing=False)
 
         # You got caught, or you won -- either ways, the game has ended
         else:
