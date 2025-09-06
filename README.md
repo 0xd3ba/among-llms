@@ -70,3 +70,39 @@ Want to start fresh but keep the same setup? Use the same JSON as a template to 
 agents, and personas -- only the messages get wiped. Everything else stays the same.
 
 - **Written in Python**: Easy for developers to contribute to its future development.
+
+
+## Installation
+### Pre-Requisites
+1. Ensure you have atleast Python `v3.11` installed. 
+2. Ensure you have [`ollama`](https://github.com/ollama/ollama) installed
+    - Pull the model you require; For example, 
+    ```bash
+    ollama pull gpt-oss:20b 
+    ```
+
+3. Clone this repository
+    ```bash
+    git clone https://github.com/0xd3ba/among-llms
+    cd among-llms
+    ```
+    > [!TIP]
+    > **Recommended**: Create and activate a virtual environment. For example:
+    >  ``` bash
+    >  python3 -m venv allms-venv
+    >  source allms-venv/bin/activate
+    >  ```
+
+> [!NOTE]
+> Currently, this project only supports local Ollama models (specifically OpenAI-compatible ones)
+> It has been tested with `gpt-oss:20b` and should also work with larger models like `gpt-oss:120b`.
+> Other model families may not work at the moment.
+
+
+## Contributions
+Contributions are welcome! 
+Before contributing, please review `CONTRIBUTING.md` for guidelines first.
+
+
+## License
+Among LLMs is released under GNU General Public License v3.0.
