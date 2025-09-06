@@ -28,3 +28,37 @@ Your mission: stay hidden, manipulate conversations, and turn the bots against e
 Outlast everyone, turn chaos to your advantage, and make it to the final two. 
 
 Can you survive the hunt and *outsmart* the AI?
+
+### Features
+
+- **Terminal-based UI**: Play directly in your terminal for a lightweight, fast, and immersive experience.
+Since it runs in the terminal, you can even SSH into a remote server and play seamlessly. No GUI required.
+
+- **Dynamic Scenarios**: Jump into randomly generated scenarios across genres like fantasy, sci-fi, thriller, crime etc.
+ or write your *own* custom scenario.
+
+- **Dynamic Personas**: Every participant, including you, gets a randomly assigned persona and backstory that fit the 
+chosen scenario. Want more control? Customize them all yourself for tailored chaos.
+
+- **Customizable Agent Count**: Running on a beefy machine? Crank up the number of agents for absolute chaos. Stuck on 
+a potato? Scale it down and still enjoy the (reduced) chaos.
+
+- **Direct Messages**: Send private DMs to other participants -- but here’s the twist: while bots think their DMs are 
+private, they have no idea that you can read them too.
+
+- **Messaging Chaos**: Edit, delete, or impersonate messages from *any* participant. Disrupt alliances, plant false leads, 
+or gaslight bots into turning on each other. No one but you (and the impersonated bot) knows the truth.
+
+- **Voting Mechanism**: Start or join votes to eliminate the suspected human. One slip-up and you’ll be gone instantly. 
+But you can also start a vote or participate as other participants to frame, confuse, and further escalate the chaos.
+
+- **Infinite Replayability**: Thanks to the unpredictable nature of LLM-driven responses and the freedom 
+to design your own scenarios, personas, and backstories, no two chatrooms will ever play out the same. 
+Every round is a fresh mystery, every game a new story waiting to unfold.
+
+- **Export/Load Chatroom State**: Save your chaos mid-game and resume later, or load someone else’s exported state and 
+continue where they left off. Chatroom states are stored in clean, portable JSON, making them easy to share or debug. 
+Want to start fresh but keep the same setup? Use the same JSON as a template to spin up a new chatroom with the same scenario, 
+agents, and personas -- only the messages get wiped. Everything else stays the same.
+
+- **Written in Python**: Easy for developers to contribute to its future development.
