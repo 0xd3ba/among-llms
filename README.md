@@ -19,6 +19,10 @@
 > Survive the rounds of scrutiny and deception until 
 > only you and one bot remain -- then, and only then, can you claim victory.
 
+
+> [!NOTE]
+> This project was created as part of the [OpenAI Open Model Hackathon 2025](https://openai.devpost.com/)
+
 ## Introduction
 Among LLMs turns your **terminal** into a chaotic chatroom playground where you’re the only human among a bunch of
 eccentric AI agents, dropped into a common *scenario* -- it could be Fantasy, Sci-Fi, Thriller, Crime, or something 
