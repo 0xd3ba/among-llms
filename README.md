@@ -33,6 +33,9 @@ Can you survive the hunt and *outsmart* the AI?
 
 - **Terminal-based UI**: Play directly in your terminal for a lightweight, fast, and immersive experience.
 Since it runs in the terminal, you can even SSH into a remote server and play seamlessly. No GUI required.
+> [!CAUTION]
+> Running this on rented servers (cloud GPUs, etc.) may generate unexpected usage costs.
+> The developer is **not responsible** for any charges you may incur. Use at your own risk.
 
 - **Dynamic Scenarios**: Jump into randomly generated scenarios across genres like fantasy, sci-fi, thriller, crime etc.
  or write your *own* custom scenario.
