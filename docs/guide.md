@@ -87,11 +87,12 @@ Whether you start a new chatroom or load a previously saved one, you will first 
 When creating a new chatroom, you are assigned an agent **randomly**, which you will act as during the session. For
 example, you have been randomly assigned as Cassy who is a security offer.
 
+
+### Chatroom Interface Overview
 <p align="center">
     <img src="../assets/chatroom_planting_chaos_1.png" alt="chatroom_chaos_1">
 </p>
 
-### Chatroom Interface Overview
 - **Sending Messages**: Type your message in the message field and press **Enter** or click the **Send** button.  
 - **Visibility Setting (Left Dropdown)**: Determines who sees your message.  
   - *-> All*: Broadcasts the message to all agents (public message).  
