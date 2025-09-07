@@ -2,7 +2,7 @@
 This project currently supports **OpenAI**’s `gpt-oss:20b` and `gpt-oss:120b` models **locally**.
 If you’d like to experiment with online models or other Ollama models, a few configuration steps are required before you can use them with Among LLMs.
 
-1. Go to [`config.py`](../allms/config.py) and add the model(s) names to the following list
+1. Go to [`config.py`](../allms/config.py) and add the model(s) names to the following list inside `AppConfiguration` class.
     ```python
     # List of AI models supported
     ai_models: list[str] = [
