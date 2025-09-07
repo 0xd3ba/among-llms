@@ -45,9 +45,57 @@ You can:
 </p>
 
 > [!NOTE]
-> - Press **^r** (**Ctrl+R**) in the *Customize Agents* screen to randomize an agent’s persona and backstory.
+> - Press **^r** (**Ctrl+R**) in the *Customize Agents* screen to randomize the selected agent’s persona and backstory.
 > - Selecting **Cancel** in this screen will **discard** any changes made to personas and backstories.  
 
 > [!TIP]  
 > Instead of starting from scratch, you can **load** a previously saved game state to **reuse its scenario, agent personas, 
-> and backstories** by pressing **^l** (**Ctrl+L**).  
+> and backstories** by pressing **^l** (**Ctrl+L**).
+
+
+### 2.2 Loading a Chatroom
+<p align="center">
+    <img src="../assets/load_screen.png" alt="load_chatroom_screen">
+</p>
+
+When you select **Load Chatroom** from the main screen, or press **^l** (**Ctrl+L**) from the *New Chatroom* screen, 
+you will see a file selection screen to choose a saved game state. Choose the desired save file and click the **Load** 
+button to continue.
+
+> [!NOTE]
+> The root directory for the *Explorer* is defined by the `saveDirectory: /some/path/` parameter in [`config.yml`](../config.yml).  
+> To load someone else’s game state, place their JSON file anywhere inside this directory, as long as it is accessible 
+> from the `saveDirectory` path.
+
+
+### 3. Inside the Chatroom
+<p align="center">
+    <img src="../assets/chatroom_start.png" alt="chatroom_start_screen">
+</p>
+
+Whether you start a new chatroom or load a previously saved one, you will first see the **agent assignment screen**.  
+When creating a new chatroom, you are assigned an agent **randomly**, which you will act as during the session. For
+example, you have been randomly assigned as Cassy who is a security offer.
+
+<p align="center">
+    <img src="../assets/chatroom_planting_chaos_1.png" alt="chatroom_chaos_1">
+</p>
+
+#### Chatroom Interface Overview
+- **Sending Messages**: Type your message in the message field and press **Enter** or click the **Send** button.  
+- **Visibility Setting (Left Dropdown)**: Determines who sees your message.  
+  - *-> All*: Broadcasts the message to all agents (public message).  
+  - *-> X*: Sends a direct message (DM) to the selected agent **X**.  
+  - Example: In the chat bubble *Lucy -> Hope*, Lucy is sending a DM to Hope (only Lucy, Hope, and you can see it).  
+- **Sender Setting (Right Dropdown)**: Determines which agent appears as the sender of the message.  
+  - Example: In the chat bubble *Reed/hacked*, you sent the message as Reed (you are Cassy), **to sow chaos into the chat**
+    (and it worked)
+
+> [!IMPORTANT]  
+> **Agents may occasionally confuse their identities**. This is a minor issue that does not affect overall functionality. 
+> Investigation and a fix are currently in progress.
+
+<p align="center">
+    <img src="../assets/chatroom_planting_chaos_2.png" alt="chatroom_chaos_2">
+</p>
+
