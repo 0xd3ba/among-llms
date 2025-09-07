@@ -1,12 +1,22 @@
-# Quick Start Guide
+## Quick Start Guide
 > [!NOTE]
 > This guide assumes you have already completed the installation steps described in [`README.md`](../README.md)
 
 Welcome to the quick start guide for *Among LLMs*!  
-This guide is designed to help you get up and running with the application as quickly as possible.  
+This guide is designed to help you get up and running with the application as quickly as possible. 
+
+### Table of Contents
+1. [Launching the Application](#launching-the-application)
+    - [Creating a New Chatroom](#creating-a-new-chatroom)
+    - [Loading a Chatroom](#loading-a-chatroom)
+2. [Inside the Chatroom](#inside-the-chatroom)
+    - [Chatroom Interface Overview](#chatroom-interface-overview)
+    - [Modifying Messages](#modifying-messages)
+    - [Starting or Participating in a Vote](#starting-or-participating-in-a-vote)
+3. [Conclusion](#congratulations)
 
 
-## 1. Launching the Application
+### Launching the Application
 <p align="center">
     <img src="../assets/main_screen.png" alt="main_screen">
 </p>
@@ -25,7 +35,7 @@ If you're new to terminal-style interfaces:
 > For more details on custom keyboard bindings, see [`bindings.md`](bindings.md). 
 
 
-## 2.1 Creating a New Chatroom
+### Creating a New Chatroom
 <p align="center">
     <img src="../assets/customize_scenario.png" alt="new_chatroom_screen">
 </p>
@@ -53,7 +63,7 @@ You can:
 > and backstories** by pressing **^l** (**Ctrl+L**).
 
 
-## 2.2 Loading a Chatroom
+### Loading a Chatroom
 <p align="center">
     <img src="../assets/load_screen.png" alt="load_chatroom_screen">
 </p>
@@ -68,7 +78,7 @@ button to continue.
 > from the `saveDirectory` path.
 
 
-## 3. Inside the Chatroom
+### Inside the Chatroom
 <p align="center">
     <img src="../assets/chatroom_start.png" alt="chatroom_start_screen">
 </p>
@@ -129,3 +139,15 @@ Press **F5** to open the **Voting** screen. Here, you can:
 - Cast your vote as *any* agent. If you vote as another agent, they will be notified.  
 
 Click the **Confirm** button to submit your vote. If no vote has been started, this action will initiate a new vote.
+The vote will conclude when any of the following conditions are met:  
+- All agents have cast their votes.  
+- An agent receives a majority of the votes.  
+- The vote duration exceeds the limit specified in the [`AppConfiguration`](../allms/config.py) class.  
+
+Once the vote ends, the agent with the most votes will be *terminated*.  
+
+---
+
+### Conclusion
+Congratulations! You have reached the end of the guide. By now, you should have a solid understanding of the application 
+and its key functionalities. Next, try it out yourself and enjoy exploring all the features!
