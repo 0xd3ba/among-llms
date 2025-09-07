@@ -23,6 +23,15 @@
 > [!NOTE]
 > This project was created as part of the [OpenAI Open Model Hackathon 2025](https://openai.devpost.com/)
 
+## Table of Contents
+- [Introduction](#introduction)
+  - [Features](#features)
+- [Installation Instructions](#installation)
+  - [Configuration and Usage](#configuration-and-usage)
+  - [Quick Start Guide](#quick-start-guide)
+  - [Using the Terminal Interface](#using-the-terminal-interface)
+
+
 ## Introduction
 
 <p align="center">
@@ -105,7 +114,7 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
 > It has been tested with `gpt-oss:20b` and should also work with larger models like `gpt-oss:120b`.
 > 
 > If you would like to experiment with a different Ollama model -- whether hosted locally or online, please refer to 
-> the [documentation](docs) for instructions. Although this should not have any issue with **OpenAI-compatible** models, 
+> [Supporting Other Ollama Models](docs/ollama.md) for instructions. Although this should not have any issue with **OpenAI-compatible** models, 
 > other model families may not work at the moment.
 
 
@@ -124,15 +133,20 @@ python3 -m allms
 > the format `YYYYMMDD_HHMMSS.log`. 
 > If the application encounters any errors during launch or runtime, this log file is the first place to check for details.
 
+### Quick Start Guide
+Refer to the [Quick Start Guide](docs/guide.md) for a step-by-step walkthrough on using *Among LLMs*. 
+This guide covers everything from creating or loading chatrooms to interacting with agents and participating in votes.
+
 
 ### Using the Terminal Interface
 Among LLMs is built using [Textual](https://github.com/textualize/textual/), a Python library for creating terminal-based UIs.
 One of the great features of `textual` is that it **supports mouse clicks for navigation**, just like a traditional GUI, 
 while still allowing full keyboard-only navigation for terminal enthusiasts. 
 
-If you are interested in keyboard-only navigation, check out the [documentation](docs) for a quick guide on navigating the 
-interface and customizing keyboard bindings. Whether you’re a seasoned `vim` warrior or a terminal newbie, you can get comfortable 
-with the Among LLMs interface in roughly two-three minutes.  
+If you are interested in keyboard-only navigation, check out the docs on [Quick Start Guide](docs/guide.md) and 
+[Customizing Bindings](docs/bindings.md) for a quick guide on navigating the interface and customizing keyboard bindings. 
+Whether you’re a seasoned `vim` warrior or a terminal newbie, you can get comfortable with the Among LLMs interface in 
+roughly two-three minutes.  
 
 
 ## Contributions
