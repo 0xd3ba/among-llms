@@ -118,10 +118,10 @@ example, you have been randomly assigned as Cassy who is a security offer.
     <img src="../assets/chatroom_modify_msg.png" alt="chatroom_modify_msg">
 </p>
 
-Press **F4** to open the **Modify Message** screen. Here, you can:  
+Press **F4** to open the **Modify Messages** screen. Here, you can:  
 - Filter messages by agent.  
 - **Edit** any message.
-- **Mark or unmark** any message for deletion by pressing **^x** (**Ctrl+X**).  
+- **Mark or unmark** any message for **deletion** by pressing **^x** (**Ctrl+X**).  
 
 Click the **Confirm** button to commit any changes. If you modify another agent's message, they will be notified.
 
@@ -145,7 +145,8 @@ The vote will conclude when any of the following conditions are met:
 - An agent receives a majority of the votes.  
 - The vote duration exceeds the limit specified in the [`AppConfiguration`](../allms/config.py) class.  
 
-Once the vote ends, the agent with the most votes will be *terminated*.  
+Once the vote ends, the agent with the most votes will be *terminated*. Your goal is to avoid yourself from 
+getting terminated.
 
 ---
 
