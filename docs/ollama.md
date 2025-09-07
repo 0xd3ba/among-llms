@@ -21,7 +21,7 @@ If you’d like to experiment with online models or other Ollama models, a few c
     ```
    Implement the method so that it returns an appropriate **asynchronous** [`instructor`](https://python.useinstructor.com/) 
    instance of your model (you will need an API key if your model is **online**. You can set it via an environment variable 
-   or hardcode it (not recommended).). Refer to `instructor`'s documentation for implementation details specific to your model.
+   or hardcode it (not recommended)). Refer to `instructor`'s documentation for implementation details specific to your model.
 
 3. Go to [`factory.py`](../allms/core/llm/factory.py) and add a mapping entry for your new model inside, such that it maps to the
 appropriate client class that you implemented in step-2 (you can simply reuse `OllamaOfflineLLMClient` for local Ollama models):

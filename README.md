@@ -131,7 +131,7 @@ One of the great features of `textual` is that it **supports mouse clicks for na
 while still allowing full keyboard-only navigation for terminal enthusiasts. 
 
 If you are interested in keyboard-only navigation, check out the [documentation](docs) for a quick guide on navigating the 
-interface and customizing hotkeys. Whether you’re a seasoned `vim` warrior or a terminal newbie, you can get comfortable 
+interface and customizing keyboard bindings. Whether you’re a seasoned `vim` warrior or a terminal newbie, you can get comfortable 
 with the Among LLMs interface in roughly two-three minutes.  
 
 
