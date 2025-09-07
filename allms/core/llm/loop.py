@@ -91,13 +91,16 @@ class ChatLoop:
         voted_for: Optional[str] = None
         msg_id = None
         turns_skipped = 0
+        first_response = True
 
         try:
             while not self._stop_loop[agent.id]:
 
                 # Sleep for N random seconds to simulate delays, like in a group-chat and to prevent spamming
-                delay = random.randint(2, 4)
-                await asyncio.sleep(delay)
+                delay = random.randint(3, 7)
+                if not first_response:
+                    await asyncio.sleep(delay)
+
                 if self._pause_loop:  # If paused, prevent agents from interacting with the model
                     continue
 
@@ -118,6 +121,7 @@ class ChatLoop:
 
                 AppConfiguration.logger.log(f"Requesting response from agent ({agent_id}) ... ")
                 input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
+                first_response = False
                 await self._callbacks.invoke(StateManagerCallbackType.IS_TYPING, agent_id, is_typing=True)
                 model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id,
                                                                                                 input_prompt=input_prompt,

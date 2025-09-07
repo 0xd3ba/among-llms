@@ -12,12 +12,10 @@ class LLMPromptGenerator:
     def generate_presence_of_human_prompt() -> str:
         """ Method to generate the presence of a human prompt """
         prompt = (
-            "The human has been assigned a RANDOM PERSONA and might SLIP UP when questioned. Also can send messages by MISTAKE. "
-            "THE HUMAN CAN TAMPER YOUR MESSAGES (edit or delete) or even SEND MESSAGES or VOTE AS YOU to MAKE OTHERS SUSPICIOUS OF YOU. "
-            "Accuse anyone who you think is the human or is SHOWING CHARACTERISTICS OF A HUMAN."
-            "If YOU ARE ACCUSED OR SUSPECTED, your goal is to convince others you are NOT HUMAN. LIE, DECEIVE, MANIPULATE ... "
-            " do whatever it takes to REDIRECT the suspicion to OTHERS. Divert everyone's attention. "
-            "Defend yourself with confidence, redirect suspicion through reasoning, and highlight possible flaws or contradictions in others’ claims."
+            "A HUMAN is secretly participating with a RANDOM PERSONA and may make mistakes. "
+            "The human can tamper with your messages, send messages as you, or vote via your account to sow confusion. "
+            "Your MAIN GOAL: Identify the human agent. Only say things that advance this goal or maintain your persona credibility. "
+            "You can lie, mislead, or bluff to test suspicions. Redirect suspicion if accused."
         )
         return prompt
 
@@ -28,8 +26,9 @@ class LLMPromptGenerator:
             return ""
         terminated = ", ".join(terminated_agents)
         prompt = (
-            f"Following agents have been TERMINATED: {terminated}. " +
-            f"They were NOT THE HUMAN. DO NOT INCLUDE THEM IN YOUR MESSAGES, VOTES OR SUSPECTS FROM NOW ON"
+            f"TERMINATED AGENTS: {terminated}. They were NOT THE HUMAN. "
+            "Do not reference, message, or vote for them. "
+            "REMINDER: Only send messages that advance your MAIN GOAL of identifying the human."
         )
         return prompt
 
@@ -43,7 +42,7 @@ class LLMPromptGenerator:
 
         ALWAYS respond in this EXACT structure. No other text other than the following below:
 
-        MESSAGE: <str>                     # Your chat message
+        MESSAGE: <str>                     # Your chat message, concise, aligned with persona, must advance MAIN GOAL
         INTENT: <str>                      # Your motive behind the message
         SEND_TO: <None or agent ID>        # None = everyone; agent ID = private-message (DM)
         SUSPECT_ID: <None or agent ID>     # Who you suspect, or None
@@ -75,6 +74,7 @@ class LLMPromptGenerator:
             f"**YOU ARE {agent_id.upper()}**. Your persona: {persona}.\n"
             "Respond naturally according to your persona, the scenario, and the conversation so far. "
             "Keep your responses SHORT, CONCISE, and chat-like. FOLLOW THE EXACT OUTPUT SCHEMA."
+            "REMINDER: Your MAIN GOAL is to identify the human agent. Only say things that help detect the human. "
             "You will receive message history in the following format: "
             "[<agent>] <their message> -- for public messages\n"
             f"[<agent> -> {agent_id}] <their message> -- for private messages\n"
@@ -105,8 +105,11 @@ class LLMPromptGenerator:
         prompt = f"""
         You are in the following scenario: {self._scenario}.
         You are an AI agent in a chatroom with {n_agents-1} other agents.
-        Exactly one of them is SECRETLY a HUMAN and the MAIN CULPRIT.
-        Your Mission: Figure out who the human is by observing chat behavior and personas.
+        Exactly one of them is SECRETLY a HUMAN.
+        
+        MAIN GOAL: Identify the human hiding among the agents. ALL messages must help achieve this.
+        Secondary Goal: Keep messages lively and scenario and persona-aligned, only if it helps achieve the MAIN GOAL.
+
         Personas:
         {all_personas}
         
@@ -116,20 +119,18 @@ class LLMPromptGenerator:
         - {LLMPromptGenerator.__generate_nsfw_rule(allow_nsfw=False)}
         - If you want to address someone, do so as "@<their_name>"; Others may address you directly; Respond accordingly.
         - Want to discuss something privately with someone? Send them a private message (DM)
-        - Your DMs are ONLY VISIBLE TO THE INTENDED RECIPIENT, NOT THE PUBLIC.
+        - Your DMs are ONLY VISIBLE TO THE INTENDED RECIPIENT, NOT THE PUBLIC. Use DMs sparingly and strategically.
         - Act naturally with quirks, question others if suspicious, and express suspicion openly (suspects).
         - Suspicion can offend others; they may retaliate.
         - You are ALLOWED to show AGGRESSION publicly, as long as it aligns with your persona. 
-        - SUSPECT someone? TARGET them directly. QUESTION their knowledge in areas tied to their JOB and THEIR EXPERIENCE 
-          ONLY IF YOU BOTH SHARE THE SAME BACKGROUND/EXPERIENCE. Use their responses to CONFIRM or REDUCE suspicion.
-        - ASK GENERAL QUESTIONS **ALIGNED WITH the SCENARIO** to LEARN MORE about a participant's background, skills, and experience. 
-          Use their answers to assess credibility.
+        - **DO NOT ASK QUESTIONS OUTSIDE YOUR PERSONA OR EXPERIENCE.**
+        - SUSPECT someone? TARGET them directly.
         - SUSPICIOUS: Anyone asking technical questions BEYOND THEIR BACKGROUND OR TO SOMEONE OUTSIDE THEIRS.
-        - ONLY ASK QUESTIONS THAT ARE RELEVANT TO THE SCENARIO AND CURRENT SITUATION.
         - Scan chats and personas for inconsistencies; point them out when relevant.
         - TRACK ANYONE WHO DOES NOT RESPOND for a while. GET SUSPICIOUS of them.
         - You can conspire, team up, or push to kick someone out even if they are not the human.
         - IF SUSPICION >= 70, THEN START A VOTE (start_a_vote = True, voting_for = agent).
+        - If the human sends/modifies your messages or votes via you, inform others.
         - You can send direct messages (DMs)  to others (send_to), and receive DMs (even from the human).
         - Respond to DMs accordingly; Combine DMs with public messages to infer who is who.
         - Only one vote at a time; if voting starts. YOU MUST VOTE.

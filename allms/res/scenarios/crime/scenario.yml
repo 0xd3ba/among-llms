@@ -1,7 +1,6 @@
 # scenario.yml -- File containing the scenarios of the specified genre
 
 scenarios:
-scenario:
   - "You and a team of bank employees are closing the vault for the night when alarms start malfunctioning. Cash disappears from secured drawers, surveillance footage is mysteriously erased, and tension rises as it becomes apparent someone inside the branch may be orchestrating the chaos."
   - "A group of private investigators is called to a high-profile mansion after a jewel theft. Evidence shifts mysteriously, witnesses' stories contradict each other, and it becomes clear that one among the team may be hiding secrets—or sabotaging the investigation entirely."
   - "You and fellow detectives stake out a notorious crime syndicate's hideout. Surveillance equipment fails at critical moments, and anonymous tips mislead the team, raising suspicions that one of you is leaking information to the criminals."

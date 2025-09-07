@@ -112,6 +112,13 @@ class GameStateManager:
         if self._config.ui_dev_mode or self._game_state.get_game_ended():
             return
 
+        # Add initial message to the agents to fire up the suspicion meters
+        announce_msg = (
+            "Who do you think is the most suspicious agent based on their persona and the current scenario? "
+            "No one has talked yet. Provide your conjecture."
+        )
+        self.announce_to_agents(announce_msg)
+
         self._chat_loop = ChatLoop(config=self._config,
                                    your_agent_id=your_id,
                                    agents=self.get_all_agents(),
