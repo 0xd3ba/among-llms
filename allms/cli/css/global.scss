@@ -1,0 +1,91 @@
+/* Global border configuration */
+.border {
+    border: round $foreground 20%;
+    border-title-color: $foreground 50%;
+    border-subtitle-color: $foreground 50%;
+}
+
+.highlight-border:focus-within {
+    border: round $primary;
+    border-title-color: $primary;
+    border-subtitle-color: $primary;
+    border-title-style: bold;
+}
+
+/* Toast configuration */
+Toast {
+    width: 40;
+    max-width: 40%;
+}
+
+ToastRack {
+    dock: top;
+}
+
+/* Global configuration for select widget */
+Select {
+    SelectCurrent {
+        border: none;
+        height: 3;
+        padding: 1 2 1 2;
+    }
+}
+
+/* Global configuration fot text-box */
+TextArea {
+    border: none;
+    padding: 1;
+
+    &:focus {
+        border: none;
+    }
+}
+
+/* Global configuration for Input area */
+Input {
+    border: none;
+    padding: 1 2 1 2;
+    margin: 0 1 0 1;
+    background: $foreground 5%;
+
+    &:focus-within {
+        background: $foreground 10%;
+    }
+}
+
+/* Global configuration for directory tree */
+DirectoryTree {
+    padding: 1;
+}
+
+/* Global configuration for markdown */
+Markdown {
+    & MarkdownHeader {
+        margin: 1 0 1 0;
+    }
+
+    & MarkdownBlockQuote {
+        & > MarkdownHeader {
+            margin: 0;
+        }
+        padding: 1;
+    }
+}
+
+/* Global configuration for modal screens */
+ModalScreen {
+
+    align: center middle;
+    background: $background 80%;
+
+    & .modal-container {
+        max-width: 80;
+        min-height: 30;
+        max-height: 75%;
+
+        height: auto;
+        width: 60;
+
+        border-title-align: center;
+    }
+}

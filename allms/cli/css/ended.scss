@@ -1,0 +1,35 @@
+/* Screen hosting the game ended widget */
+/* Override the defaults */
+GameEndedScreen, ChatExitScreen {
+    & .modal-container {
+        max-height: 30%;
+        height: 20;
+        border-title-color: $primary;
+        border: round $primary;
+        border-title-style: bold;
+    }
+}
+
+
+/* Game ended / Chatroom exit screen */
+/* The container of the game ended text */
+#game-ended-container, #exit-chat-container {
+    align: center middle;
+    height: 100%;
+
+    & Static {
+        padding: 2;
+        content-align: center middle;
+        text-align: center;
+    }
+}
+
+
+/* Main widget of the chat exit screen */
+ChatExitWidget {
+
+    /* Container hosting the buttons */
+    & #exit-chat-buttons-container {
+        align: center middle;
+    }
+}

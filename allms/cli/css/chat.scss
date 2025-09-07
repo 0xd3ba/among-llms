@@ -1,0 +1,192 @@
+/* Scenario and your persona screen configuration */
+ChatScenarioScreen, YourAgentAssignmentScreen {
+    & .modal-container {
+        max-height: 40%;
+        height: 20;
+    }
+}
+
+/* Main chatroom widget */
+ChatroomWidget {
+
+    padding: 1 2 1 2;
+
+    /* Container hosting the remaining agents count and chat clock */
+    & #chat-header-container {
+        height: 1;
+        min-width: 60;
+        padding: 0 1 0 1;
+        background: $surface;
+        color: $foreground 50%;
+
+        & #chat-remaining-agents-widget {
+            width: auto;
+        }
+
+        & ChatClock {
+            content-align: right middle;
+            width: 1fr;
+        }
+    }
+
+    /* Container hosting the chats */
+    & ChatroomContents {
+        height: 1fr;
+        width: 100%;
+        min-width: 80;
+    }
+
+    /* Container hosting the current typing agents */
+    & ChatroomIsTyping {
+        width: 100%;
+        height: 3;
+        padding: 0 1 0 1;
+        color: $foreground 50%;
+        align: right middle;
+
+        /* Container hosting both the labels and the loading indicator */
+        & #typing-indicator-container {
+            align: right middle;
+            max-width: 50%;
+        }
+
+        & LoadingIndicator {
+            width: auto;
+            height: auto;
+        }
+    }
+
+    /* Container hosting the input and buttons for typing and sending messages */
+    & #chat-type-send-container {
+        height: 3;
+        width: 100%;
+
+        /* Text-area */
+        & Input {
+            width: 1fr;
+        }
+
+        /* Message send button */
+        & Button {
+            height: 3;
+            margin-left: 1;
+            border: none;
+        }
+
+        /* Selection list for send-to/send-as choices */
+        & Select {
+            width: 15;
+            background: $foreground 5%;
+            &:focus-within {
+                background: $foreground 10%;
+            }
+        }
+    }
+
+}
+
+/* Class for modifying messages */
+ModifyMessageScreen {
+
+    /* Override the defaults for the main container */
+    & .modal-container {
+        width: 75%;
+        min-width: 80;
+        max-width: 75%;
+        max-height: 75%;
+    }
+
+    /* Widget for the message options list */
+    & ModifyMessageOptionListWidget {
+        border: none;
+        &:focus {
+            & > .option-list--option-highlighted {
+                color: $foreground;
+            }
+        }
+
+        & > .option-list--option-highlighted {
+            color: $primary;
+            background: $surface;
+            text-style: bold;
+        }
+    }
+
+    /* Vertical container hosting agent-selection box and message-options-list */
+    & #modify-msg-select-options-container {
+        min-width: 30;
+        width: 30%;
+    }
+
+    /* Container for choosing the message */
+    & #choose-msg-list {
+        height: 1fr;
+    }
+
+    /* Container for the textbox */
+    & #modify-msg-textbox {
+        min-width: 25;
+        width: 1fr;
+    }
+
+    /* Container for buttons */
+    & #modify-msg-buttons {
+        align: center middle;
+    }
+}
+
+
+/* Voting widget */
+VotingWidget {
+
+    /* The widget hosting the radio buttons */
+    & #voting-radio-container {
+        height: 1fr;
+        min-height: 10;
+
+        & _RadioSetComponent {
+            height: 100%;
+            padding: 1;
+            border: none;
+
+            &:focus {
+                border: none;
+            }
+        }
+    }
+
+    /* The informative text for voting */
+    & #voting-info-container {
+        align: center middle;
+
+        & Static {
+            content-align: center middle;
+        }
+    }
+
+    /* Container hosting the confirm/cancel buttons */
+    & #voting-buttons {
+        align: center middle;
+    }
+}
+
+
+/* Chat widget for loading the game state */
+LoadGameStateWidget {
+
+    /* Container hosting the currently selected path */
+    & #load-path-container {
+        padding: 1;
+    }
+
+    /* Container hosting the explorer */
+    & #load-directory-tree {
+        height: 1fr;
+        padding: 0 1 0 1;
+    }
+
+    /* Container hosting the buttons */
+    & #load-buttons-container{
+        align: center middle;
+    }
+}

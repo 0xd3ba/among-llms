@@ -1,0 +1,49 @@
+MainScreen {
+
+    /* Main vertical container hosting widgets */
+    & #main-screen-container {
+        align: center middle;
+        content-align: center middle;
+
+        /* Container hosting the menu */
+        & #main-screen-option-container {
+            height: auto;
+            width: 80;
+            align: center middle;
+        }
+    }
+
+    /* Widget hosting the banner */
+    BannerWidget {
+        height: auto;
+        max-width: 80;
+        min-width: 80;
+        padding: 0;
+
+        & Static {
+            content-align: center middle;
+            padding: 0;
+        }
+    }
+
+    /* Widget hosting the main-menu option items */
+    MainMenuOptionListWidget {
+        content-align: center middle;
+        background: $background;
+        border: none;
+
+        &:focus {
+            background-tint: $background;
+            border: none;
+        }
+    }
+}
+
+
+/* Configuration for the about screen */
+AboutAppScreen {
+    & .modal-container {
+        max-height: 60;
+        height: 20;
+    }
+}

@@ -1,0 +1,176 @@
+import asyncio
+import random
+from collections import deque
+from typing import Iterable, Optional
+
+from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.core.agents import Agent
+from allms.core.state.callbacks import StateManagerCallbackType, StateManagerCallbacks
+from .manager import LLMAgentsManager
+from .response import LLMResponseModel
+
+
+class ChatLoop:
+    """ Class for the main chat loop of the LLMs """
+
+    def __init__(self,
+                 config: RunTimeConfiguration,
+                 your_agent_id: str,
+                 agents: dict[str, Agent],
+                 terminated_agent_ids: set[str],
+                 scenario: str,
+                 callbacks: StateManagerCallbacks,
+                 ):
+        self._config = config
+        self._your_id = your_agent_id
+        self._agents = agents
+        self._scenario = scenario
+        self._callbacks = callbacks
+
+        self._terminated_agent_ids = terminated_agent_ids
+        self._llm_agent_ids = {
+            agent_id for agent_id in self._agents.keys()
+            if (agent_id != self._your_id) and (agent_id not in self._terminated_agent_ids)
+        }  # All except you and the terminated agents
+        self._stop_loop: dict[str, bool] = {aid: False for aid in self._llm_agent_ids}
+        self._agent_tasks: dict[str, asyncio.Task] = {}
+        self._pause_loop: bool = False
+
+        # Maintain a rolling chat history per agent -- includes public messages, DMs and notifications
+        # Since the number of agents would be typically small (if you configure it to be a value like > 100, either
+        # you're crazy or you have a supercomputer powered by god himself idk), it's okay-ish to maintain redundant
+        # global messages per agent
+        self._llm_chat_history: dict[str, deque[str]] = {agent_id: deque() for agent_id in self._llm_agent_ids}
+
+        self.__update_response_model_allowed_ids()
+        self._llm_agents_mgr = LLMAgentsManager(config=config, scenario=scenario, agents=self._agents, callbacks=self._callbacks)
+
+    def start(self) -> None:
+        """ Start the loop """
+        for agent_id in self._llm_agent_ids:
+            AppConfiguration.logger.log(f"Starting agent loop for {agent_id} ... ")
+            agent = self._agents[agent_id]
+            task = asyncio.create_task(self.agent_loop(agent))
+            self._agent_tasks[agent_id] = task
+
+    def pause(self) -> None:
+        """ Pauses the loop """
+        self._pause_loop = True
+
+    def resume(self) -> None:
+        """ Resumes the loop """
+        self._pause_loop = False
+
+    def stop(self) -> None:
+        """ Stops all the agents """
+        self.stop_agents(self._llm_agent_ids.copy())
+
+    def stop_agents(self, agent_ids: str | Iterable[str] = None) -> None:
+        """ Stops a given agent or a list of agents. If no agent is provided, stops every agent """
+        if agent_ids is None:
+            agent_ids = self._llm_agent_ids.copy()
+        if isinstance(agent_ids, str):
+            agent_ids = [agent_ids]
+
+        for agent_id in agent_ids:
+            assert agent_id in self._llm_agent_ids, f"Trying to stop agent ID: {agent_id} which is not in the list " + \
+                f"of all agent IDs: {self._llm_agent_ids}"
+            assert agent_id in self._agent_tasks, f"Trying to cancel agent ID: {agent_id} but is not present in the tasks map"
+            self._stop_loop[agent_id] = True
+            self._agent_tasks[agent_id].cancel()
+            self._llm_agent_ids.remove(agent_id)
+            self._terminated_agent_ids.add(agent_id)
+
+        self.__update_response_model_allowed_ids()
+
+    async def agent_loop(self, agent: Agent, max_turn_skips: int = 5) -> None:
+        """ Main loop of the LLM agent """
+        agent_id = agent.id
+        voting_not_started_prompt = self._llm_agents_mgr.get_input_prompt(agent_id, voting_has_started=False)
+        voting_started_prompt = ""
+        voted_for: Optional[str] = None
+        msg_id = None
+        turns_skipped = 0
+        first_response = True
+
+        try:
+            while not self._stop_loop[agent.id]:
+
+                # Sleep for N random seconds to simulate delays, like in a group-chat and to prevent spamming
+                delay = random.randint(3, 7)
+                if not first_response:
+                    await asyncio.sleep(delay)
+
+                if self._pause_loop:  # If paused, prevent agents from interacting with the model
+                    continue
+
+                # Prevent the agent from spamming same messages over and over again when no other messages have
+                # arrived in the chat yet. Maximum delay between responses = max_turn_skips * max(delay_seconds)
+                if not agent.can_reply(msg_id) and (turns_skipped < max_turn_skips):
+                    turns_skipped += 1
+                    continue
+
+                turns_skipped = 0
+                vote_started, vote_started_by = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
+                if vote_started:
+                    voting_started_prompt = self._llm_agents_mgr.get_input_prompt(
+                        agent_id, voting_has_started=True,
+                        started_by=vote_started_by,
+                        voted_for=voted_for
+                    )
+
+                AppConfiguration.logger.log(f"Requesting response from agent ({agent_id}) ... ")
+                input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
+                first_response = False
+                await self._callbacks.invoke(StateManagerCallbackType.IS_TYPING, agent_id, is_typing=True)
+                model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id,
+                                                                                                input_prompt=input_prompt,
+                                                                                                terminated_agents=self._terminated_agent_ids)
+
+                if model_response is None:
+                    continue
+
+                AppConfiguration.logger.log(f"Received valid response from agent ({agent_id}): {model_response}")
+
+                # Valid response received from the model
+                # Send the message and update the game state
+                msg: str = model_response.message
+                thought_process: str = model_response.intent
+                send_to: Optional[str] = model_response.send_to
+                suspect: Optional[str] = model_response.suspect
+                suspect_reason: Optional[str] = model_response.suspect_reason
+                suspect_confidence: Optional[int] = model_response.suspect_confidence
+                start_a_vote: bool = model_response.start_a_vote
+                voting_for: Optional[str] = model_response.voting_for
+
+                # 1. Send the message
+                msg_id = await self._callbacks.invoke(StateManagerCallbackType.SEND_MESSAGE, msg=msg, sent_by=agent_id, sent_by_you=False,
+                                                      sent_to=send_to, thought_process=thought_process, suspect_id=suspect,
+                                                      suspect_reason=suspect_reason, suspect_confidence=suspect_confidence)
+
+                # 2. Update the GUI
+                await self._callbacks.invoke(StateManagerCallbackType.IS_TYPING, agent_id, is_typing=False)
+                await self._callbacks.invoke(StateManagerCallbackType.UPDATE_UI_ON_NEW_MESSAGE, msg_id=msg_id)
+                await asyncio.sleep(0.1)  # Give up control for ~100ms to allow textual to render the message
+
+                # 3. Start the vote if the agent requested to start the vote
+                # Note: Vote might have started while the model was generating a response. Recheck again
+                vote_started, _ = await self._callbacks.invoke(StateManagerCallbackType.VOTE_HAS_STARTED)
+                if start_a_vote and (not vote_started):
+                    AppConfiguration.logger.log(f"{agent_id} has requested to start a vote. Initiating the voting process ...")
+                    await self._callbacks.invoke(StateManagerCallbackType.START_A_VOTE, started_by=agent_id)
+                    vote_started = True
+
+                if vote_started and (voting_for is not None):
+                    await self._callbacks.invoke(StateManagerCallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
+
+        except asyncio.CancelledError:
+            AppConfiguration.logger.log(f"Agent ({agent_id}) has been stopped")
+
+    def __update_response_model_allowed_ids(self) -> None:
+        """ Helper method to update the allowed agent IDs in the response model """
+        allowed_ids = self._llm_agent_ids.copy()
+        allowed_ids.add(self._your_id)
+
+        # Set the class attributes of the allowed agent-IDs in the response models
+        LLMResponseModel.set_allowed_ids(allowed_ids)

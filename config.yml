@@ -1,0 +1,57 @@
+# config.yml -- Configuration file for the application
+# Edit according to your needs
+
+# The OpenAI model to use
+# Supported models:
+#   - gpt-oss:20b
+#   - gpt-oss:120b
+model: gpt-oss:20b
+
+# Offline model or online ?
+# If online model (set the value to False), you will need to set the API key accordingly
+offlineModel: True
+
+# The reasoning level of the selected model
+# Supported values:
+#   - low
+#   - medium
+#   - high
+# Note: Currently this value is not used (ignored)
+reasoningLevel: medium
+
+# Maximum number of agents (including you)
+# The number of agents in the game will be <= this value (you will have the option to set it before the game begins)
+# Supported values: Any positive integer >= 3
+# **WARNING**: Setting this to a large value may cause severe performance issues. Adjust accordingly (only if needed)
+maximumAgentCount: 10
+
+# Enable/Disable Retrieval-Augmented Generation
+# Set to False if causing performance issues
+# Allowed values: True / False
+# Note: This value is currently ignored as this functionality has not been implemented yet
+enableRAG: False
+
+# Show thought process behind the messages or not
+# Set this to True if you want the agents to show their reasoning behind their messages
+# Set it to False if you want a challenge
+showThoughtProcess: True
+
+# Show current suspects of each agent
+# Set this to True if you want to know who each agent suspects and
+# by how much (on a scale of 0-100) they believe that agent is a human
+# Set it to False if you want a challenge
+showSuspects: True
+
+# Save directory
+# Set this to the directory where you would want to save/export the game-state/messages
+# The app will export to this directory for saves and will give you the option to load
+# game states from this directory dynamically
+# Note: The directories will be created if they don't exist
+saveDirectory: "./data/saves"
+
+
+################# DEVELOPERS ONLY #################
+# Set the below to True if you want to debug the UI
+# without starting the LLM, i.e. updating/testing
+# the UI layout. Otherwise, set to False
+uiDeveloperMode: False
