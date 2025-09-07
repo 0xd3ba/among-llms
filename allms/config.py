@@ -48,7 +48,7 @@ class AppConfiguration:
     # the model gets as context for generating a reply
     # Note(s):
     #   - Changing this to a larger value may reduce the performance as the models may take longer to produce replies
-    max_lookback_messages: int = 25
+    max_lookback_messages: int = 30
 
     # Maximum duration of an active vote (in minutes)
     max_vote_duration_min: int = 10
