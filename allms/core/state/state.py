@@ -1,7 +1,8 @@
 from __future__ import annotations
 import logging
 import math
-from collections import Counter
+import random
+from collections import Counter, deque
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -34,6 +35,12 @@ class GameState:
     _last_update_time: int = 0                                                # The last update timestamp (ms)
     _vote_duration_timer: int = 0                                             # Amount of time (ms) left before vote is ended
     _id_generator: ChatMessageIDGenerator = field(default_factory=ChatMessageIDGenerator)
+
+    # Stores the sequence and the count of agent IDs who talked recently
+    # Note: Keep the value fixed while ensuring it is not too high or not too low
+    # The agents will be notified if you have not sent a message within this most-recent window
+    _who_talked: deque[str] = field(default_factory=lambda: deque(maxlen=10))
+    _talk_count: dict[str, int] = field(default_factory=dict)
 
     def initialize_scenario(self, scenario: str) -> None:
         """ Initializes the game scenario """
@@ -218,6 +225,9 @@ class GameState:
             role = LLMRoles.assistant if (aid == agent_id) else LLMRoles.user
             self._all_agents[aid].add_to_chat_log(role, message.id, is_message_id=True)
 
+        # Track the recent speaker and inform to the agents if you are not participating in the chat
+        self.__notify_if_you_are_silent(agent_id)
+
     def get_message(self, message_id: str) -> ChatMessage:
         """ Fetches the message with the given message ID and returns it """
         return self.messages.get(message_id)
@@ -247,11 +257,11 @@ class GameState:
         if deleted_by_you:
             self.__check_and_notify_if_modifying_others_message(msg_id, is_edit=False)
 
-    def announce_to_agents(self, msg: ChatMessage) -> None:
+    def announce_to_agents(self, msg: str | ChatMessage, send_to: str | list[str] = None) -> None:
         """
         Broadcasts the given message to the intended recipient's chat logs (if None, broadcasts to all remaining agents)
         """
-        agent_ids = msg.sent_to
+        agent_ids = msg.sent_to if isinstance(msg, ChatMessage) else send_to
 
         if agent_ids is None:
             agent_ids = self.get_all_remaining_agents_ids()
@@ -260,7 +270,11 @@ class GameState:
 
         AppConfiguration.logger.log(f"Announcing to {agent_ids} ... ")
 
-        fmt_msg = ChatMessageFormatter.create_announcement_message(msg=msg)
+        if isinstance(msg, ChatMessage):
+            fmt_msg = ChatMessageFormatter.create_announcement_message(msg=msg)
+        else:
+            fmt_msg = msg
+
         for agent_id in agent_ids:
             self._all_agents[agent_id].add_to_chat_log(role=LLMRoles.system, msg=fmt_msg)
 
@@ -362,3 +376,51 @@ class GameState:
         tgt_agent = self.get_agent(msg.sent_by)
         fmt_msg = ChatMessageFormatter.create_hacked_by_human_message(msg, is_edit=is_edit)
         tgt_agent.add_to_chat_log(LLMRoles.system, fmt_msg)
+
+    def __notify_if_you_are_silent(self, agent_id: str) -> None:
+        """ Helper method to track the recent speaker and inform this agent if you are not participating in the chat """
+        if agent_id not in self._remaining_agent_ids:
+            return
+
+        # Now add the sender to the most recent talker's list and increment counts
+        # If you stay silent for too long, the agents will be notified
+        n_talked = len(self._who_talked)
+        if n_talked == self._who_talked.maxlen:
+            oldest_id = self._who_talked[0]
+            self._talk_count[oldest_id] -= 1
+            if self._talk_count[oldest_id] == 0:
+                del self._talk_count[oldest_id]
+
+        self._who_talked.append(agent_id)
+        if agent_id not in self._talk_count:
+            self._talk_count[agent_id] = 0
+        self._talk_count[agent_id] += 1
+
+        # Ignore if the buffer is not full, or you sent a message previously
+        if (self.your_agent_id in self._talk_count) or (n_talked < self._who_talked.maxlen):
+            return
+
+        # You have not sent a message -- notify this agent that you are silent
+        # Note: The reason for only notifying a single agent is to avoid sending too many duplicate notifications
+        notify_msgs = [
+            "has been silent for too long ... almost like they're afraid of slipping up.",
+            "isn't talking much ... maybe the human doesn't know what to say.",
+            "keeps avoiding the conversation ... trying not to get noticed?",
+            "hasn't spoken in a while ... bots don't usually hold back like that.",
+            "is strangely quiet ... could they be hiding something?",
+            "has gone silent ... feels like they're calculating every word.",
+            "isn't contributing ... maybe they're scared of contradictions.",
+            "is watching but not speaking ... suspicious behavior for a bot.",
+            "seems hesitant to talk ... very human-like hesitation.",
+            "is too quiet ... silence feels like a cover-up.",
+            "is unusually passive ... maybe they're trying to blend in.",
+            "has been lurking without saying a word ... that's not normal.",
+            "keeps their distance in chat ... feels like the human trying not to get caught.",
+            "is holding back ... bots don't usually do that.",
+            "is quiet ... almost like they don't know how to play along."
+        ]
+
+        notify_msg = f"[IMPORTANT] {self.your_agent_id.upper()} " + random.choice(notify_msgs) + " Perhaps you should SHIFT YOUR FOCUS TO THEM."
+        AppConfiguration.logger.log(f"Informing {agent_id} the following since you had been inactive: {notify_msg}", level=logging.CRITICAL)
+
+        self.announce_to_agents(msg=notify_msg, send_to=agent_id)
