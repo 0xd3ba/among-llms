@@ -72,7 +72,9 @@ class ChatMessageFormatter:
 
         suspect_reason = msg.suspect_reason
         suspect_confidence = msg.suspect_confidence
-        fmt_msg = f"Current suspect: {suspect}; Confidence: {suspect_confidence}; Reason: {suspect_reason}."
+        fmt_msg = f"Current suspect: {suspect}; Confidence: {suspect_confidence}; Reason: {suspect_reason}. "
+        if suspect_confidence >= 80:
+            fmt_msg += f"Perhaps you should consider starting a vote"
         return fmt_msg
 
     @staticmethod
