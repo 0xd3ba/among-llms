@@ -97,7 +97,7 @@ class ChatLoop:
             while not self._stop_loop[agent.id]:
 
                 # Sleep for N random seconds to simulate delays, like in a group-chat and to prevent spamming
-                delay = random.randint(3, 7)
+                delay = random.randint(3, 5)
                 if not first_response:
                     await asyncio.sleep(delay)
 
