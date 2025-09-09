@@ -3,12 +3,11 @@ import random
 
 from textual import on
 from textual.app import ComposeResult
-from textual.binding import BindingType
 from textual.containers import Horizontal, VerticalScroll
 from textual.widgets import Button, Label, Static
 
 from allms.cli.callbacks import ChatCallbackType, ChatCallbacks
-from allms.config import BindingConfiguration, RunTimeConfiguration
+from allms.config import ToastConfiguration, RunTimeConfiguration
 from allms.core.state import GameStateManager
 from .modal import ModalScreenWidget
 
@@ -63,6 +62,8 @@ class ChatExitWidget(ModalScreenWidget):
         # Push the save game state screen
         elif btn_id == self._id_btn_save_and_exit:
             save_path = self._state_manager.save()
+            self.notify(f"Saved to {self._config.save_directory}/{str(save_path.name)}/",
+                        title="Save successful", timeout=ToastConfiguration.timeout)
 
         else:
             # Should not come to this branch or else there is a bug
