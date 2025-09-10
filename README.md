@@ -121,21 +121,40 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
 ### Configuration and Usage
 Among LLMs is configured through a [`config.yml`](config.yml) file.  
 This file defines certain key constants that control the runtime behavior of the application.
-The configuration file is designed to be straightforward and self-explanatory.  
+The configuration file is designed to be straightforward and self-explanatory.
+
 Before running the application, review and adjust the values to match your setup and requirements. Once everything is
 set, launch the application by running the following command:
+
 ```bash
 python3 -m allms
 ```
+
+<p align="center">
+    <img src="assets/splash_screen.gif" width="600px" alt="Spash Screen">
+</p>
+
+> [!IMPORTANT]  
+> The model uses a **fixed-length context window** to generate replies, which is set to **30 messages** by default.  
+>   
+> Increasing this value lets the model look farther back in the conversation, improving the quality and consistency of its responses, but at the cost 
+> of slower inference and higher resource usage. Lowering the value speeds things up and uses fewer resources, but the model may "forget" earlier 
+> parts of the conversation, leading to less coherent replies.  
+>   
+> To adjust this parameter, open [config.py](allms/config.py) and change the following value accordingly:  
+> ```python
+> class AppConfiguration:
+>    """ Configuration for setting up the app """
+>    ...
+>    max_lookback_messages: int = 30  # Change this value accordingly
+>    ...
+> ```
 
 > [!NOTE]
 > Each time the application is launched, a new log file is created in the default log directory (`./data/logs/`) with 
 > the format `YYYYMMDD_HHMMSS.log`. 
 > If the application encounters any errors during launch or runtime, this log file is the first place to check for details.
 
-<p align="center">
-    <img src="assets/splash_screen.gif" width="600px" alt="Spash Screen">
-</p>
 
 ### Quick Start Guide
 Refer to the [Quick Start Guide](docs/guide.md) for a step-by-step walkthrough on using *Among LLMs*. 
