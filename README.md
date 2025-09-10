@@ -141,7 +141,7 @@ python3 -m allms
 > of slower inference and higher resource usage. Lowering the value speeds things up and uses fewer resources, but the model may "forget" earlier 
 > parts of the conversation, leading to less coherent replies.  
 >   
-> To adjust this parameter, open [config.py](allms/config.py) and change the following value accordingly:  
+> To adjust this parameter, open [`config.py`](allms/config.py) and change the following value accordingly:  
 > ```python
 > class AppConfiguration:
 >    """ Configuration for setting up the app """
