@@ -35,10 +35,6 @@
 ## Introduction
 
 <p align="center">
-    <img src="assets/splash_screen.gif" width="600px" alt="Spash Screen">
-</p>
-
-<p align="center">
     <img src="assets/app_banner.png" width="600px" alt="Application Screenshots">
 </p>
 
@@ -136,6 +132,10 @@ python3 -m allms
 > Each time the application is launched, a new log file is created in the default log directory (`./data/logs/`) with 
 > the format `YYYYMMDD_HHMMSS.log`. 
 > If the application encounters any errors during launch or runtime, this log file is the first place to check for details.
+
+<p align="center">
+    <img src="assets/splash_screen.gif" width="600px" alt="Spash Screen">
+</p>
 
 ### Quick Start Guide
 Refer to the [Quick Start Guide](docs/guide.md) for a step-by-step walkthrough on using *Among LLMs*. 
