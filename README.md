@@ -35,6 +35,10 @@
 ## Introduction
 
 <p align="center">
+    <img src="assets/splash_screen.gif" width="600px" alt="Spash Screen">
+</p>
+
+<p align="center">
     <img src="assets/app_banner.png" width="600px" alt="Application Screenshots">
 </p>
 
