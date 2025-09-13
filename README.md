@@ -30,6 +30,7 @@
   - [Configuration and Usage](#configuration-and-usage)
   - [Quick Start Guide](#quick-start-guide)
   - [Using the Terminal Interface](#using-the-terminal-interface)
+- [Join the Community](#join-the-community)
 
 
 ## Introduction
@@ -170,6 +171,12 @@ If you are interested in keyboard-only navigation, check out the docs on [Quick 
 [Customizing Bindings](docs/bindings.md) for a quick guide on navigating the interface and customizing keyboard bindings. 
 Whether you’re a seasoned `vim` warrior or a terminal newbie, you can get comfortable with the Among LLMs interface in 
 roughly two-three minutes.  
+
+
+## Join the Community  
+Got feedback, ideas, or want to share your best Among LLMs moments?  
+Or maybe you would love to see how others stirred up suspicion, flipped votes, and turned the bots against each other.  
+Join the subreddit and be part of the chaos:  [**r/AmongLLMs**](https://www.reddit.com/r/AmongLLMs/)  
 
 
 ## Contributions
