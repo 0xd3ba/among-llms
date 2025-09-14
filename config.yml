@@ -1,57 +1,74 @@
 # config.yml -- Configuration file for the application
 # Edit according to your needs
 
-# The OpenAI model to use
-# Supported models:
+# List of models to use
+# You can use multiple models inside the chatroom (instead of one model to power all the agents).
+# i.e. you can use multiple online models and offline models. You will be allowed to pick a model
+# for each agent from the application. For the offline model, set the env_var_api_key to blank as it is not used.
+#
+# **WARNING**: Be careful when you define more than one offline model. Make sure you use a different port !!
+#
+# Note: Currently supported models are only LOCAL gpt-oss models:
 #   - gpt-oss:20b
 #   - gpt-oss:120b
-model: gpt-oss:20b
+use_models:
+  - name: gpt-oss:20b            # The name of the model
+    offline_model: True          # Is the model offline (hosted locally?) If yes, API key is not needed. Leave it blank, i.e. ""
+    reasoning_level: medium      # Reasoning levels supported by the selected model (currently not used)
+    env_var_api_key: ""          # The environment variable that will be storing the API key needed for this model (if online)
+    # Uncomment and set the following if you are hosting more than one Ollama server locally. It will be using a different port number
+    # offline_server_port: 11434   # The port used by local Ollama server (ignored for online models). DO NOT CHANGE IT; Change only if you know what you're doing
 
-# Offline model or online ?
-# If online model (set the value to False), you will need to set the API key accordingly
-offlineModel: True
+    # Uncomment the below lines and add your entries as required
+    # Copy/paste the structure and add your models
+    #  - name:                <your_model_name>
+    #    offline_model:       <True or False>
+    #    reasoning_level:     <whatever it is supported>
+    #    env_var_api_key:     <ENV_VAR_HOLDING_THE_API_KEY_FOR_THIS_MODEL> (set to blank string "" for offline models)
+    #    offline_server_port: <any_positive_integer> (ignored for online models)
 
-# The reasoning level of the selected model
-# Supported values:
-#   - low
-#   - medium
-#   - high
-# Note: Currently this value is not used (ignored)
-reasoningLevel: medium
 
 # Maximum number of agents (including you)
 # The number of agents in the game will be <= this value (you will have the option to set it before the game begins)
 # Supported values: Any positive integer >= 3
 # **WARNING**: Setting this to a large value may cause severe performance issues. Adjust accordingly (only if needed)
-maximumAgentCount: 10
+maximum_agent_count: 10
+default_agent_count: 5
+
+# Control the speed of the responses -- increase the delay constants if responses are coming in too fast
+# Decrease it if the responses are too slow. A delay value is picked at random from this range [min_delay, max_delay]
+response_delay_min_seconds: 4
+response_delay_max_seconds: 7
 
 # Enable/Disable Retrieval-Augmented Generation
 # Set to False if causing performance issues
 # Allowed values: True / False
 # Note: This value is currently ignored as this functionality has not been implemented yet
-enableRAG: False
+enable_rag: False
 
 # Show thought process behind the messages or not
 # Set this to True if you want the agents to show their reasoning behind their messages
 # Set it to False if you want a challenge
-showThoughtProcess: True
+show_thought_process: True
 
 # Show current suspects of each agent
 # Set this to True if you want to know who each agent suspects and
 # by how much (on a scale of 0-100) they believe that agent is a human
 # Set it to False if you want a challenge
-showSuspects: True
+show_suspects: True
 
 # Save directory
 # Set this to the directory where you would want to save/export the game-state/messages
 # The app will export to this directory for saves and will give you the option to load
 # game states from this directory dynamically
 # Note: The directories will be created if they don't exist
-saveDirectory: "./data/saves"
+save_directory: "./data/saves"
 
+# If you want to skip the splash screen on startup, set this to False
+skip_intro: False
 
 ################# DEVELOPERS ONLY #################
 # Set the below to True if you want to debug the UI
 # without starting the LLM, i.e. updating/testing
 # the UI layout. Otherwise, set to False
-uiDeveloperMode: False
+ui_developer_mode: False

@@ -73,9 +73,9 @@ you will see a file selection screen to choose a saved game state. Choose the de
 button to continue.
 
 > [!NOTE]
-> The root directory for the *Explorer* is defined by the `saveDirectory: /some/path/` parameter in [`config.yml`](../config.yml).  
+> The root directory for the *Explorer* is defined by the `save_directory: /some/path/` parameter in [`config.yml`](../config.yml).  
 > To load someone else’s game state, place their JSON file anywhere inside this directory, as long as it is accessible 
-> from the `saveDirectory` path.
+> from the `save_directory` path.
 
 
 ### Inside the Chatroom

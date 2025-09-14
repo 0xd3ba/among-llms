@@ -28,7 +28,7 @@ class NewChatroomWidget(ModalScreenWidget):
         super().__init__(title, config, state_manager, *args, **kwargs)
 
         min_agents = AppConfiguration.min_agent_count
-        max_agents = self._config.max_agent_count
+        max_agents = self._config.maximum_agent_count
         genres = self._state_manager.get_available_genres()
         genres = sorted(list(genres))
 

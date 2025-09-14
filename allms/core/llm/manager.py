@@ -2,11 +2,11 @@ import logging
 
 import instructor
 
-from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.config import AppConfiguration, RunTimeConfiguration, RunTimeModel
 from allms.core.agents import Agent
 from allms.core.chat import ChatMessage, ChatMessageFormatter
 from allms.core.state.callbacks import StateManagerCallbackType, StateManagerCallbacks
-from .factory import client_factory
+from .factory import ClientFactory
 from .parser import LLMResponseParser
 from .prompt import LLMPromptGenerator
 from .response import LLMResponseModel
@@ -18,10 +18,11 @@ class LLMAgentsManager:
     def __init__(self, config: RunTimeConfiguration, scenario: str, agents: dict[str, Agent], callbacks: StateManagerCallbacks):
         self._config = config
         self._scenario = scenario
-        self._agents = agents
+        self._agents_map = agents
         self._callbacks = callbacks
-        self._prompt = LLMPromptGenerator(scenario=self._scenario, agents=self._agents)
-        self._client: instructor.Instructor = client_factory(model=self._config.ai_model, is_offline=self._config.offline_model)
+        self._prompt = LLMPromptGenerator(scenario=self._scenario, agents=self._agents_map)
+        self._client_factory = ClientFactory()
+        self._clients_map: dict[RunTimeModel, instructor.Instructor] = self.__create_client_map()
 
         self._there_is_a_human_prompt = self.__get_presence_of_human_prompt()
         self._bg_prompt = self.__get_background_prompt()
@@ -32,6 +33,9 @@ class LLMAgentsManager:
         tries = 0
         generated_message = ""
         parsed_response = None
+
+        ai_model = self._agents_map[agent_id].model
+        client = self._clients_map[ai_model]
 
         # Note: Need to include the instructions in the history
         human_prompt = await self.__create_message(content=self._there_is_a_human_prompt)
@@ -44,14 +48,15 @@ class LLMAgentsManager:
 
         while tries < AppConfiguration.max_model_retries:
             tries += 1
-            response = await self._client.chat.completions.create(
+            response = await client.chat.completions.create(
                 response_model=None,  # We will handle it ourselves
-                model=self._config.ai_model,
+                model=ai_model.name,
                 messages=messages
             )
 
             if (not response) or (not response.choices):
                 AppConfiguration.logger.log(f"[{tries}] {agent_id} could not generate a response. Retrying ... ", level=logging.CRITICAL)
+                await self._callbacks.invoke(StateManagerCallbackType.INVALID_RESPONSE, agent_id=agent_id, try_num=tries)
                 continue
 
             try:
@@ -67,6 +72,9 @@ class LLMAgentsManager:
                 # Add in the exception message to the list of messages inorder for the model to generate a better response next time
                 exception_msg = await self.__create_message(content=str(e), role=LLMRoles.system)
                 messages.append(exception_msg)
+
+                # Notify that the agent could not generate a proper response
+                await self._callbacks.invoke(StateManagerCallbackType.INVALID_RESPONSE, agent_id=agent_id, try_num=tries)
                 continue
 
         # Either the model failed to generate a response properly or it successfully generated the message
@@ -88,7 +96,7 @@ class LLMAgentsManager:
 
     async def __prepare_history(self, agent_id: str) -> list[dict[str, str]]:
         """ Helper method to prepare the message history of the agent required for context """
-        agent = self._agents[agent_id]
+        agent = self._agents_map[agent_id]
         chat_log = agent.get_chat_logs()  # Each item is of form (role, message/message_ID, is_message_id)
 
         # Each message must be of the following format
@@ -110,3 +118,13 @@ class LLMAgentsManager:
 
         message = dict(role=role, content=content)
         return message
+
+    def __create_client_map(self) -> dict[RunTimeModel, instructor.Instructor]:
+        """ Helper method to create a mapping between a model and a client instance """
+        client_map: dict[RunTimeModel, instructor.Instructor] = {}
+        for agent in self._agents_map.values():
+            ai_model = agent.model
+            if ai_model not in client_map:
+                client_map[ai_model] = self._client_factory.create(model=ai_model)
+
+        return client_map

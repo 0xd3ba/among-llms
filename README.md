@@ -177,7 +177,7 @@ roughly two-three minutes.
 Got feedback, ideas, or want to share your best Among LLMs moments?  
 Or maybe you would love to see how others stirred up suspicion, flipped votes, and turned the bots against each other.  
 
-Join the subreddit and be part of the chaos:  [**r/AmongLLMs**](https://www.reddit.com/r/AmongLLMs/)  
+Join our [Discord Server](https://discord.gg/PTZZYZwUqN) and be part of the chaos! 
 
 
 ## Contributions
