@@ -21,7 +21,11 @@ class LLMAgentsManager:
         self._agents = agents
         self._callbacks = callbacks
         self._prompt = LLMPromptGenerator(scenario=self._scenario, agents=self._agents)
-        self._client: instructor.Instructor = client_factory(model=self._config.ai_model, is_offline=self._config.offline_model)
+        self._client: instructor.Instructor = client_factory(
+            model=self._config.ai_model, 
+            is_offline=self._config.offline_model,
+            api_key=self._config.openrouter_api_key if hasattr(self._config, 'openrouter_api_key') else None
+        )
 
         self._there_is_a_human_prompt = self.__get_presence_of_human_prompt()
         self._bg_prompt = self.__get_background_prompt()

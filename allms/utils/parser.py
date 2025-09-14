@@ -42,6 +42,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
 
     key_ai_model: str = "model"
     key_offline_model: str = "offlineModel"
+    key_openrouter_api_key: str = "openrouterApiKey"
     key_reasoning_level: str = "reasoningLevel"
     key_max_agent_count: str = "maximumAgentCount"
     key_enable_rag: str = "enableRAG"
@@ -54,6 +55,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
         super().__init__(file_path)
         self.ai_model: str | None = None
         self.offline_model: bool | None = None
+        self.openrouter_api_key: str | None = None
         self.reasoning_level: str | None = None
         self.max_agent_count: int | None = None
         self.enable_rag: bool | None = None
@@ -64,8 +66,11 @@ class YAMLConfigFileParser(BaseYAMLParser):
 
     def parse(self, root_key: str = None) -> dict:
         yml_data = super().parse()
-        self.ai_model = yml_data[self.key_ai_model].lower()
+        # Don't lower() the model name if it contains '/' (for OpenRouter models)
+        model_name = yml_data[self.key_ai_model]
+        self.ai_model = model_name if '/' in model_name else model_name.lower()
         self.offline_model = yml_data[self.key_offline_model]
+        self.openrouter_api_key = yml_data.get(self.key_openrouter_api_key, "")
         self.reasoning_level = yml_data[self.key_reasoning_level].lower()
         self.max_agent_count = yml_data[self.key_max_agent_count]
         self.enable_rag = yml_data[self.key_enable_rag]
@@ -85,6 +90,12 @@ class YAMLConfigFileParser(BaseYAMLParser):
         if not isinstance(self.offline_model, bool):
             is_error = True
             logging.error(f"Expected {self.key_offline_model} to be a boolean but got {self.offline_model} instead")
+        
+        # Validate OpenRouter API key if using online OpenRouter model
+        if not self.offline_model and self.ai_model.startswith("deepseek/"):
+            if not self.openrouter_api_key or self.openrouter_api_key == "":
+                is_error = True
+                logging.error(f"OpenRouter API key is required when using OpenRouter models with offlineModel: False")
 
         if self.reasoning_level not in AppConfiguration.ai_reasoning_levels:
             is_error = True

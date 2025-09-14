@@ -28,6 +28,7 @@ class AppConfiguration:
     ai_models: list[str] = [
         "gpt-oss:20b",
         "gpt-oss:120b",
+        "deepseek/deepseek-chat-v3.1:free",
     ]
 
     ai_reasoning_levels: list[str] = [
@@ -128,3 +129,4 @@ class RunTimeConfiguration:
     save_directory: str
     ui_dev_mode: bool
     skip_intro: bool
+    openrouter_api_key: str = ""

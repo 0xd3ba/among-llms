@@ -43,7 +43,8 @@ def main():
                                           ui_dev_mode=yml_parser.ui_dev_mode,
                                           save_directory=yml_parser.save_directory,
                                           default_agent_count=default_agent_count,
-                                          skip_intro=skip_intro)
+                                          skip_intro=skip_intro,
+                                          openrouter_api_key=yml_parser.openrouter_api_key)
 
     # Preload the sentence transformer before starting the app to avoid performance issues in the UI
     if yml_parser.enable_rag:
