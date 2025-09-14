@@ -15,6 +15,7 @@ class StateManagerCallbackType(BaseCallbackType):
     VOTE_FOR: str = "vote_for"
     END_THE_VOTE: str = "end_vote"
     UPDATE_UI_ON_NEW_MESSAGE: str = "update_ui"
+    INVALID_RESPONSE: str = "invalid_response"
 
 
 class StateManagerCallbacks(BaseCallbacks):

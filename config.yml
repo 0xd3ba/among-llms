@@ -19,14 +19,13 @@ use_models:
     # Uncomment and set the following if you are hosting more than one Ollama server locally. It will be using a different port number
     # offline_server_port: 11434   # The port used by local Ollama server (ignored for online models). DO NOT CHANGE IT; Change only if you know what you're doing
 
-
-# Uncomment the below lines and add your entries as required
-# Copy/paste the structure and add your models
-#  - name:                <your_model_name>
-#    offline_model:       <True or False>
-#    reasoning_level:     <whatever it is supported>
-#    env_var_api_key:     <ENV_VAR_HOLDING_THE_API_KEY_FOR_THIS_MODEL> (set to blank string "" for offline models)
-#    offline_server_port: <any_positive_integer> (ignored for online models)
+    # Uncomment the below lines and add your entries as required
+    # Copy/paste the structure and add your models
+    #  - name:                <your_model_name>
+    #    offline_model:       <True or False>
+    #    reasoning_level:     <whatever it is supported>
+    #    env_var_api_key:     <ENV_VAR_HOLDING_THE_API_KEY_FOR_THIS_MODEL> (set to blank string "" for offline models)
+    #    offline_server_port: <any_positive_integer> (ignored for online models)
 
 
 # Maximum number of agents (including you)

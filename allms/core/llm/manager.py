@@ -56,6 +56,7 @@ class LLMAgentsManager:
 
             if (not response) or (not response.choices):
                 AppConfiguration.logger.log(f"[{tries}] {agent_id} could not generate a response. Retrying ... ", level=logging.CRITICAL)
+                await self._callbacks.invoke(StateManagerCallbackType.INVALID_RESPONSE, agent_id=agent_id, try_num=tries)
                 continue
 
             try:
@@ -71,6 +72,9 @@ class LLMAgentsManager:
                 # Add in the exception message to the list of messages inorder for the model to generate a better response next time
                 exception_msg = await self.__create_message(content=str(e), role=LLMRoles.system)
                 messages.append(exception_msg)
+
+                # Notify that the agent could not generate a proper response
+                await self._callbacks.invoke(StateManagerCallbackType.INVALID_RESPONSE, agent_id=agent_id, try_num=tries)
                 continue
 
         # Either the model failed to generate a response properly or it successfully generated the message

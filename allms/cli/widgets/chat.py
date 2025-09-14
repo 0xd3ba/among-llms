@@ -191,9 +191,9 @@ class ChatroomWidget(Vertical):
         """ Callback method to display the event on the screen """
         self._contents_widget.announce_event(event)
 
-    def __send_notification(self, title: str, message: str, severity: str = ToastConfiguration.type_information) -> None:
+    def __send_notification(self, title: str, message: str, severity: str = ToastConfiguration.type_information, timeout: float = ToastConfiguration.timeout) -> None:
         """ Callback method to send a notification toast """
-        self.notify(title=title, message=message, severity=severity)
+        self.notify(title=title, message=message, severity=severity, timeout=timeout)
 
     def __cancel_all_bg_tasks(self) -> None:
         """ Callback method to cancel all the background tasks and disable the inputs """
