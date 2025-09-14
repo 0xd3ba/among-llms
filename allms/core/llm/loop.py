@@ -36,12 +36,6 @@ class ChatLoop:
         self._agent_tasks: dict[str, asyncio.Task] = {}
         self._pause_loop: bool = False
 
-        # Maintain a rolling chat history per agent -- includes public messages, DMs and notifications
-        # Since the number of agents would be typically small (if you configure it to be a value like > 100, either
-        # you're crazy or you have a supercomputer powered by god himself idk), it's okay-ish to maintain redundant
-        # global messages per agent
-        self._llm_chat_history: dict[str, deque[str]] = {agent_id: deque() for agent_id in self._llm_agent_ids}
-
         self.__update_response_model_allowed_ids()
         self._llm_agents_mgr = LLMAgentsManager(config=config, scenario=scenario, agents=self._agents, callbacks=self._callbacks)
 
@@ -92,15 +86,14 @@ class ChatLoop:
         msg_id = None
         turns_skipped = 0
         first_response = True
+        delay_min_sec = self._config.response_delay_min_seconds
+        delay_max_sec = self._config.response_delay_max_seconds
 
         try:
             while not self._stop_loop[agent.id]:
 
                 # Sleep for N random seconds to simulate delays, like in a group-chat and to prevent spamming
-                delay = random.randint(3, 5)
-                if not first_response:
-                    await asyncio.sleep(delay)
-
+                await self.__delay_for_n_random_seconds(delay_min_sec, delay_max_sec, sleep_now=(not first_response))
                 if self._pause_loop:  # If paused, prevent agents from interacting with the model
                     continue
 
@@ -143,6 +136,10 @@ class ChatLoop:
                 start_a_vote: bool = model_response.start_a_vote
                 voting_for: Optional[str] = model_response.voting_for
 
+                # Note: There has been some reports on model spamming the messages on powerful hardware
+                # Introduce a further delay between [0, min_delay] to control the UI updates
+                await self.__delay_for_n_random_seconds(0, delay_min_sec, sleep_now=True)
+
                 # 1. Send the message
                 msg_id = await self._callbacks.invoke(StateManagerCallbackType.SEND_MESSAGE, msg=msg, sent_by=agent_id, sent_by_you=False,
                                                       sent_to=send_to, thought_process=thought_process, suspect_id=suspect,
@@ -174,3 +171,10 @@ class ChatLoop:
 
         # Set the class attributes of the allowed agent-IDs in the response models
         LLMResponseModel.set_allowed_ids(allowed_ids)
+
+    @staticmethod
+    async def __delay_for_n_random_seconds(min_sec: int, max_sec: int, sleep_now: bool = True) -> None:
+        """ Sleep for N random seconds picked the given range """
+        delay = random.randint(min_sec, max_sec)
+        if sleep_now:
+            await asyncio.sleep(delay)

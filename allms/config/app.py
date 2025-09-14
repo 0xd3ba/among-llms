@@ -3,6 +3,7 @@ from pathlib import Path
 import tzlocal
 
 import allms.version as version
+from allms.config.models import *
 from allms.utils.time import Time
 from allms.utils.logger import AppLogger
 
@@ -24,16 +25,10 @@ class AppConfiguration:
     clock: Time = Time(timezone)
 
     # List of AI models supported
-    ai_models: list[str] = [
-        "gpt-oss:20b",
-        "gpt-oss:120b",
-    ]
-
-    ai_reasoning_levels: list[str] = [
-        "low",
-        "medium",
-        "high"
-    ]
+    ai_models: set[BaseModelConfiguration] = {
+        OpenAIGPTModel(model_type=ModelTypes.gpt_oss_20b, offline_model=True),
+        OpenAIGPTModel(model_type=ModelTypes.gpt_oss_120b, offline_model=True),
+    }
 
     default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
 

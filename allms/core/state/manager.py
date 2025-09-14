@@ -116,7 +116,7 @@ class GameStateManager:
         your_id = self.get_user_assigned_agent_id()
         self._logger.log(f"You have been assigned as {your_id}")
 
-        if self._config.ui_dev_mode or self._game_state.get_game_ended():
+        if self._config.ui_developer_mode or self._game_state.get_game_ended():
             return
 
         self._chat_loop = ChatLoop(config=self._config,
@@ -166,7 +166,7 @@ class GameStateManager:
         """ Creates the agents and assigns them to the state """
         genre = self.get_genre()
         self._logger.log(f"Creating {n_agents} agents for given the genre: '{genre}' ...")
-        agents = AgentFactory.create(genre=genre, n_agents=n_agents)
+        agents = AgentFactory.create(genre=genre, n_agents=n_agents, models=self._config.use_models)
         self.__check_game_state_validity()
 
         self._game_state.initialize_agents(agents)

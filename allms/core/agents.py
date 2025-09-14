@@ -1,15 +1,17 @@
 from collections import deque
 from dataclasses import dataclass, field
+from itertools import cycle, islice
 
-from allms.config import AppConfiguration
+from allms.config import AppConfiguration, RunTimeModel
 from .generate import NameGenerator, PersonaGenerator
 
 
 @dataclass
 class Agent:
     """ Class for an agent """
-    id: str       # The unique identifier of the agent
-    persona: str  # The persona assigned to the agent
+    id: str               # The unique identifier of the agent
+    persona: str          # The persona assigned to the agent
+    model: RunTimeModel   # The AI model assigned to this agent which will be responsible for generating the responses
 
     # List of message IDs of the messages sent by the agent
     msg_ids: set[str] = field(default_factory=set)
@@ -95,7 +97,7 @@ class Agent:
 class AgentFactory:
     """ Factory class for producing agents """
     @staticmethod
-    def create(genre: str, n_agents: int) -> list[Agent]:
+    def create(genre: str, n_agents: int, models: list[RunTimeModel]) -> list[Agent]:
         """ Creates N agents and returns them """
         min_count = AppConfiguration.min_agent_count
         assert n_agents >= min_count, f"Expected no. of agents to be >= {min_count} but received {n_agents} instead"
@@ -108,9 +110,10 @@ class AgentFactory:
         assert len(agent_ids) == len(set(agent_ids)), f"Got duplicates in agent IDs list: {agent_ids}. This should not happen"
 
         personas = persona_generator.generate(n=n_agents)
+        assigned_models = AgentFactory.__distribute_models(n_agents, models=models)
 
-        for agent_id, persona in zip(agent_ids, personas):
-            agent = Agent(id=agent_id, persona=persona)
+        for agent_id, persona, model in zip(agent_ids, personas, assigned_models):
+            agent = Agent(id=agent_id, persona=persona, model=model)
             agents.append(agent)
 
         return agents
@@ -119,3 +122,10 @@ class AgentFactory:
     def agent_id_comparator(agent_id: str) -> str:
         """ Comparator for sorting agents to be used when sorting agent IDs """
         return agent_id
+
+    @staticmethod
+    def __distribute_models(n_agents: int, models: list[RunTimeModel]) -> list[RunTimeModel]:
+        """ Helper method to distribute the models equivalently across the agents """
+        models_cycle = cycle(models)
+        assigned_models = islice(models_cycle, n_agents)
+        return list(assigned_models)
