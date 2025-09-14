@@ -23,9 +23,10 @@ class OllamaOfflineLLMClient(LLMBaseClient):
     @staticmethod
     def create_client(model: RunTimeModel) -> instructor.Instructor:
         """ Creates the Ollama client and returns it """
+        server_port = model.offline_server_port
         ollama_client = AsyncOpenAI(
-            base_url="http://localhost:11434/v1",  # Ollama default
-            api_key="ollama",                      # dummy key, Ollama ignores it
+            base_url=f"http://localhost:{server_port}/v1",  # Ollama default
+            api_key="ollama",                               # dummy key, Ollama ignores it
         )
 
         client = instructor.from_openai(ollama_client)

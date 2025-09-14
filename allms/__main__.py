@@ -3,7 +3,7 @@ import sys
 from argparse import ArgumentParser
 from typing import Optional
 
-from allms.config import AppConfiguration, RunTimeConfiguration
+from allms.config import AppConfiguration, RunTimeConfiguration, RunTimeModel
 from allms.utils.parser import YAMLConfigFileParser
 from .cli import AmongLLMs
 
@@ -19,6 +19,13 @@ def parse_args(args: list[str]) -> tuple:
     return args_list.config, None
 
 
+def validate_runtime_config(config: RunTimeConfiguration) -> None:
+    """ Validates the runtime config ensuring there is atleast one model """
+    models: list[RunTimeModel] = config.use_models
+    if len(models) == 0:
+        raise RuntimeError(f"There is no model inside the use_models parameter. There must be atleast one model")
+
+
 def main():
     config_path, *_ = parse_args(sys.argv[1:])
     runtime_config: Optional[RunTimeConfiguration] = None
@@ -26,6 +33,7 @@ def main():
     try:
         yml_parser = YAMLConfigFileParser(config_path)
         runtime_config = yml_parser.parse()
+        validate_runtime_config(runtime_config)
     except (ValueError, RuntimeError, Exception) as e:
         logging.critical(f"Unable to start the application due to invalid configuration: {e}")
         logging.critical(f"Exiting the app ...")

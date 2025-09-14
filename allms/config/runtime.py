@@ -14,6 +14,13 @@ class RunTimeModel:
     offline_model: bool
     reasoning_level: str
     env_var_api_key: str
+    offline_server_port: int = 11434  # Default port used by local Ollama server
+
+    @field_validator("offline_server_port")
+    def _validate_port(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError(f"The Ollama server port must be a positive integer but got {v} instead")
+        return v
 
     @model_validator(mode="after")
     def _validate_model_name(cls, model: RunTimeModel) -> RunTimeModel:
