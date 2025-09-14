@@ -14,7 +14,7 @@ If you’d like to experiment with online models or other Ollama models, a few c
    ```
    
    In the same file, inherit the `BaseModelConfiguration` class to create a derived class for your model. For OpenAI
-   models, you do not need to do anything as you can simply use `OpenAIGPTModel` class in step-3, which is already defined.
+   models, you do not need to do anything as you can simply use `OpenAIGPTModel` class in step-2, which is already defined.
    For other models, simply refer to `OpenAIGPTModel` as a reference and create a similar class.   
    **Note**: Reasoning level terminologies might be different from OpenAI's.
 
