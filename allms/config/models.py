@@ -25,6 +25,9 @@ class BaseModelConfiguration:
         self.model_name = self.model_type.value
         self.reasoning_levels = frozenset(self.reasoning_levels)
 
+        if self.env_var_api_key is None:
+            self.env_var_api_key = ""
+
         # Check if online model and we have provided a valid environment variable
         if not self.offline_model:
             self.__check_validity_of_env_var()
@@ -46,13 +49,15 @@ class BaseModelConfiguration:
 
     def __hash__(self) -> int:
         """Hash based on (name, offline_model) """
-        return hash((self.model_name, self.offline_model))
+        return hash((self.model_name, self.offline_model, self.env_var_api_key))
 
     def __eq__(self, other: object) -> bool:
         """Equality is based on (name, offline_model)."""
         if not isinstance(other, BaseModelConfiguration):
             return NotImplemented
-        return (self.model_name, self.offline_model) == (other.model_name, other.offline_model)
+
+        return ((self.model_name, self.offline_model, self.env_var_api_key) ==
+                (other.model_name, other.offline_model, other.env_var_api_key))
 
 
 class OpenAIGPTModel(BaseModelConfiguration):
