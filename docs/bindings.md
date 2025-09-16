@@ -1,7 +1,7 @@
 ## Customizing Keyboard Bindings
 Among LLMs comes with intuitive, easy-to-remember keyboard bindings for navigating the interface. 
-If you’d like to customize these bindings, you can do so by going to [`config.py`](../allms/config.py) and editing the 
-`BindingConfiguration` class to your preference.  
+If you’d like to customize these bindings, you can do so by going to [`config/bindings.py`](../allms/config/bindings.py) 
+and editing the `BindingConfiguration` class to your preference.  
 
 ```python
 class BindingConfiguration:
@@ -33,7 +33,7 @@ class BindingConfiguration:
 
 > [!TIP]  
 > After updating a key binding, you may want to verify that it works. Before launching the application, set
-> `uiDeveloperMode: True` in [`config.yml`](../config.yml). 
+> `ui_developer_mode: True` in [`config.yml`](../config.yml). 
 > **This prevents the LLMs from starting when you enter the chatroom**, allowing you to test bindings freely.
 
 > [!WARNING]

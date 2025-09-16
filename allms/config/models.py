@@ -16,52 +16,33 @@ class ModelTypes(str, Enum):
 class BaseModelConfiguration:
     """ Base class for all models """
     model_type: ModelTypes
-    offline_model: bool
-    env_var_api_key: str
-    model_name: str = ""
+    offline: bool
+    online: bool
     reasoning_levels: frozenset[str] = field(default_factory=frozenset)
+    _model_name: str = ""
 
     def __post_init__(self):
-        self.model_name = self.model_type.value
-        self.reasoning_levels = frozenset(self.reasoning_levels)
+        self._model_name = self.model_type.value
+        self.reasoning_levels = frozenset([rl.lower() for rl in self.reasoning_levels])
 
-        if self.env_var_api_key is None:
-            self.env_var_api_key = ""
-
-        # Check if online model and we have provided a valid environment variable
-        if not self.offline_model:
-            self.__check_validity_of_env_var()
-
-    def __check_validity_of_env_var(self) -> None:
-        """ Helper method to check if the provided environment variable is valid for an online model """
-        # Check 1: Did the user provide a variable name?
-        if not self.env_var_api_key:
-            raise ValueError(
-                f"{self.model_name} is an online model but no environment variable name was provided."
-            )
-
-        # Check 2: Does the variable exist and is it non-empty ?
-        if not os.getenv(self.env_var_api_key):
-            raise ValueError(
-                f"{self.model_name} is an online model, but the environment variable "
-                f"[{self.env_var_api_key}] is not set or is empty."
-            )
+    def reasoning_level_is_supported(self, level: str) -> bool:
+        """ Returns True if the given reasoning level is supported """
+        return level.lower() in self.reasoning_levels
 
     def __hash__(self) -> int:
-        """Hash based on (name, offline_model) """
-        return hash((self.model_name, self.offline_model, self.env_var_api_key))
+        """Hash based on model name """
+        return hash((self._model_name, self.offline, self.online))
 
     def __eq__(self, other: object) -> bool:
-        """Equality is based on (name, offline_model)."""
+        """Equality is based on model name"""
         if not isinstance(other, BaseModelConfiguration):
             return NotImplemented
 
-        return ((self.model_name, self.offline_model, self.env_var_api_key) ==
-                (other.model_name, other.offline_model, other.env_var_api_key))
+        return (self._model_name, self.offline, self.online) == (other._model_name, other.offline, other.online)
 
 
 class OpenAIGPTModel(BaseModelConfiguration):
     """ Class for OpenAI GPT models """
-    def __init__(self, model_type: ModelTypes, offline_model: bool, env_var_api_key: Optional[str] = None):
+    def __init__(self, model_type: ModelTypes, offline: bool, online: bool):
         reasoning_levels = ["low", "medium", "high"]
-        super().__init__(model_type=model_type, offline_model=offline_model, reasoning_levels=reasoning_levels, env_var_api_key=env_var_api_key)
+        super().__init__(model_type=model_type, offline=offline, online=online, reasoning_levels=reasoning_levels)

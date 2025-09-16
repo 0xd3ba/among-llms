@@ -19,13 +19,14 @@ If you’d like to experiment with online models or other Ollama models, a few c
    **Note**: Reasoning level terminologies might be different from OpenAI's.
 
 
-2. Go to [`config/app.py`](../allms/config/app.py) and add the model(s) to the following set inside `AppConfiguration` class.
+2. Go to [`config/app.py`](../allms/config/app.py) and add the model(s) to the following mapping inside `AppConfiguration` class.
     ```python
-    # List of AI models supported
-    ai_models: set[BaseModelConfiguration] = {
-        OpenAIGPTModel(model_type=ModelTypes.gpt_oss_20b, offline_model=True),
-        OpenAIGPTModel(model_type=ModelTypes.gpt_oss_120b, offline_model=True),
+    # AI models supported
+    ai_models: dict[ModelTypes, BaseModelConfiguration] = {
+        ModelTypes.gpt_oss_20b: OpenAIGPTModel(model_type=ModelTypes.gpt_oss_20b, offline=True, online=False),
+        ModelTypes.gpt_oss_120b: OpenAIGPTModel(model_type=ModelTypes.gpt_oss_120b, offline=True, online=False),
         # Add your model instance here. For OpenAI GPT models, just use OpenAIGPTModel class.
+        # If you are adding online support for gpt-oss:20b or gpt-oss:120b, simply set online=True here
     }
     ```
     If you only plan to use Ollama models **locally**, you can **skip directly to step-4**.

@@ -25,6 +25,21 @@ def validate_runtime_config(config: RunTimeConfiguration) -> None:
     if len(models) == 0:
         raise RuntimeError(f"There is no model inside the use_models parameter. There must be atleast one model")
 
+    # Check if there are two different offline models that share the same port
+    offline_models = {model for model in models if model.offline_model}
+    port_to_model_map: dict[int, str] = {}  # Maps a port number to a model name
+
+    for model in offline_models:
+        port = model.offline_server_port
+        if port not in port_to_model_map:
+            port_to_model_map[port] = model.name
+
+        elif model.name != port_to_model_map[port]:
+            raise RuntimeError(
+                f"Port number conflict for port={port} between two models: [{model.name}] and [{port_to_model_map[port]}] "
+                f"If you are using multiple Ollama models locally, make sure you use different ports"
+            )
+
 
 def main():
     config_path, *_ = parse_args(sys.argv[1:])

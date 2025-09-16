@@ -24,10 +24,10 @@ class AppConfiguration:
     timezone: str = tzlocal.get_localzone_name()
     clock: Time = Time(timezone)
 
-    # List of AI models supported
-    ai_models: set[BaseModelConfiguration] = {
-        OpenAIGPTModel(model_type=ModelTypes.gpt_oss_20b, offline_model=True),
-        OpenAIGPTModel(model_type=ModelTypes.gpt_oss_120b, offline_model=True),
+    # AI models supported
+    ai_models: dict[ModelTypes, BaseModelConfiguration] = {
+        ModelTypes.gpt_oss_20b: OpenAIGPTModel(model_type=ModelTypes.gpt_oss_20b, offline=True, online=False),
+        ModelTypes.gpt_oss_120b: OpenAIGPTModel(model_type=ModelTypes.gpt_oss_120b, offline=True, online=False),
     }
 
     default_genre: str = "sci-fi"  # The default scenario/persona genre. Must exist within scenario directory
