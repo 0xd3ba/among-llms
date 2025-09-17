@@ -166,7 +166,7 @@ class GameStateManager:
         """ Creates the agents and assigns them to the state """
         genre = self.get_genre()
         self._logger.log(f"Creating {n_agents} agents for given the genre: '{genre}' ...")
-        agents = AgentFactory.create(genre=genre, n_agents=n_agents, models=self._config.use_models)
+        agents = AgentFactory.create(genre=genre, n_agents=n_agents, models=self._config.use_models, max_lookback=self._config.max_lookback_messages)
         self.__check_game_state_validity()
 
         self._game_state.initialize_agents(agents)

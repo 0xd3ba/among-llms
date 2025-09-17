@@ -12,6 +12,7 @@ class Agent:
     id: str               # The unique identifier of the agent
     persona: str          # The persona assigned to the agent
     model: RunTimeModel   # The AI model assigned to this agent which will be responsible for generating the responses
+    max_lookback: int     # Length of context window for keeping track of messages/events/notifications
 
     # List of message IDs of the messages sent by the agent
     msg_ids: set[str] = field(default_factory=set)
@@ -26,8 +27,12 @@ class Agent:
     # the state in each and every chat log -- a better way is to just store the message IDs of all chat messages
     # and keep the notifications etc. as normal formatted messages. On every iteration, the LLM will fetch the latest
     # contents (even if edited/deleted) instead of stale version (if stored as formatted messages instead of IDs)
-    chat_logs: deque[tuple[str, str, bool]] = field(default_factory=lambda: deque(maxlen=AppConfiguration.max_lookback_messages))
+    _chat_logs: deque[tuple[str, str, bool]] = None
     __latest_msg: str = ""  # Use as Producer/Consumer flags
+
+    def __post_init__(self):
+        if self._chat_logs is None:
+            self._chat_logs = deque(maxlen=self.max_lookback)
 
     def add_message_id(self, msg_id: str) -> None:
         """ Adds the message ID to the list of IDs sent by the agent """
@@ -45,7 +50,7 @@ class Agent:
         """ Add the given message/message ID to the chat log """
         msg_type = "message ID" if is_message_id else "message"
         AppConfiguration.logger.log(f"Adding the following {msg_type} to chat-log for agent({self.id}): {msg}")
-        self.chat_logs.append((role, msg, is_message_id))
+        self._chat_logs.append((role, msg, is_message_id))
         self.__latest_msg = msg  # Doesn't matter if it is an ID or a raw message
 
     def can_reply(self, latest_msg_id: str | None) -> bool:
@@ -53,7 +58,7 @@ class Agent:
         return (latest_msg_id is None) or (self.__latest_msg != latest_msg_id)
 
     def get_chat_logs(self) -> list[tuple[str, str, bool]]:
-        return list(self.chat_logs)
+        return list(self._chat_logs)
 
     def get_message_ids(self, latest_first: bool = True) -> list[str]:
         """ Returns a sorted list of all the message IDs of the messages sent by the agent """
@@ -91,13 +96,13 @@ class Agent:
         self.msg_ids.clear()
         self.dm_msg_ids_recv.clear()
         self.dm_msg_ids_sent.clear()
-        self.chat_logs.clear()
+        self._chat_logs.clear()
 
 
 class AgentFactory:
     """ Factory class for producing agents """
     @staticmethod
-    def create(genre: str, n_agents: int, models: list[RunTimeModel]) -> list[Agent]:
+    def create(genre: str, n_agents: int, models: list[RunTimeModel], max_lookback: int) -> list[Agent]:
         """ Creates N agents and returns them """
         min_count = AppConfiguration.min_agent_count
         assert n_agents >= min_count, f"Expected no. of agents to be >= {min_count} but received {n_agents} instead"
@@ -113,7 +118,7 @@ class AgentFactory:
         assigned_models = AgentFactory.__distribute_models(n_agents, models=models)
 
         for agent_id, persona, model in zip(agent_ids, personas, assigned_models):
-            agent = Agent(id=agent_id, persona=persona, model=model)
+            agent = Agent(id=agent_id, persona=persona, model=model, max_lookback=max_lookback)
             agents.append(agent)
 
         return agents

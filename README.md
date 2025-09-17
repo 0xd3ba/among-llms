@@ -128,28 +128,12 @@ Before running the application, review and adjust the values to match your setup
 set, launch the application by running the following command:
 
 ```bash
-python3 -m allms
+python3 -m allms [{-c | --config} /path/to/config/file]
 ```
 
 <p align="center">
     <img src="assets/splash_screen.gif" width="600px" alt="Spash Screen">
 </p>
-
-> [!IMPORTANT]  
-> The model uses a **fixed-length context window** to generate replies, which is set to **30 messages** by default.  
->   
-> Increasing this value lets the model look farther back in the conversation, improving the quality and consistency of its responses, but at the cost 
-> of slower inference and higher resource usage. Lowering the value speeds things up and uses fewer resources, but the model may "forget" earlier 
-> parts of the conversation, leading to less coherent replies.  
->   
-> To adjust this parameter, open [`config.py`](allms/config.py) and change the following value accordingly:  
-> ```python
-> class AppConfiguration:
->    """ Configuration for setting up the app """
->    ...
->    max_lookback_messages: int = 30  # Change this value accordingly
->    ...
-> ```
 
 > [!NOTE]
 > Each time the application is launched, a new log file is created in the default log directory (`./data/logs/`) with 
@@ -174,10 +158,10 @@ roughly two-three minutes.
 
 
 ## Join the Community  
-Got feedback, ideas, or want to share your best Among LLMs moments?  
+Got feedback, ideas, questions or want to share your best Among LLMs moments?  
 Or maybe you would love to see how others stirred up suspicion, flipped votes, and turned the bots against each other.  
 
-Join our [Discord Server](https://discord.gg/PTZZYZwUqN) and be part of the chaos! 
+Join the subreddit and be part of the chaos: [r/Among_LLMs](https://www.reddit.com/r/Among_LLMs/)
 
 
 ## Contributions

@@ -76,11 +76,12 @@ class RunTimeModel:
 
 @dataclass(frozen=True)
 class RunTimeConfiguration:
-    """ Configuration class holding constants from CLI and YAML config file """
+    """ Configuration class holding constants from YAML config file """
     maximum_agent_count: int
     default_agent_count: int
     response_delay_min_seconds: int
     response_delay_max_seconds: int
+    max_lookback_messages: int
     enable_rag: bool
     show_thought_process: bool
     show_suspects: bool
@@ -104,6 +105,13 @@ class RunTimeConfiguration:
             raise ValueError(f"Response delay should be a positive number but got {v} instead")
         return v
 
+    @field_validator("max_lookback_messages")
+    def _validate_max_lookback(cls, v: int) -> int:
+        min_lookback = AppConfiguration.min_lookback_messages
+        if v < min_lookback:
+            raise ValueError(f"Max. lookback messages must be > {min_lookback} but got {v} instead")
+        return v
+
     @field_validator("save_directory")
     def _validate_directory(cls, v: str) -> str:
         path = Path(v)
@@ -119,4 +127,4 @@ class RunTimeConfiguration:
             if not path.exists():
                 path.mkdir(parents=True, exist_ok=True)
         except Exception as e:
-            raise RuntimeError(f"There was an issue creating the given directory: {str(path)}")
+            raise RuntimeError(f"There was an issue creating the given directory: {str(path)}: {e}")

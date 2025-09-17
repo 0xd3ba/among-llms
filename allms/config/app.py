@@ -38,11 +38,8 @@ class AppConfiguration:
     # Minimum number of agents that should be in the game
     min_agent_count: int = 3
 
-    # Context size for the model -- Max. no. of messages in the chat history (public messages, DMs and notifications)
-    # the model gets as context for generating a reply
-    # Note(s):
-    #   - Changing this to a larger value may reduce the performance as the models may take longer to produce replies
-    max_lookback_messages: int = 30
+    # Min. context size for the model -- Max. no. of messages in the chat history (public messages, DMs and notifications)
+    min_lookback_messages: int = 10
 
     # Maximum duration of an active vote (in minutes)
     max_vote_duration_min: int = 10
