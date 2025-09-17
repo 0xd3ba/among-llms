@@ -40,6 +40,13 @@ default_agent_count: 5
 response_delay_min_seconds: 4
 response_delay_max_seconds: 7
 
+# Context size for the model -- Max. no. of messages in the chat history (public messages, DMs and notifications)
+# the model gets as context for generating a reply
+# Increasing this value lets the model look farther back in the conversation, but slower inferences
+# Decreasing this value speeds up inference, but earlier parts of conversation gets forgotten
+# If your hardware can handle it, set it to a larger value
+max_lookback_messages: 30
+
 # Enable/Disable Retrieval-Augmented Generation
 # Set to False if causing performance issues
 # Allowed values: True / False

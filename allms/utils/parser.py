@@ -46,6 +46,7 @@ class YAMLConfigFileParser(BaseYAMLParser):
     key_def_agent_count: str = "default_agent_count"
     key_response_delay_min: str = "response_delay_min_seconds"
     key_response_delay_max: str = "response_delay_max_seconds"
+    key_max_lookback_msgs: str = "max_lookback_messages"
     key_enable_rag: str = "enable_rag"
     key_show_thought_process: str = "show_thought_process"
     key_show_suspects: str = "show_suspects"
