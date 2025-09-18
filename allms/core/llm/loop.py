@@ -86,6 +86,7 @@ class ChatLoop:
         msg_id = None
         turns_skipped = 0
         first_response = True
+        generate_summary = False
         delay_min_sec = self._config.response_delay_min_seconds
         delay_max_sec = self._config.response_delay_max_seconds
 
@@ -116,9 +117,13 @@ class ChatLoop:
                 input_prompt = voting_started_prompt if vote_started else voting_not_started_prompt
                 first_response = False
                 await self._callbacks.invoke(StateManagerCallbackType.IS_TYPING, agent_id, is_typing=True)
-                model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(agent_id,
-                                                                                                input_prompt=input_prompt,
-                                                                                                terminated_agents=self._terminated_agent_ids)
+                model_response: LLMResponseModel = await self._llm_agents_mgr.generate_response(
+                    agent_id,
+                    input_prompt=input_prompt,
+                    terminated_agents=self._terminated_agent_ids,
+                    generate_summary=generate_summary,
+                    previous_context=agent.get_chat_context()
+                )
 
                 if model_response is None:
                     continue
@@ -135,6 +140,7 @@ class ChatLoop:
                 suspect_confidence: Optional[int] = model_response.suspect_confidence
                 start_a_vote: bool = model_response.start_a_vote
                 voting_for: Optional[str] = model_response.voting_for
+                chat_summary: Optional[str] = model_response.chat_summary
 
                 # Note: There has been some reports on model spamming the messages on powerful hardware
                 # Introduce a further delay between [0, min_delay] to control the UI updates
@@ -160,6 +166,12 @@ class ChatLoop:
 
                 if vote_started and (voting_for is not None):
                     await self._callbacks.invoke(StateManagerCallbackType.VOTE_FOR, by_agent=agent_id, for_agent=voting_for)
+
+                # 4. If memory compression is enabled, we start generating the summary from now on
+                # Also save the chat summary generated for the agent
+                generate_summary = self._config.enable_memory_compression
+                if generate_summary and chat_summary:
+                    agent.add_to_chat_context(context=chat_summary)
 
         except asyncio.CancelledError:
             AppConfiguration.logger.log(f"Agent ({agent_id}) has been stopped")

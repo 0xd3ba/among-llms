@@ -30,6 +30,7 @@ class LLMResponseModel(_AllowedIDsMixin):
     suspect_reason: Optional[str] = None      # The reason for the suspicion
     start_a_vote: bool = False                # True if agent wants to start a vote, else False
     voting_for: Optional[str] = None          # If a vote has started, who is the current LLM voting for ?
+    chat_summary: Optional[str] = None        # (Optional) Short-summary of whatever happened in the chat
 
     @field_validator("send_to")
     def check_send_to_id(cls, agent_id: Optional[str]) -> Optional[str]:

@@ -33,11 +33,26 @@ class LLMPromptGenerator:
         return prompt
 
     @staticmethod
-    def generate_output_prompt() -> str:
+    def generate_context_prompt(context: str) -> str:
+        """ Method to generate the prompt for the summary, with previously generated summary as input """
+        prompt = f"Here is what you previously believed has happened in the chat and what you believe are your next steps: {context}"
+        return prompt
+
+    @staticmethod
+    def generate_output_prompt(generate_summary: bool = False) -> str:
         """ Method to generate the output instructions prompt """
         # I'm seriously tired trying to enforce structured output. Spent more time trying to get correct the output
         # than writing the code. Realized it's better to just write your own simple output schema and parse it instead
-        prompt = """
+        summary_fmt = ""
+        summary_rule = ""
+        if generate_summary:
+            summary_fmt = "CHAT_SUMMARY: <str>     # Summary of what you believe has happened in the chat"
+            summary_rule = (
+                "- CHAT_SUMMARY: should only contain detailed summary (approx. 100 words or less) on what you "
+                "believe has happened in the entire chat till now. It should also include what you should do next"
+            )
+
+        prompt = f"""
         OUTPUT FORMAT RULES:
 
         ALWAYS respond in this EXACT structure. No other text other than the following below:
@@ -50,6 +65,7 @@ class LLMPromptGenerator:
         REASON_FOR_SUSPECT: <str>          # Reason for suspicion, empty if none
         START_A_VOTE: <True/False>         # Whether you are starting a vote
         VOTING_FOR: <None or agent ID>     # Who you vote for, or None
+        {summary_fmt}
 
         VALUE RULES:
         - MESSAGE: always a string, concise, aligned with your persona. Should only contain what YOU WANT TO SAY to the chat and nothing else. DO NOT INCLUDE YOUR NAME.
@@ -60,6 +76,7 @@ class LLMPromptGenerator:
         - REASON_FOR_SUSPECT: brief explanation, empty if none.
         - START_A_VOTE: True only if extremely suspicious or want someone kicked out; otherwise False.
         - VOTING_FOR: None if voting has not started, else the agent ID you vote for.
+        {summary_rule}
         """
         return prompt
 
