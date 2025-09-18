@@ -82,6 +82,7 @@ class RunTimeConfiguration:
     response_delay_min_seconds: int
     response_delay_max_seconds: int
     max_lookback_messages: int
+    enable_memory_compression: bool
     enable_rag: bool
     show_thought_process: bool
     show_suspects: bool

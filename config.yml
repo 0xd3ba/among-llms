@@ -47,6 +47,13 @@ response_delay_max_seconds: 7
 # If your hardware can handle it, set it to a larger value
 max_lookback_messages: 30
 
+# Enable/Disable memory-compression
+# If set to True, the model will also generate a short summary of whatever happened in the conversation so far, per response
+# This will help in preserving some of longer-term context (instead of forgetting whatever happened before
+# max_lookback_messages window). Although setting this to True might increase inference time since the model now needs
+# to generate additional tokens.
+enable_memory_compression: False
+
 # Enable/Disable Retrieval-Augmented Generation
 # Set to False if causing performance issues
 # Allowed values: True / False
