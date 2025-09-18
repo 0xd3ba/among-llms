@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import instructor
@@ -27,8 +28,15 @@ class LLMAgentsManager:
         self._there_is_a_human_prompt = self.__get_presence_of_human_prompt()
         self._bg_prompt = self.__get_background_prompt()
         self._op_prompt = self.__get_output_prompt()
+        self._op_prompt_with_summary = self.__get_output_prompt(generate_summary=True)
 
-    async def generate_response(self, agent_id: str, input_prompt: str, terminated_agents: set[str]) -> LLMResponseModel | None:
+    async def generate_response(self,
+                                agent_id: str,
+                                input_prompt: str,
+                                terminated_agents: set[str],
+                                generate_summary: bool,
+                                previous_context: str = None
+                                ) -> LLMResponseModel | None:
         """ Generates a response by the LLM and returns it """
         tries = 0
         generated_message = ""
@@ -36,15 +44,20 @@ class LLMAgentsManager:
 
         ai_model = self._agents_map[agent_id].model
         client = self._clients_map[ai_model]
+        output_prompt = self._op_prompt_with_summary if generate_summary else self._op_prompt
 
         # Note: Need to include the instructions in the history
         human_prompt = await self.__create_message(content=self._there_is_a_human_prompt)
         bg_prompt = await self.__create_message(content=self._bg_prompt)
-        op_prompt = await self.__create_message(content=self._op_prompt)
+        op_prompt = await self.__create_message(content=output_prompt)
         ip_prompt = await self.__create_message(content=input_prompt)
         term_prompt = await self.__create_message(content=self._prompt.generate_terminated_agents_prompt(terminated_agents))
         history = await self.__prepare_history(agent_id)
         messages = [bg_prompt] + history + [ip_prompt, human_prompt, term_prompt, op_prompt]
+
+        if previous_context:
+            pc_prompt = await self.__create_message(content=self.__generate_chat_context_prompt(previous_context))
+            messages.append(pc_prompt)
 
         while tries < AppConfiguration.max_model_retries:
             tries += 1
@@ -64,6 +77,12 @@ class LLMAgentsManager:
                 # TODO: If doesn't work, then need to come up with a generalized method to extract the contents
                 generated_message = (response.choices[0]).message.content
                 parsed_response = LLMResponseParser.parse(generated_message)
+
+                # Note -- It might be the case that the model may have forgotten to generate the chat summary altogether
+                if generate_summary and (not parsed_response.chat_summary):
+                    raise ValueError(f"CHAT SUMMARY was not generated even though it was explicitly requested")
+
+                # No error -- safe to break
                 break
 
             except (ValueError, Exception) as e:
@@ -75,6 +94,7 @@ class LLMAgentsManager:
 
                 # Notify that the agent could not generate a proper response
                 await self._callbacks.invoke(StateManagerCallbackType.INVALID_RESPONSE, agent_id=agent_id, try_num=tries)
+                await asyncio.sleep(1)
                 continue
 
         # Either the model failed to generate a response properly or it successfully generated the message
@@ -88,11 +108,14 @@ class LLMAgentsManager:
     def __get_background_prompt(self) -> str:
         return self._prompt.generate_background_prompt()
 
-    def __get_output_prompt(self) -> str:
-        return self._prompt.generate_output_prompt()
+    def __get_output_prompt(self, generate_summary: bool = False) -> str:
+        return self._prompt.generate_output_prompt(generate_summary=generate_summary)
 
     def __get_presence_of_human_prompt(self) -> str:
         return self._prompt.generate_presence_of_human_prompt()
+
+    def __generate_chat_context_prompt(self, context: str) -> str:
+        return self._prompt.generate_context_prompt(context)
 
     async def __prepare_history(self, agent_id: str) -> list[dict[str, str]]:
         """ Helper method to prepare the message history of the agent required for context """

@@ -22,7 +22,8 @@ class LLMResponseParser:
             "SUSPECT_CONFIDENCE": "suspect_confidence",
             "REASON_FOR_SUSPECT": "suspect_reason",
             "START_A_VOTE":       "start_a_vote",
-            "VOTING_FOR":         "voting_for"
+            "VOTING_FOR":         "voting_for",
+            "CHAT_SUMMARY":       "chat_summary"
         }
         response_dict = {}
         lines = response.splitlines()
