@@ -1,15 +1,6 @@
-import os
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
 
-
-class ModelTypes(str, Enum):
-    """ Class containing the supported models """
-    gpt_oss_20b: str = "gpt-oss:20b"
-    gpt_oss_120b: str = "gpt-oss:120b"
-
-    # Add the names of your models here
+from .types import ModelTypes
 
 
 @dataclass

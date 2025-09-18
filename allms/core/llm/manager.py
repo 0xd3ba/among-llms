@@ -7,6 +7,7 @@ from allms.config import AppConfiguration, RunTimeConfiguration, RunTimeModel
 from allms.core.agents import Agent
 from allms.core.chat import ChatMessage, ChatMessageFormatter
 from allms.core.state.callbacks import StateManagerCallbackType, StateManagerCallbacks
+from .client import LLMClientResult
 from .factory import ClientFactory
 from .parser import LLMResponseParser
 from .prompt import LLMPromptGenerator
@@ -23,7 +24,7 @@ class LLMAgentsManager:
         self._callbacks = callbacks
         self._prompt = LLMPromptGenerator(scenario=self._scenario, agents=self._agents_map)
         self._client_factory = ClientFactory()
-        self._clients_map: dict[RunTimeModel, instructor.Instructor] = self.__create_client_map()
+        self._clients_map: dict[RunTimeModel, LLMClientResult] = self.__create_client_map()
 
         self._there_is_a_human_prompt = self.__get_presence_of_human_prompt()
         self._bg_prompt = self.__get_background_prompt()
@@ -43,7 +44,7 @@ class LLMAgentsManager:
         parsed_response = None
 
         ai_model = self._agents_map[agent_id].model
-        client = self._clients_map[ai_model]
+        llm_client = self._clients_map[ai_model]
         output_prompt = self._op_prompt_with_summary if generate_summary else self._op_prompt
 
         # Note: Need to include the instructions in the history
@@ -61,9 +62,9 @@ class LLMAgentsManager:
 
         while tries < AppConfiguration.max_model_retries:
             tries += 1
-            response = await client.chat.completions.create(
+            response = await llm_client.client.chat.completions.create(
                 response_model=None,  # We will handle it ourselves
-                model=ai_model.name,
+                model=llm_client.model,
                 messages=messages
             )
 
@@ -142,9 +143,9 @@ class LLMAgentsManager:
         message = dict(role=role, content=content)
         return message
 
-    def __create_client_map(self) -> dict[RunTimeModel, instructor.Instructor]:
+    def __create_client_map(self) -> dict[RunTimeModel, LLMClientResult]:
         """ Helper method to create a mapping between a model and a client instance """
-        client_map: dict[RunTimeModel, instructor.Instructor] = {}
+        client_map: dict[RunTimeModel, LLMClientResult] = {}
         for agent in self._agents_map.values():
             ai_model = agent.model
             if ai_model not in client_map:

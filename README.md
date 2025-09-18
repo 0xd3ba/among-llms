@@ -29,6 +29,7 @@
 - [Installation Instructions](#installation)
   - [Configuration and Usage](#configuration-and-usage)
   - [Quick Start Guide](#quick-start-guide)
+  - [Currently Supported Models](#currently-supported-models)
   - [Using the Terminal Interface](#using-the-terminal-interface)
 - [Join the Community](#join-the-community)
 
@@ -114,9 +115,10 @@ agents, and personas -- only the messages get wiped. Everything else stays the s
 > Currently, this project only supports **local OpenAI** Ollama models.
 > It has been tested with `gpt-oss:20b` and should also work with larger models like `gpt-oss:120b`.
 > 
-> If you would like to experiment with a different Ollama model -- whether hosted locally or online, please refer to 
-> [Supporting Other Ollama Models](docs/ollama.md) for instructions. Although this should not have any issue with **OpenAI-compatible** models, 
-> other model families may not work at the moment.
+> If you would like to experiment with a different model -- whether hosted locally or online, please refer to 
+> [Supporting Other Models](docs/ollama.md) for instructions. Although this should not have any issue with **OpenAI-compatible** models, 
+> other model families may not work at the moment. Please refer to [Currently Supported Models](#currently-supported-models)
+> section for a list of models supported and known issues with the models.
 
 
 ### Configuration and Usage
@@ -139,6 +141,21 @@ python3 -m allms [{-c | --config} /path/to/config/file]
 > Each time the application is launched, a new log file is created in the default log directory (`./data/logs/`) with 
 > the format `YYYYMMDD_HHMMSS.log`. 
 > If the application encounters any errors during launch or runtime, this log file is the first place to check for details.
+
+
+### Currently Supported Models
+The table below lists the models currently supported by the application.
+While support has been added, this **does not** necessarily guarantee that each model will function without issues.
+Only `gpt-oss:20b` has been extensively tested locally (using `ollama`), and its functionality has been confirmed.
+
+| Model          | Offline Provider | Online Provider(s) |
+|:---------------|:-----------------|:-------------------|
+| `gpt-oss:20b`  | `ollama`         | `openrouter`       |
+| `gpt-oss:120b` | `ollama`         | `openrouter`       |
+
+
+#### Known Issue(s)
+- `openrouter` does not work reliably with `gpt-oss` models, returning malformed responses that do not adhere to the specified output schema.
 
 
 ### Quick Start Guide
