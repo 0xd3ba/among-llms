@@ -47,7 +47,8 @@ or new online model by a different provider) by adding a new entry accordingly. 
 such that it inherits the `LLMBaseClient` or the provider's base client (which in-turn inherits `LLMBaseClient`) and 
 overrides the following method:
     ```python
-    def create_client(model: RunTimeModel) -> LLMClientResult:
+    @classmethod
+    def create_client(cls, model: RunTimeModel) -> LLMClientResult:
         # Return an instance of your LLMClientResult
         # If your model is an online model, extract the API key via os.getenv(model.env_var_api_key)
         # and pass it to the corresponding client accordingly
