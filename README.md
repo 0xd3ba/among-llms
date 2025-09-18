@@ -144,8 +144,8 @@ python3 -m allms [{-c | --config} /path/to/config/file]
 
 
 ### Currently Supported Models
-The table below lists the models currently supported by the application.  
-While support has been added, this **does not** necessarily guarantee that each model will function without issues.  
+The table below lists the models currently supported by the application.
+While support has been added, this **does not** necessarily guarantee that each model will function without issues.
 Only `gpt-oss:20b` has been extensively tested locally (using `ollama`), and its functionality has been confirmed.
 
 | Model          | Offline Provider | Online Provider(s) |
