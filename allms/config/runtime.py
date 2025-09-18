@@ -7,7 +7,7 @@ from pydantic import field_validator, model_validator
 from pydantic.dataclasses import dataclass
 
 from .app import AppConfiguration
-from .models import ModelTypes
+from .types import ModelTypes, ModelProviderTypes
 from .ollama import OllamaConfiguration
 
 
@@ -15,14 +15,28 @@ from .ollama import OllamaConfiguration
 class RunTimeModel:
     name: str
     offline_model: bool
+    provider: str
     reasoning_level: str
     env_var_api_key: str
     offline_server_port: int = OllamaConfiguration.default_local_port
 
     @field_validator("offline_server_port")
     def _validate_port(cls, v: int) -> int:
+        """ Validates the port ensuring it is a positive integer """
         if v < 0:
             raise ValueError(f"The Ollama server port must be a positive integer but got {v} instead")
+        return v
+
+    @field_validator("provider")
+    def _validate_model_provider(cls, v: str) -> str:
+        """ Validates the model provider """
+        _ = ModelProviderTypes(v)  # Will throw ValueError if not present
+        return v
+
+    @field_validator("name")
+    def _validate_model_name(cls, v: str) -> str:
+        """ Validates the model name """
+        _ = ModelTypes(v)  # Will throw ValueError if not present
         return v
 
     @model_validator(mode="after")
@@ -30,7 +44,8 @@ class RunTimeModel:
         # Validate the supplied model configuration
         # 1. Check if the model is supported
         ai_models_map = AppConfiguration.ai_models
-        ai_model_type = ModelTypes(model.name)  # Will throw ValueError if not present
+        ai_model_type = ModelTypes(model.name)
+        provider_type = ModelProviderTypes(model.provider)
 
         if ai_model_type not in ai_models_map:
             raise ValueError(f"{model.name} is not present inside AppConfiguration's supported models. Did you forget to add an entry?")
@@ -42,6 +57,13 @@ class RunTimeModel:
                 raise ValueError(
                     f"{model.name} is requested to be used as an OFFLINE model but the mapping inside AppConfiguration "
                     f"only supports offline={ai_model.offline}, online={ai_model.online}. Did you forget updating it?"
+                )
+
+            # Check if provider is Ollama
+            if not ModelProviderTypes.is_offline_provider(provider_type):
+                raise ValueError(
+                    f"{model.name} is requested to be used as an OFFLINE model but provider is set as {model.provider}. "
+                    f"Expected provider: {ModelProviderTypes.ollama.value}"
                 )
 
         # Online model
@@ -62,6 +84,13 @@ class RunTimeModel:
                 raise ValueError(
                     f"{model.name} is an online model, but the environment variable "
                     f"[{model.env_var_api_key}] is not set or is empty."
+                )
+
+            # 6. Check if the model provider is a supported online provider
+            if not ModelProviderTypes.is_online_provider(provider_type):
+                raise ValueError(
+                    f"{model.name} is requested to be used as an ONLINE model but provider is set as {model.provider}, "
+                    f"which is not supported or not present in ModelProviderTypes"
                 )
 
         # 6. Check if the provided reasoning level is supported

@@ -14,6 +14,7 @@
 use_models:
   - name: gpt-oss:20b            # The name of the model
     offline_model: True          # Is the model offline (hosted locally?) If yes, API key is not needed. Leave it blank, i.e. ""
+    provider: ollama             # The model provider (Must be ollama for offline models. For supported online providers, see README.md)
     reasoning_level: medium      # Reasoning levels supported by the selected model (currently not used)
     env_var_api_key: ""          # The environment variable that will be storing the API key needed for this model (if online)
     # Uncomment and set the following if you are hosting more than one Ollama server locally. It will be using a different port number
@@ -23,6 +24,7 @@ use_models:
     # Copy/paste the structure and add your models
     #  - name:                <your_model_name>
     #    offline_model:       <True or False>
+    #    provider:            <model provider>
     #    reasoning_level:     <whatever it is supported>
     #    env_var_api_key:     <ENV_VAR_HOLDING_THE_API_KEY_FOR_THIS_MODEL> (set to blank string "" for offline models)
     #    offline_server_port: <any_positive_integer> (ignored for online models)
