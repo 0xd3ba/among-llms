@@ -1,5 +1,6 @@
 from __future__ import annotations
 import re
+from dataclasses import field
 from pydantic import field_validator
 from pydantic.dataclasses import dataclass
 
@@ -22,6 +23,12 @@ class CustomTheme:
     warning: str     # Used to indicate a warning. Typically used as a background color
     error: str       # Used to indicate an error. Typically used as a background color
     dark: bool       # Is the theme a dark theme ?
+
+    # Optional additional variables used by textual
+    # IMPORTANT: Be careful while defining the colors as the checks are not applied here due to multiple possible formats of values
+    # Format: {textual_variable: color_value}
+    # Refer to the guide (link above) for more details on the exact textual variables etc.
+    variables: dict[str, str] = field(default_factory=dict)
 
     @field_validator("primary", "secondary", "accent", "foreground", "background", "surface", "success", "warning", "error")
     def _validate_color(cls, v: str) -> str:
