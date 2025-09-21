@@ -2,6 +2,11 @@ from __future__ import annotations
 from enum import Enum
 
 
+class ThemeTypes(str, Enum):
+    """ Class containing the types for the supported custom app themes """
+    ms_dos: str = "ms-dos"
+
+
 class ModelProviderTypes(str, Enum):
     """ Class containing the types for supported model providers """
     ollama: str = "ollama"
