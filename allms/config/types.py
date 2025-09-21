@@ -4,6 +4,24 @@ from enum import Enum
 
 class ThemeTypes(str, Enum):
     """ Class containing the types for the supported custom app themes """
+    # Built-in textual themes
+    textual_dark: str = "textual-dark"
+    textual_light: str = "textual-light"
+    nord: str = "nord"
+    gruvbox: str = "gruvbox"
+    catppuccin_mocha: str = "catppuccin-mocha"
+    dracula: str = "dracula"
+    tokyo_night: str = "tokyo-night"
+    monokai: str = "monokai"
+    flexoki: str = "flexoki"
+    catppuccin_latte: str = "catppuccin-latte"
+    solarized_light: str = "solarized-light"
+
+    # Custom themes from here on
+    # Light themes
+    # TODO: Add custom light themes
+
+    # Dark themes
     ms_dos: str = "ms-dos"
 
 

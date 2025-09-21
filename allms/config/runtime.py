@@ -7,7 +7,7 @@ from pydantic import field_validator, model_validator
 from pydantic.dataclasses import dataclass
 
 from .app import AppConfiguration
-from .types import ModelTypes, ModelProviderTypes
+from .types import ModelTypes, ModelProviderTypes, ThemeTypes
 from .ollama import OllamaConfiguration
 
 
@@ -106,6 +106,7 @@ class RunTimeModel:
 @dataclass(frozen=True)
 class RunTimeConfiguration:
     """ Configuration class holding constants from YAML config file """
+    theme: str
     maximum_agent_count: int
     default_agent_count: int
     response_delay_min_seconds: int
@@ -122,6 +123,13 @@ class RunTimeConfiguration:
 
     def __post_init__(self):
         self.__mkdir(self.save_directory)
+
+    @field_validator("theme")
+    def _validate_theme(cls, v: str) -> str:
+        supported_themes = sorted([t.value for t in ThemeTypes])
+        if v not in ThemeTypes:
+            raise ValueError(f"Provided theme ({v}) is not supported. Supported themes: {supported_themes}")
+        return v
 
     @field_validator("maximum_agent_count", "default_agent_count")
     def _validate_agent_count(cls, v: int) -> int:

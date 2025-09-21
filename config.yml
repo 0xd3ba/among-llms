@@ -1,6 +1,10 @@
 # config.yml -- Configuration file for the application
 # Edit according to your needs
 
+# Theme of the application
+# For list of supported themes, refer to README.md
+theme: monokai
+
 # List of models to use
 # You can use multiple models inside the chatroom (instead of one model to power all the agents).
 # i.e. you can use multiple online models and offline models. You will be allowed to pick a model
